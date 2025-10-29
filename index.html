@@ -919,16 +919,23 @@
             return '';
         }
 
-        // توابع تبدیل
-        function convertGender(gender) {
-            if (gender === 'Female' || gender === 'female' || gender === 'F') return 'زن';
-            if (gender === 'Male' || gender === 'male' || gender === 'M') return 'مرد';
-            return gender || 'مرد';
-        }
-
+        // توابع تبدیل تاریخ
         function convertDateFormat(dateString) {
             if (!dateString) return '';
+            
+            // اگر تاریخ به صورت timestamp باشد (مثل 2023-11-20T20:30:00.000Z)
+            if (dateString.includes('T')) {
+                const date = new Date(dateString);
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+            
+            // اگر تاریخ به فرمت استاندارد باشد
             if (dateString.includes('-')) return dateString;
+            
+            // اگر تاریخ به فرمت slash باشد (مثل 20/11/2023)
             if (dateString.includes('/')) {
                 const parts = dateString.split('/');
                 if (parts.length === 3) {
@@ -938,7 +945,29 @@
                     return `${year}-${month}-${day}`;
                 }
             }
+            
             return dateString;
+        }
+
+        // تابع برای فرمت نمایش تاریخ
+        function formatDateForDisplay(dateString) {
+            if (!dateString) return '-';
+            
+            // اگر تاریخ به فرمت YYYY-MM-DD باشد
+            if (dateString.includes('-')) {
+                const parts = dateString.split('-');
+                if (parts.length === 3) {
+                    return `${parts[2]}/${parts[1]}/${parts[0]}`; // تبدیل به فرمت DD/MM/YYYY
+                }
+            }
+            
+            return dateString;
+        }
+
+        function convertGender(gender) {
+            if (gender === 'Female' || gender === 'female' || gender === 'F') return 'زن';
+            if (gender === 'Male' || gender === 'male' || gender === 'M') return 'مرد';
+            return gender || 'مرد';
         }
 
         function convertPriority(priority) {
@@ -1133,8 +1162,8 @@
                             '<span class="ribbon-btn" onclick="requestPassword(\'' + item.employeeNumber + '\', \'company\')">درخواست وام</span>'
                         }
                     </td>
-                    <td>${item.bankLoanDate || '-'}</td>
-                    <td>${item.companyLoanDate || '-'}</td>
+                    <td>${formatDateForDisplay(item.bankLoanDate)}</td>
+                    <td>${formatDateForDisplay(item.companyLoanDate)}</td>
                     <td>
                         <span class="priority-badge">
                             ${item.priority === '1' ? 'اولویت 1' : 
@@ -1570,6 +1599,7 @@
         window.editEmployee = editEmployee;
         window.debugDataStructure = debugDataStructure;
         window.requestPassword = requestPassword;
+        window.formatDateForDisplay = formatDateForDisplay;
     </script>
 </body>
 </html>
