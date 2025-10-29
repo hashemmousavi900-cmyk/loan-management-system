@@ -744,9 +744,40 @@
         </div>
     </div>
 
+    <div id="passwordModal" class="modal password-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>تأیید هویت</h2>
+                <span class="close" data-modal="passwordModal">&times;</span>
+            </div>
+            <form id="password-form">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="password">رمز عبور</label>
+                        <input type="password" id="password" class="form-control" required>
+                        <input type="hidden" id="target-action">
+                        <input type="hidden" id="target-employee-id">
+                    </div>
+                    <div id="password-error" style="color: red; display: none;">
+                        رمز عبور اشتباه است!
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-modal="passwordModal">لغو</button>
+                    <button type="submit" class="btn btn-success">تأیید</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         // داده‌ها
         let sampleData = [];
+        let isAuthenticated = false;
+        let authExpiryTime = null;
+        let pendingAction = null;
+        let pendingEmployeeId = null;
+        
         const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbymE-RILJ8gCg4vLreCz5wchcQrx-mS5HzCmHEpuOu4RMl58Vma3rZlfJ_Ac1XUQzK0/exec';
 
         // ========== توابع اصلی ==========
@@ -1093,13 +1124,13 @@
                     <td>
                         ${item.bankLoan && item.bankLoan !== 'درخواست داده شده' ? 
                             `<span class="loan-badge loan-bank">${item.bankLoan}</span>` : 
-                            '<span class="ribbon-btn" onclick="toggleLoanRequest(\'' + item.employeeNumber + '\', \'bank\')">درخواست وام</span>'
+                            '<span class="ribbon-btn" onclick="requestPassword(\'' + item.employeeNumber + '\', \'bank\')">درخواست وام</span>'
                         }
                     </td>
                     <td>
                         ${item.companyLoan && item.companyLoan !== 'درخواست داده شده' ? 
                             `<span class="loan-badge loan-company">${item.companyLoan}</span>` : 
-                            '<span class="ribbon-btn" onclick="toggleLoanRequest(\'' + item.employeeNumber + '\', \'company\')">درخواست وام</span>'
+                            '<span class="ribbon-btn" onclick="requestPassword(\'' + item.employeeNumber + '\', \'company\')">درخواست وام</span>'
                         }
                     </td>
                     <td>${item.bankLoanDate || '-'}</td>
@@ -1114,15 +1145,15 @@
                     <td>${loanCount}</td>
                     <td>
                         <span class="ribbon-btn ${item.loanRequest ? 'active' : ''}" 
-                              onclick="toggleLoanRequest('${item.employeeNumber}', 'request')">
+                              onclick="requestPassword('${item.employeeNumber}', 'request')">
                             ${item.loanRequest ? 'درخواست داده شده' : 'درخواست مجدد'}
                         </span>
                     </td>
                     <td>
-                        <a href="#" class="edit" onclick="editEmployee('${item.employeeNumber}')">
+                        <a href="#" class="edit" onclick="requestPassword('${item.employeeNumber}', 'edit')">
                             <i class="fas fa-edit"></i>
                         </a>
-                        <a href="#" class="delete" onclick="deleteEmployee('${item.employeeNumber}')">
+                        <a href="#" class="delete" onclick="requestPassword('${item.employeeNumber}', 'delete')">
                             <i class="fas fa-trash"></i>
                         </a>
                     </td>
@@ -1148,6 +1179,12 @@
             document.getElementById('loan-form').addEventListener('submit', function(e) {
                 e.preventDefault();
                 saveLoan();
+            });
+            
+            // فرم تأیید رمز عبور
+            document.getElementById('password-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                authenticate();
             });
             
             // دکمه ذخیره در ابر
@@ -1252,6 +1289,68 @@
 
         function closeModal(modalId) {
             document.getElementById(modalId).style.display = 'none';
+        }
+
+        // درخواست رمز عبور
+        function requestPassword(employeeNumber, action) {
+            // بررسی اگر کاربر قبلاً احراز هویت شده است
+            if (isAuthenticated && authExpiryTime > Date.now()) {
+                executeAction(employeeNumber, action);
+                return;
+            }
+            
+            pendingAction = action;
+            pendingEmployeeId = employeeNumber;
+            
+            document.getElementById('password').value = '';
+            document.getElementById('target-action').value = action;
+            document.getElementById('target-employee-id').value = employeeNumber;
+            document.getElementById('password-error').style.display = 'none';
+            
+            document.getElementById('passwordModal').style.display = 'block';
+        }
+
+        // احراز هویت
+        function authenticate() {
+            const password = document.getElementById('password').value;
+            const targetAction = document.getElementById('target-action').value;
+            const targetEmployeeId = document.getElementById('target-employee-id').value;
+            
+            // رمز عبور - می‌توانید این را تغییر دهید
+            if (password === '2025') {
+                isAuthenticated = true;
+                authExpiryTime = Date.now() + 30 * 60 * 1000; // 30 دقیقه
+                
+                document.getElementById('password-error').style.display = 'none';
+                closeModal('passwordModal');
+                
+                executeAction(targetEmployeeId, targetAction);
+                
+                showNotification('تأیید هویت موفقیت‌آمیز بود', 'success');
+            } else {
+                document.getElementById('password-error').style.display = 'block';
+            }
+        }
+
+        // اجرای عمل پس از احراز هویت
+        function executeAction(employeeNumber, action) {
+            switch(action) {
+                case 'edit':
+                    editEmployee(employeeNumber);
+                    break;
+                case 'delete':
+                    deleteEmployee(employeeNumber);
+                    break;
+                case 'request':
+                    toggleLoanRequest(employeeNumber, 'request');
+                    break;
+                case 'bank':
+                    toggleLoanRequest(employeeNumber, 'bank');
+                    break;
+                case 'company':
+                    toggleLoanRequest(employeeNumber, 'company');
+                    break;
+            }
         }
 
         // ذخیره وام
@@ -1470,6 +1569,7 @@
         window.toggleLoanRequest = toggleLoanRequest;
         window.editEmployee = editEmployee;
         window.debugDataStructure = debugDataStructure;
+        window.requestPassword = requestPassword;
     </script>
 </body>
 </html>
