@@ -587,13 +587,17 @@
                                     <span>بارگذاری از Google Sheets</span>
                                 </button>
                                 
-                                <button class="btn btn-secondary" onclick="testConnection()">
+                                <button class="btn btn-secondary" id="test-connection-btn">
                                     <i class="fas fa-wifi"></i>
                                     <span>تست ارتباط</span>
                                 </button>
-                                <button class="btn btn-danger" onclick="debugDataStructure()">
+                                <button class="btn btn-danger" id="debug-data-btn">
                                     <i class="fas fa-bug"></i>
                                     <span>نمایش ساختار داده</span>
+                                </button>
+                                <button class="btn btn-info" id="debug-current-data-btn">
+                                    <i class="fas fa-database"></i>
+                                    <span>نمایش داده‌های فعلی</span>
                                 </button>
                             </div>
                         </div>
@@ -986,6 +990,7 @@
             } else {
                 showNotification('خطا در ذخیره‌سازی داده‌ها. داده‌ها در حافظه محلی ذخیره شدند.', 'warning');
             }
+            return success;
         }
 
         // توابع localStorage
@@ -1116,13 +1121,13 @@
                     <td>
                         ${item.bankLoan ? 
                             `<span class="loan-badge loan-bank">${item.bankLoan}</span>` : 
-                            '<span class="ribbon-btn" onclick="toggleLoanRequest('${item.employeeNumber}', 'bank')">درخواست وام</span>'
+                            '<span class="ribbon-btn" onclick="toggleLoanRequest(\'' + item.employeeNumber + '\', \'bank\')">درخواست وام</span>'
                         }
                     </td>
                     <td>
                         ${item.companyLoan ? 
                             `<span class="loan-badge loan-company">${item.companyLoan}</span>` : 
-                            '<span class="ribbon-btn" onclick="toggleLoanRequest('${item.employeeNumber}', 'company')">درخواست وام</span>'
+                            '<span class="ribbon-btn" onclick="toggleLoanRequest(\'' + item.employeeNumber + '\', \'company\')">درخواست وام</span>'
                         }
                     </td>
                     <td>${item.bankLoanDate || '-'}</td>
@@ -1186,12 +1191,33 @@
             
             // دکمه بارگذاری از ابر
             document.getElementById('load-from-cloud').addEventListener('click', function() {
-                loadFromGoogleSheets();
+                if (sampleData.length > 0) {
+                    if (confirm('⚠️ در Google Sheets ' + sampleData.length + ' رکورد موجود است.\n\nاگر ادامه دهید، داده‌های فعلی با داده‌های جدید جایگزین می‌شوند.\n\nآیا مطمئن هستید؟')) {
+                        loadFromGoogleSheets();
+                    }
+                } else {
+                    loadFromGoogleSheets();
+                }
             });
             
             // دکمه خروجی اکسل
             document.getElementById('export-excel').addEventListener('click', function() {
                 exportToExcel();
+            });
+            
+            // دکمه تست ارتباط
+            document.getElementById('test-connection-btn').addEventListener('click', function() {
+                testConnection();
+            });
+            
+            // دکمه نمایش ساختار داده
+            document.getElementById('debug-data-btn').addEventListener('click', function() {
+                debugDataStructure();
+            });
+            
+            // دکمه نمایش داده‌های فعلی
+            document.getElementById('debug-current-data-btn').addEventListener('click', function() {
+                debugCurrentData();
             });
             
             // جستجو
@@ -1227,8 +1253,8 @@
             const filteredData = sampleData.filter(item => {
                 // جستجو
                 const matchesSearch = 
-                    item.fullname.toLowerCase().includes(searchTerm) ||
-                    item.employeeNumber.toLowerCase().includes(searchTerm);
+                    (item.fullname && item.fullname.toLowerCase().includes(searchTerm)) ||
+                    (item.employeeNumber && item.employeeNumber.toLowerCase().includes(searchTerm));
                 
                 // فیلتر نوع وام
                 let matchesLoanType = true;
@@ -1267,6 +1293,11 @@
             const form = document.getElementById('loan-form');
             const employeeNumber = document.getElementById('employee-number').value;
             
+            if (!employeeNumber.trim()) {
+                showNotification('شماره پرسنلی الزامی است', 'error');
+                return;
+            }
+            
             // بررسی تکراری نبودن شماره پرسنلی
             const existingIndex = sampleData.findIndex(item => item.employeeNumber === employeeNumber);
             
@@ -1296,6 +1327,14 @@
             
             renderTable(sampleData);
             saveToLocalStorage();
+            
+            // ذخیره در Google Sheets
+            saveToGoogleSheets().then(success => {
+                if (success) {
+                    console.log('✅ تغییرات در Google Sheets ذخیره شد');
+                }
+            });
+            
             closeModal('addEmployeeModal');
         }
 
@@ -1322,10 +1361,24 @@
         // حذف وام
         function deleteEmployee(employeeNumber) {
             if (confirm('آیا از حذف این وام اطمینان دارید؟')) {
+                const originalLength = sampleData.length;
                 sampleData = sampleData.filter(item => item.employeeNumber !== employeeNumber);
-                renderTable(sampleData);
-                saveToLocalStorage();
-                showNotification('وام با موفقیت حذف شد', 'success');
+                
+                if (sampleData.length < originalLength) {
+                    renderTable(sampleData);
+                    saveToLocalStorage();
+                    
+                    // ذخیره در Google Sheets
+                    saveToGoogleSheets().then(success => {
+                        if (success) {
+                            showNotification('وام با موفقیت حذف شد و در Google Sheets ذخیره شد', 'success');
+                        } else {
+                            showNotification('وام حذف شد اما در Google Sheets ذخیره نشد. داده‌ها در حافظه محلی ذخیره شدند.', 'warning');
+                        }
+                    });
+                } else {
+                    showNotification('خطا در حذف وام', 'error');
+                }
             }
         }
 
@@ -1362,6 +1415,13 @@
                 
                 renderTable(sampleData);
                 saveToLocalStorage();
+                
+                // ذخیره در Google Sheets
+                saveToGoogleSheets().then(success => {
+                    if (success) {
+                        console.log('✅ تغییرات وضعیت وام در Google Sheets ذخیره شد');
+                    }
+                });
             }
         }
 
@@ -1409,20 +1469,49 @@
         }
 
         // تست ارتباط
-        function testConnection() {
+        async function testConnection() {
+            console.log('🔍 تست ارتباط با Google Apps Script...');
             showLoading(true, 'در حال تست ارتباط...');
             
-            setTimeout(() => {
+            try {
+                const result = await googleAppsScriptRequest('loadData');
+                console.log('✅ تست ارتباط موفق:', result);
                 showLoading(false);
-                showNotification('ارتباط با سرور برقرار است', 'success');
+                showNotification('ارتباط با Google Sheets برقرار است', 'success');
                 updateStatus('ارتباط برقرار', 'connected');
-            }, 1000);
+            } catch (error) {
+                console.error('❌ تست ارتباط ناموفق:', error);
+                showLoading(false);
+                showNotification('خطا در ارتباط با Google Sheets', 'error');
+                updateStatus('خطا در ارتباط', 'error');
+            }
         }
 
         // دیباگ ساختار داده
         function debugDataStructure() {
             console.log('🔍 ساختار داده‌ها:', sampleData);
+            console.log('📝 تعداد رکوردها:', sampleData.length);
+            console.log('💾 localStorage:', localStorage.getItem('loanData'));
+            
+            if (sampleData.length > 0) {
+                console.log('📋 ساختار اولین رکورد:', sampleData[0]);
+            }
+            
             alert(`تعداد رکوردها: ${sampleData.length}\n\nساختار داده‌ها در کنسول مرورگر نمایش داده شد.`);
+        }
+
+        // دیباگ داده‌های فعلی
+        function debugCurrentData() {
+            console.log('🔍 داده‌های فعلی:', sampleData);
+            console.log('📝 تعداد رکوردها:', sampleData.length);
+            console.log('💾 localStorage:', localStorage.getItem('loanData'));
+            
+            if (sampleData.length > 0) {
+                console.log('📋 ساختار اولین رکورد:', Object.keys(sampleData[0]));
+                console.log('🔢 شماره‌های پرسنلی موجود:', sampleData.map(item => item.employeeNumber));
+            }
+            
+            alert(`تعداد رکوردها: ${sampleData.length}\n\nبرای جزئیات بیشتر کنسول مرورگر را بررسی کنید.`);
         }
 
         // مدیریت کلیک خارج از مودال
@@ -1431,6 +1520,14 @@
                 event.target.style.display = 'none';
             }
         }
+
+        // توابع global برای تست
+        window.deleteEmployee = deleteEmployee;
+        window.debugCurrentData = debugCurrentData;
+        window.testConnection = testConnection;
+        window.toggleLoanRequest = toggleLoanRequest;
+        window.editEmployee = editEmployee;
+        window.debugDataStructure = debugDataStructure;
     </script>
 </body>
 </html>
