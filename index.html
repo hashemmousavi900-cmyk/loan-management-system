@@ -77,11 +77,11 @@
         }
         
         .filter-section {
-            background: #f8f9fa;
+            background: #d8ebfd;
             padding: 15px;
             border-radius: 8px;
             margin-bottom: 20px;
-            border: 1px solid #e9ecef;
+            border: 1px solid #b8daff;
         }
         
         .filter-row {
@@ -152,7 +152,7 @@
         }
         
         table.table th {
-            background: #f8f9fa;
+            background: #d8ebfd;
             font-weight: 600;
             color: #435d7d;
             font-size: 13px;
@@ -949,21 +949,6 @@
             return dateString;
         }
 
-        // تابع برای فرمت نمایش تاریخ
-        function formatDateForDisplay(dateString) {
-            if (!dateString) return '-';
-            
-            // اگر تاریخ به فرمت YYYY-MM-DD باشد
-            if (dateString.includes('-')) {
-                const parts = dateString.split('-');
-                if (parts.length === 3) {
-                    return `${parts[2]}/${parts[1]}/${parts[0]}`; // تبدیل به فرمت DD/MM/YYYY
-                }
-            }
-            
-            return dateString;
-        }
-
         function convertGender(gender) {
             if (gender === 'Female' || gender === 'female' || gender === 'F') return 'زن';
             if (gender === 'Male' || gender === 'male' || gender === 'M') return 'مرد';
@@ -974,6 +959,16 @@
             if (priority === 'بالا' || priority === 'high' || priority === 'High') return '1';
             if (priority === 'پایین' || priority === 'low' || priority === 'Low') return '3';
             return priority || '2';
+        }
+
+        // تابع برای نمایش اولویت
+        function getPriorityText(priority) {
+            switch(priority) {
+                case '1': return '1 (بالا)';
+                case '2': return '2 (متوسط)';
+                case '3': return '3 (پایین)';
+                default: return priority;
+            }
         }
 
         // ذخیره در Google Sheets
@@ -1140,9 +1135,10 @@
                 else if (item.priority === '2') row.classList.add('priority-medium');
                 else if (item.priority === '3') row.classList.add('priority-low');
                 
-                // محاسبه تعداد وام‌های دریافتی
-                const loanCount = (item.bankLoan && item.bankLoan !== 'درخواست داده شده' ? 1 : 0) + 
-                                 (item.companyLoan && item.companyLoan !== 'درخواست داده شده' ? 1 : 0);
+                // محاسبه تعداد وام‌های دریافتی - خط فاصله جزو وام‌ها حساب نمی‌شود
+                const bankLoanCount = (item.bankLoan && item.bankLoan !== 'درخواست داده شده' && item.bankLoan !== '-' && item.bankLoan.trim() !== '') ? 1 : 0;
+                const companyLoanCount = (item.companyLoan && item.companyLoan !== 'درخواست داده شده' && item.companyLoan !== '-' && item.companyLoan.trim() !== '') ? 1 : 0;
+                const loanCount = bankLoanCount + companyLoanCount;
                 
                 row.innerHTML = `
                     <td>${index + 1}</td>
@@ -1151,23 +1147,22 @@
                     <td>${item.fullname}</td>
                     <td>${item.gender}</td>
                     <td>
-                        ${item.bankLoan && item.bankLoan !== 'درخواست داده شده' ? 
+                        ${item.bankLoan && item.bankLoan !== 'درخواست داده شده' && item.bankLoan !== '-' && item.bankLoan.trim() !== '' ? 
                             `<span class="loan-badge loan-bank">${item.bankLoan}</span>` : 
                             '<span class="ribbon-btn" onclick="requestPassword(\'' + item.employeeNumber + '\', \'bank\')">درخواست وام</span>'
                         }
                     </td>
                     <td>
-                        ${item.companyLoan && item.companyLoan !== 'درخواست داده شده' ? 
+                        ${item.companyLoan && item.companyLoan !== 'درخواست داده شده' && item.companyLoan !== '-' && item.companyLoan.trim() !== '' ? 
                             `<span class="loan-badge loan-company">${item.companyLoan}</span>` : 
                             '<span class="ribbon-btn" onclick="requestPassword(\'' + item.employeeNumber + '\', \'company\')">درخواست وام</span>'
                         }
                     </td>
-                    <td>${formatDateForDisplay(item.bankLoanDate)}</td>
-                    <td>${formatDateForDisplay(item.companyLoanDate)}</td>
+                    <td>${item.bankLoanDate || '-'}</td>
+                    <td>${item.companyLoanDate || '-'}</td>
                     <td>
                         <span class="priority-badge">
-                            ${item.priority === '1' ? 'اولویت 1' : 
-                              item.priority === '2' ? 'اولویت 2' : 'اولویت 3'}
+                            ${getPriorityText(item.priority)}
                         </span>
                     </td>
                     <td>${item.description || '-'}</td>
@@ -1291,9 +1286,9 @@
                 // فیلتر نوع وام
                 let matchesLoanType = true;
                 if (loanTypeFilter === 'bank') {
-                    matchesLoanType = !item.bankLoan || item.bankLoan === 'درخواست داده شده';
+                    matchesLoanType = !item.bankLoan || item.bankLoan === 'درخواست داده شده' || item.bankLoan === '-' || item.bankLoan.trim() === '';
                 } else if (loanTypeFilter === 'company') {
-                    matchesLoanType = !item.companyLoan || item.companyLoan === 'درخواست داده شده';
+                    matchesLoanType = !item.companyLoan || item.companyLoan === 'درخواست داده شده' || item.companyLoan === '-' || item.companyLoan.trim() === '';
                 }
                 
                 // فیلتر وضعیت درخواست
@@ -1490,7 +1485,7 @@
                         'success'
                     );
                 } else if (type === 'bank') {
-                    employee.bankLoan = employee.bankLoan && employee.bankLoan !== 'درخواست داده شده' ? '' : 'درخواست داده شده';
+                    employee.bankLoan = (employee.bankLoan && employee.bankLoan !== 'درخواست داده شده' && employee.bankLoan !== '-' && employee.bankLoan.trim() !== '') ? '' : 'درخواست داده شده';
                     showNotification(
                         employee.bankLoan ? 
                         'درخواست وام بانکی ثبت شد' : 
@@ -1498,7 +1493,7 @@
                         'success'
                     );
                 } else if (type === 'company') {
-                    employee.companyLoan = employee.companyLoan && employee.companyLoan !== 'درخواست داده شده' ? '' : 'درخواست داده شده';
+                    employee.companyLoan = (employee.companyLoan && employee.companyLoan !== 'درخواست داده شده' && employee.companyLoan !== '-' && employee.companyLoan.trim() !== '') ? '' : 'درخواست داده شده';
                     showNotification(
                         employee.companyLoan ? 
                         'درخواست وام شرکتی ثبت شد' : 
@@ -1599,7 +1594,6 @@
         window.editEmployee = editEmployee;
         window.debugDataStructure = debugDataStructure;
         window.requestPassword = requestPassword;
-        window.formatDateForDisplay = formatDateForDisplay;
     </script>
 </body>
 </html>
