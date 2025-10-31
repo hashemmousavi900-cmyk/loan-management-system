@@ -178,14 +178,8 @@
         /* تنظیم اندازه ستون‌های وام */
         table.table th:nth-child(6),
         table.table td:nth-child(6) {
-            width: 120px;
-            min-width: 120px;
-        }
-
-        table.table th:nth-child(7),
-        table.table td:nth-child(7) {
-            width: 120px;
-            min-width: 120px;
+            width: 180px;
+            min-width: 180px;
         }
         
         table.table tr:hover {
@@ -211,6 +205,94 @@
         
         table.table td i {
             font-size: 16px;
+        }
+        
+        /* استایل کارت خلاصه وام */
+        .loan-summary-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 12px;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .loan-summary-card:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        /* نمایش ساده وام در صفحه اصلی */
+        .loan-summary-simple {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .loan-type {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .loan-type .icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: white;
+            font-weight: bold;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .loan-type.bank .icon {
+            background-image: url('https://png.pngtree.com/element_our/png/20181114/bank-icon-png_239804.jpg');
+        }
+
+        .loan-type.company .icon {
+            background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQWFSpwtPhqq4DHGppjq6uV8KdPnS7EOwLoXor37HPyEb_gE6L6_9y3U9WgUq4wM9kt_yc&usqp=CAU');
+        }
+        
+        /* دکمه جزئیات */
+        .details-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .details-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        /* آیکون جزئیات */
+        .details-icon {
+            width: 16px;
+            height: 16px;
+            background-image: url('https://cdn-icons-png.flaticon.com/512/14018/14018830.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
         }
         
         .modal {
@@ -717,8 +799,7 @@
                             <th>شماره پرسنلی</th>
                             <th>نام و نام خانوادگی</th>
                             <th>جنسیت</th>
-                            <th>وام معرفی به بانک</th>
-                            <th>وام شرکتی</th>
+                            <th>وام‌های دریافتی</th>
                             <th>تاریخ دریافت وام معرفی به بانک</th>
                             <th>تاریخ دریافت وام شرکتی</th>
                             <th>اولویت</th>
@@ -1267,24 +1348,46 @@
                 const companyLoanCount = (item.companyLoan && item.companyLoan !== 'درخواست داده شده' && item.companyLoan !== '-' && item.companyLoan.trim() !== '') ? 1 : 0;
                 const loanCount = bankLoanCount + companyLoanCount;
                 
+                // نمایش وام‌ها به صورت یکپارچه - از کد بخش دوم
+                const hasBankLoan = item.bankLoan && item.bankLoan !== 'درخواست داده شده' && item.bankLoan !== '-' && item.bankLoan.trim() !== '';
+                const hasCompanyLoan = item.companyLoan && item.companyLoan !== 'درخواست داده شده' && item.companyLoan !== '-' && item.companyLoan.trim() !== '';
+                
+                let loanSummaryHTML = '';
+                
+                if (hasBankLoan || hasCompanyLoan) {
+                    loanSummaryHTML = '<div class="loan-summary-card">';
+                    loanSummaryHTML += '<div class="loan-summary-simple">';
+                    
+                    if (hasBankLoan) {
+                        loanSummaryHTML += `
+                            <div class="loan-type bank">
+                                <div class="icon"></div>
+                                <span>وام بانکی: ${item.bankLoan}</span>
+                            </div>
+                        `;
+                    }
+                    
+                    if (hasCompanyLoan) {
+                        loanSummaryHTML += `
+                            <div class="loan-type company">
+                                <div class="icon"></div>
+                                <span>وام شرکتی: ${item.companyLoan}</span>
+                            </div>
+                        `;
+                    }
+                    
+                    loanSummaryHTML += '</div></div>';
+                } else {
+                    loanSummaryHTML = '-';
+                }
+                
                 row.innerHTML = `
                     <td>${index + 1}</td>
                     <td>${item.username || '-'}</td>
                     <td>${item.employeeNumber}</td>
                     <td>${item.fullname}</td>
                     <td>${item.gender}</td>
-                    <td>
-                        ${item.bankLoan && item.bankLoan !== 'درخواست داده شده' && item.bankLoan !== '-' && item.bankLoan.trim() !== '' ? 
-                            `<span class="loan-badge loan-bank">${item.bankLoan}</span>` : 
-                            '-'
-                        }
-                    </td>
-                    <td>
-                        ${item.companyLoan && item.companyLoan !== 'درخواست داده شده' && item.companyLoan !== '-' && item.companyLoan.trim() !== '' ? 
-                            `<span class="loan-badge loan-company">${item.companyLoan}</span>` : 
-                            '-'
-                        }
-                    </td>
+                    <td>${loanSummaryHTML}</td>
                     <td>${item.bankLoanDate || '-'}</td>
                     <td>${item.companyLoanDate || '-'}</td>
                     <td>
@@ -1657,6 +1760,3 @@
     </script>
 </body>
 </html>
-
-
-
