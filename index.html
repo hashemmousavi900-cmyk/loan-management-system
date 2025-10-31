@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>سیستم مدیریت وام‌ها - نسخه ابری</title>
+    <title>سیستم مدیریت وام‌ها - CR(Mashhad)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
@@ -22,6 +22,8 @@
             font-weight: 500;
             padding: 20px;
             min-height: 100vh;
+            position: relative;
+            padding-bottom: 60px;
         }
         
         .container {
@@ -43,7 +45,6 @@
         .table-title {
             padding-bottom: 15px;
             margin: 0 0 20px;
-            border-bottom: 1px solid #eee;
         }
         
         .table-title h2 {
@@ -51,13 +52,25 @@
             font-size: 24px;
             font-weight: 600;
             color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .table-title .subtitle {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+        
+        .title-separator {
+            border-bottom: 1px solid #eee;
+            margin-bottom: 15px;
         }
         
         .table-title .btn-group {
             display: flex;
             gap: 10px;
             justify-content: flex-start;
-            margin-top: 10px;
+            margin-top: 15px;
             flex-wrap: wrap;
         }
         
@@ -520,12 +533,13 @@
         .progress-bar {
             width: 0%;
             height: 20px;
-            background-color: #4CAF50;
+            background: linear-gradient(90deg, #4CAF50, #45a049);
             border-radius: 5px;
             text-align: center;
             line-height: 20px;
             color: white;
-            transition: width 0.3s ease;
+            transition: width 0.8s ease-in-out;
+            font-weight: 600;
         }
         
         .empty-state {
@@ -549,6 +563,17 @@
         .empty-state p {
             font-size: 14px;
             margin-bottom: 20px;
+        }
+        
+        .footer {
+            position: absolute;
+            bottom: 10px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            color: rgba(0, 0, 0, 0.6);
+            font-size: 11px;
+            padding: 10px;
         }
         
         @keyframes spin {
@@ -587,6 +612,15 @@
                 gap: 10px;
                 align-items: flex-start;
             }
+            
+            .footer {
+                position: relative;
+                margin-top: 20px;
+            }
+            
+            body {
+                padding-bottom: 20px;
+            }
         }
     </style>
 </head>
@@ -595,49 +629,48 @@
         <div class="table-responsive">
             <div class="table-wrapper">
                 <div class="table-title">
-                    <div class="row">
-                        <div class="col-sm-12">
-                            <h2>سیستم مدیریت وام‌ها - نسخه ابری</h2>
-                            <div class="cloud-status" id="cloud-status" style="display: none;">
-                                <div class="status-indicator">
-                                    <div class="status-dot" id="status-dot"></div>
-                                    <span id="status-text">در حال بارگذاری...</span>
-                                </div>
-                            </div>
-                            
-                            <div class="btn-group">
-                                <button class="btn btn-success" id="add-loan-btn">
-                                    <i class="fas fa-plus"></i> 
-                                    <span>افزودن وام جدید</span>
-                                </button>
-                                <button class="btn btn-warning" id="export-excel">
-                                    <i class="fas fa-file-excel"></i>
-                                    <span>خروجی اکسل</span>
-                                </button>
-                                
-                                <!-- دکمه‌های غیرفعال شده -->
-                                <button class="btn btn-info hidden" id="save-to-cloud">
-                                    <i class="fas fa-cloud-upload-alt"></i>
-                                    <span>ذخیره در Google Sheets</span>
-                                </button>
-                                <button class="btn btn-primary hidden" id="load-from-cloud">
-                                    <i class="fas fa-cloud-download-alt"></i>
-                                    <span>بارگذاری از Google Sheets</span>
-                                </button>
-                                <button class="btn btn-secondary hidden" id="test-connection-btn">
-                                    <i class="fas fa-wifi"></i>
-                                    <span>تست ارتباط</span>
-                                </button>
-                                <button class="btn btn-danger hidden" id="debug-data-btn">
-                                    <i class="fas fa-bug"></i>
-                                    <span>نمایش ساختار داده</span>
-                                </button>
-                                <button class="btn btn-info hidden" id="debug-current-data-btn">
-                                    <i class="fas fa-database"></i>
-                                    <span>نمایش داده‌های فعلی</span>
-                                </button>
-                            </div>
+                    <h2>سیستم مدیریت وام‌ها - CR(Mashhad)</h2>
+                    <div class="subtitle">سیستم مدیریت وام</div>
+                    <div class="title-separator"></div>
+                    
+                    <div class="cloud-status" id="cloud-status" style="display: none;">
+                        <div class="status-indicator">
+                            <div class="status-dot" id="status-dot"></div>
+                            <span id="status-text">در حال بارگذاری...</span>
                         </div>
+                    </div>
+                    
+                    <div class="btn-group">
+                        <button class="btn btn-success" id="add-loan-btn">
+                            <i class="fas fa-plus"></i> 
+                            <span>افزودن وام جدید</span>
+                        </button>
+                        <button class="btn btn-warning" id="export-excel">
+                            <i class="fas fa-file-excel"></i>
+                            <span>خروجی اکسل</span>
+                        </button>
+                        
+                        <!-- دکمه‌های غیرفعال شده -->
+                        <button class="btn btn-info hidden" id="save-to-cloud">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <span>ذخیره در Google Sheets</span>
+                        </button>
+                        <button class="btn btn-primary hidden" id="load-from-cloud">
+                            <i class="fas fa-cloud-download-alt"></i>
+                            <span>بارگذاری از Google Sheets</span>
+                        </button>
+                        <button class="btn btn-secondary hidden" id="test-connection-btn">
+                            <i class="fas fa-wifi"></i>
+                            <span>تست ارتباط</span>
+                        </button>
+                        <button class="btn btn-danger hidden" id="debug-data-btn">
+                            <i class="fas fa-bug"></i>
+                            <span>نمایش ساختار داده</span>
+                        </button>
+                        <button class="btn btn-info hidden" id="debug-current-data-btn">
+                            <i class="fas fa-database"></i>
+                            <span>نمایش داده‌های فعلی</span>
+                        </button>
                     </div>
                 </div>
                 
@@ -710,6 +743,10 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <div class="footer">
+        Designed by SeyedHashem Mousavi - 2025
     </div>
     
     <div id="addEmployeeModal" class="modal">
@@ -890,14 +927,24 @@
             document.getElementById('cloud-status').style.display = 'flex';
             
             try {
+                // تاخیر برای نمایش بهتر نوار پیشرفت
+                await new Promise(resolve => setTimeout(resolve, 300));
+                updateProgress(10);
+                
+                await new Promise(resolve => setTimeout(resolve, 200));
                 updateProgress(20);
+                
                 const result = await googleAppsScriptRequest('loadData');
                 console.log('🔍 پاسخ کامل:', result);
                 
-                updateProgress(60);
+                await new Promise(resolve => setTimeout(resolve, 300));
+                updateProgress(40);
                 
                 if (result.success && result.data && Array.isArray(result.data)) {
                     console.log('📊 داده‌های دریافتی:', result.data);
+                    
+                    await new Promise(resolve => setTimeout(resolve, 400));
+                    updateProgress(60);
                     
                     // پردازش داده‌ها با بررسی نام‌ستون‌های مختلف
                     sampleData = result.data.map(item => {
@@ -920,11 +967,14 @@
                     
                     console.log('🎯 داده‌های نهایی:', sampleData);
                     
+                    await new Promise(resolve => setTimeout(resolve, 500));
                     updateProgress(80);
                     
                     if (sampleData.length > 0) {
                         renderTable(sampleData);
                         saveToLocalStorage();
+                        
+                        await new Promise(resolve => setTimeout(resolve, 400));
                         updateProgress(100);
                         
                         // نمایش پیام موقت
@@ -935,7 +985,11 @@
                             document.getElementById('cloud-status').style.display = 'none';
                         }, 3000);
                         
-                        showProgressBar(false);
+                        // تاخیر قبل از پنهان کردن نوار پیشرفت
+                        setTimeout(() => {
+                            showProgressBar(false);
+                        }, 800);
+                        
                         return true;
                     } else {
                         console.log('ℹ️ هیچ داده‌ای برای نمایش وجود ندارد');
