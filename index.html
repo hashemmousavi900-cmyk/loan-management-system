@@ -212,7 +212,7 @@
         .loan-summary-compact {
             display: flex;
             flex-direction: column;
-            gap: 4px;
+            gap: 1px; /* کاهش گپ از 4px به 1px */
             font-size: 11px;
             line-height: 1.3;
         }
@@ -252,6 +252,70 @@
 
         .loan-type-compact.company .icon {
             background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQWFSpwtPhqq4DHGppjq6uV8KdPnS7EOwLoXor37HPyEb_gE6L6_9y3U9WgUq4wM9kt_yc&usqp=CAU');
+        }
+        
+        /* پاپ‌آپ با هاور */
+        .loan-popup {
+            display: none;
+            position: fixed;
+            background: white;
+            border-radius: 8px;
+            padding: 12px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            z-index: 9999;
+            width: 260px;
+            border: 1px solid #e1e8ed;
+            animation: fadeIn 0.2s ease;
+            font-size: 12px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .loan-popup::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            right: 15px;
+            border-width: 0 8px 8px 8px;
+            border-style: solid;
+            border-color: transparent transparent white transparent;
+        }
+
+        .popup-title {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #eee;
+            text-align: center;
+            font-size: 13px;
+        }
+
+        .popup-item {
+            padding: 6px 0;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .popup-item:last-child {
+            border-bottom: none;
+        }
+
+        .popup-name {
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 12px;
+        }
+
+        .popup-amount {
+            color: #27ae60;
+            font-weight: bold;
+            font-size: 12px;
         }
         
         .modal {
@@ -906,7 +970,80 @@
             console.log('🚀 سیستم مدیریت وام بارگذاری شد');
             setupEventListeners();
             loadFromGoogleSheets();
+            
+            // فعال کردن پاپ‌آپ با هاور
+            setupHoverPopups();
         });
+
+        // فعال کردن پاپ‌آپ با هاور
+        function setupHoverPopups() {
+            document.addEventListener('mouseover', function(e) {
+                const loanCard = e.target.closest('.loan-summary-compact');
+                if (loanCard) {
+                    const row = loanCard.closest('tr');
+                    const employeeNumber = row.querySelector('td:nth-child(3)').textContent;
+                    const employee = sampleData.find(item => item.employeeNumber === employeeNumber);
+                    
+                    if (employee) {
+                        showLoanPopup(employee, e.clientX, e.clientY);
+                    }
+                }
+            });
+            
+            document.addEventListener('mouseout', function(e) {
+                const loanCard = e.target.closest('.loan-summary-compact');
+                if (loanCard) {
+                    hideLoanPopup();
+                }
+            });
+        }
+
+        // نمایش پاپ‌آپ وام
+        function showLoanPopup(employee, x, y) {
+            let popupHTML = `
+                <div class="popup-title">جزئیات وام‌ها - ${employee.fullname}</div>
+            `;
+            
+            if (employee.bankLoan && employee.bankLoan !== 'درخواست داده شده' && employee.bankLoan !== '-' && employee.bankLoan.trim() !== '') {
+                popupHTML += `
+                    <div class="popup-item">
+                        <span class="popup-name">وام بانکی</span>
+                        <span class="popup-amount">${employee.bankLoan} تومان</span>
+                    </div>
+                `;
+            }
+            
+            if (employee.companyLoan && employee.companyLoan !== 'درخواست داده شده' && employee.companyLoan !== '-' && employee.companyLoan.trim() !== '') {
+                popupHTML += `
+                    <div class="popup-item">
+                        <span class="popup-name">وام شرکتی</span>
+                        <span class="popup-amount">${employee.companyLoan} تومان</span>
+                    </div>
+                `;
+            }
+            
+            // ایجاد پاپ‌آپ پویا
+            let popup = document.getElementById('dynamicLoanPopup');
+            if (!popup) {
+                popup = document.createElement('div');
+                popup.id = 'dynamicLoanPopup';
+                popup.className = 'loan-popup';
+                document.body.appendChild(popup);
+            }
+            
+            popup.innerHTML = popupHTML;
+            popup.style.display = 'block';
+            popup.style.left = (x + 10) + 'px';
+            popup.style.top = (y + 10) + 'px';
+        }
+
+        // مخفی کردن پاپ‌آپ
+        function hideLoanPopup() {
+            const popup = document.getElementById('dynamicLoanPopup');
+            if (popup) {
+                popup.style.display = 'none';
+            }
+        }
 
         // درخواست به Google Apps Script
         async function googleAppsScriptRequest(action, data = null) {
