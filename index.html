@@ -194,6 +194,7 @@
             outline: none !important;
             margin: 0 3px;
             font-weight: 500;
+            position: relative;
         }
         
         table.table td a.edit {
@@ -210,6 +211,41 @@
         
         table.table td i {
             font-size: 16px;
+        }
+
+        /* استایل tooltip برای آیکون‌ها */
+        .action-tooltip {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            margin-bottom: 5px;
+        }
+
+        .action-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 4px;
+            border-style: solid;
+            border-color: #333 transparent transparent transparent;
+        }
+
+        table.table td a:hover .action-tooltip {
+            opacity: 1;
+            visibility: visible;
         }
 
         /* استایل fallback برای آیکون‌ها */
@@ -475,6 +511,21 @@
             font-weight: 600;
         }
         
+        .priority-high-badge {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .priority-medium-badge {
+            background: #f39c12;
+            color: white;
+        }
+        
+        .priority-low-badge {
+            background: #27ae60;
+            color: white;
+        }
+        
         .loan-badge {
             display: inline-block;
             padding: 4px 8px;
@@ -721,7 +772,7 @@
 
         /* استایل‌های جدید برای مودال جزئیات */
         .details-modal .modal-content {
-            max-width: 700px;
+            max-width: 600px;
         }
 
         .employee-summary {
@@ -734,29 +785,29 @@
         }
 
         .employee-name {
-            font-size: 24px;
+            font-size: 20px;
             font-weight: 700;
             margin-bottom: 5px;
         }
 
         .employee-id {
-            font-size: 16px;
+            font-size: 14px;
             opacity: 0.9;
         }
 
         .total-loans-summary {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
+            grid-template-columns: 1fr;
+            gap: 12px;
             margin-bottom: 20px;
         }
 
         .total-loan-card {
             background: white;
             padding: 15px;
-            border-radius: 10px;
+            border-radius: 8px;
             border-left: 4px solid;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
             text-align: center;
         }
 
@@ -770,30 +821,35 @@
             background: linear-gradient(135deg, #ffffff, #f3f0ff);
         }
 
+        .total-loan-card.total {
+            border-left-color: #27ae60;
+            background: linear-gradient(135deg, #ffffff, #e8f6f3);
+        }
+
         .total-loan-title {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
             color: #333;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
 
         .total-loan-amount {
-            font-size: 20px;
+            font-size: 16px;
             font-weight: 700;
             color: #2d3436;
         }
 
         .loan-details-grid {
             display: grid;
-            gap: 12px;
+            gap: 10px;
         }
 
         .loan-detail-card {
             background: white;
-            padding: 15px;
-            border-radius: 10px;
-            border-left: 4px solid;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 3px solid;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -812,17 +868,17 @@
         .loan-info {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
         }
 
         .loan-icon {
-            width: 40px;
-            height: 40px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
+            font-size: 14px;
             font-weight: bold;
             color: white;
             background-size: cover;
@@ -845,24 +901,24 @@
         .loan-title {
             font-weight: 600;
             color: #333;
-            font-size: 14px;
+            font-size: 13px;
         }
 
         .loan-meta {
-            font-size: 12px;
+            font-size: 11px;
             color: #666;
         }
 
         .loan-amount {
             font-weight: 700;
-            font-size: 16px;
+            font-size: 14px;
             color: #2d3436;
         }
 
         .loan-status {
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 10px;
+            padding: 3px 6px;
+            border-radius: 10px;
+            font-size: 9px;
             font-weight: 600;
         }
 
@@ -916,10 +972,6 @@
             .footer {
                 position: relative;
                 margin-top: 20px;
-            }
-            
-            body {
-                padding-bottom: 20px;
             }
 
             .total-loans-summary {
@@ -1106,9 +1158,9 @@
                     <div class="form-group">
                         <label for="priority">اولویت</label>
                         <select id="priority" class="form-control" required>
-                            <option value="1">اولویت 1 (بالا)</option>
-                            <option value="2">اولویت 2 (متوسط)</option>
-                            <option value="3">اولویت 3 (پایین)</option>
+                            <option value="1">بالا</option>
+                            <option value="2">متوسط</option>
+                            <option value="3">پایین</option>
                         </select>
                     </div>
                     
@@ -1167,11 +1219,15 @@
                 <div class="total-loans-summary">
                     <div class="total-loan-card bank">
                         <div class="total-loan-title">مجموع وام‌های بانکی</div>
-                        <div class="total-loan-amount" id="total-bank-loan">0 تومان</div>
+                        <div class="total-loan-amount" id="total-bank-loan">0 میلیون</div>
                     </div>
                     <div class="total-loan-card company">
                         <div class="total-loan-title">مجموع وام‌های شرکتی</div>
-                        <div class="total-loan-amount" id="total-company-loan">0 تومان</div>
+                        <div class="total-loan-amount" id="total-company-loan">0 میلیون</div>
+                    </div>
+                    <div class="total-loan-card total">
+                        <div class="total-loan-title">مجموع کل وام‌های دریافتی</div>
+                        <div class="total-loan-amount" id="total-all-loan">0 میلیون</div>
                     </div>
                 </div>
 
@@ -1264,7 +1320,7 @@
                 popupHTML += `
                     <div class="popup-item">
                         <span class="popup-name">وام بانکی</span>
-                        <span class="popup-amount">${employee.bankLoan} تومان</span>
+                        <span class="popup-amount">${employee.bankLoan} میلیون</span>
                     </div>
                 `;
             }
@@ -1273,7 +1329,7 @@
                 popupHTML += `
                     <div class="popup-item">
                         <span class="popup-name">وام شرکتی</span>
-                        <span class="popup-amount">${employee.companyLoan} تومان</span>
+                        <span class="popup-amount">${employee.companyLoan} میلیون</span>
                     </div>
                 `;
             }
@@ -1311,44 +1367,56 @@
             document.getElementById('details-employee-id').textContent = `شماره پرسنلی: ${employee.employeeNumber}`;
 
             // محاسبه مجموع وام‌ها
-            const bankLoanAmount = employee.bankLoan && employee.bankLoan !== 'درخواست داده شده' && employee.bankLoan !== '-' && employee.bankLoan.trim() !== '' ? employee.bankLoan : '0';
-            const companyLoanAmount = employee.companyLoan && employee.companyLoan !== 'درخواست داده شده' && employee.companyLoan !== '-' && employee.companyLoan.trim() !== '' ? employee.companyLoan : '0';
+            const bankLoanAmount = employee.bankLoan && employee.bankLoan !== 'درخواست داده شده' && employee.bankLoan !== '-' && employee.bankLoan.trim() !== '' ? 
+                parseFloat(employee.bankLoan.replace(/[^0-9.]/g, '')) || 0 : 0;
+            
+            const companyLoanAmount = employee.companyLoan && employee.companyLoan !== 'درخواست داده شده' && employee.companyLoan !== '-' && employee.companyLoan.trim() !== '' ? 
+                parseFloat(employee.companyLoan.replace(/[^0-9.]/g, '')) || 0 : 0;
 
-            document.getElementById('total-bank-loan').textContent = bankLoanAmount + ' تومان';
-            document.getElementById('total-company-loan').textContent = companyLoanAmount + ' تومان';
+            const totalLoanAmount = bankLoanAmount + companyLoanAmount;
+
+            document.getElementById('total-bank-loan').textContent = formatLoanAmount(bankLoanAmount) + ' میلیون';
+            document.getElementById('total-company-loan').textContent = formatLoanAmount(companyLoanAmount) + ' میلیون';
+            document.getElementById('total-all-loan').textContent = formatLoanAmount(totalLoanAmount) + ' میلیون';
 
             // نمایش جزئیات وام‌ها
             const detailsContainer = document.getElementById('loan-details-container');
             detailsContainer.innerHTML = '';
 
-            if (bankLoanAmount !== '0') {
+            if (bankLoanAmount > 0) {
                 const bankLoanCard = createLoanDetailCard(
                     'bank',
                     'وام معرفی به بانک',
                     `تاریخ دریافت: ${employee.bankLoanDate || 'ثبت نشده'}`,
-                    bankLoanAmount,
+                    formatLoanAmount(bankLoanAmount) + ' میلیون',
                     'فعال'
                 );
                 detailsContainer.appendChild(bankLoanCard);
             }
 
-            if (companyLoanAmount !== '0') {
+            if (companyLoanAmount > 0) {
                 const companyLoanCard = createLoanDetailCard(
                     'company',
                     'وام شرکتی',
                     `تاریخ دریافت: ${employee.companyLoanDate || 'ثبت نشده'}`,
-                    companyLoanAmount,
+                    formatLoanAmount(companyLoanAmount) + ' میلیون',
                     'فعال'
                 );
                 detailsContainer.appendChild(companyLoanCard);
             }
 
-            if (bankLoanAmount === '0' && companyLoanAmount === '0') {
+            if (bankLoanAmount === 0 && companyLoanAmount === 0) {
                 detailsContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: #666;">هیچ وامی ثبت نشده است</div>';
             }
 
             // نمایش مودال
             document.getElementById('loanDetailsModal').style.display = 'block';
+        }
+
+        // فرمت کردن مبلغ وام
+        function formatLoanAmount(amount) {
+            if (amount === 0) return '0';
+            return amount.toLocaleString('fa-IR');
         }
 
         // ایجاد کارت جزئیات وام
@@ -1365,12 +1433,32 @@
                     </div>
                 </div>
                 <div style="text-align: left;">
-                    <div class="loan-amount">${amount} تومان</div>
+                    <div class="loan-amount">${amount}</div>
                     <div class="loan-status status-active">${status}</div>
                 </div>
             `;
             
             return card;
+        }
+
+        // تابع برای نمایش اولویت
+        function getPriorityText(priority) {
+            switch(priority) {
+                case '1': return 'بالا';
+                case '2': return 'متوسط';
+                case '3': return 'پایین';
+                default: return priority;
+            }
+        }
+
+        // تابع برای دریافت کلاس اولویت
+        function getPriorityClass(priority) {
+            switch(priority) {
+                case '1': return 'priority-high-badge';
+                case '2': return 'priority-medium-badge';
+                case '3': return 'priority-low-badge';
+                default: return '';
+            }
         }
 
         // درخواست به Google Apps Script
@@ -1576,16 +1664,6 @@
             if (priority === 'بالا' || priority === 'high' || priority === 'High') return '1';
             if (priority === 'پایین' || priority === 'low' || priority === 'Low') return '3';
             return priority || '2';
-        }
-
-        // تابع برای نمایش اولویت
-        function getPriorityText(priority) {
-            switch(priority) {
-                case '1': return '1 (بالا)';
-                case '2': return '2 (متوسط)';
-                case '3': return '3 (پایین)';
-                default: return priority;
-            }
         }
 
         // مدیریت نوار پیشرفت
@@ -1810,7 +1888,11 @@
                     loanSummaryHTML = '-';
                 }
                 
-                // ایجاد آیکون‌های عملیات با fallback
+                // ایجاد آیکون‌های عملیات با fallback و tooltip
+                const detailsIcon = fontAwesomeLoaded ? 
+                    '<i class="fas fa-info-circle"></i>' : 
+                    '<span class="icon-fallback">جزئیات</span>';
+                
                 const editIcon = fontAwesomeLoaded ? 
                     '<i class="fas fa-edit"></i>' : 
                     '<span class="icon-fallback">ویرایش</span>';
@@ -1818,10 +1900,6 @@
                 const deleteIcon = fontAwesomeLoaded ? 
                     '<i class="fas fa-trash"></i>' : 
                     '<span class="icon-fallback">حذف</span>';
-                
-                const detailsIcon = fontAwesomeLoaded ? 
-                    '<i class="fas fa-info-circle"></i>' : 
-                    '<span class="icon-fallback">جزئیات</span>';
                 
                 row.innerHTML = `
                     <td>${index + 1}</td>
@@ -1833,7 +1911,7 @@
                     <td>${item.bankLoanDate || '-'}</td>
                     <td>${item.companyLoanDate || '-'}</td>
                     <td>
-                        <span class="priority-badge">
+                        <span class="priority-badge ${getPriorityClass(item.priority)}">
                             ${getPriorityText(item.priority)}
                         </span>
                     </td>
@@ -1848,12 +1926,15 @@
                     <td>
                         <a href="#" class="details" onclick="showLoanDetails('${item.employeeNumber}')">
                             ${detailsIcon}
+                            <span class="action-tooltip">جزئیات</span>
                         </a>
                         <a href="#" class="edit" onclick="requestPassword('${item.employeeNumber}', 'edit')">
                             ${editIcon}
+                            <span class="action-tooltip">ویرایش</span>
                         </a>
                         <a href="#" class="delete" onclick="requestPassword('${item.employeeNumber}', 'delete')">
                             ${deleteIcon}
+                            <span class="action-tooltip">حذف</span>
                         </a>
                     </td>
                 `;
