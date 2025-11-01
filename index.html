@@ -207,6 +207,33 @@
         table.table td i {
             font-size: 16px;
         }
+
+        /* استایل fallback برای آیکون‌ها */
+        .icon-fallback {
+            display: none;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .no-fontawesome table.table td a.edit i,
+        .no-fontawesome table.table td a.delete i {
+            display: none;
+        }
+
+        .no-fontawesome table.table td a.edit .icon-fallback,
+        .no-fontawesome table.table td a.delete .icon-fallback {
+            display: inline;
+        }
+
+        table.table td a.edit .icon-fallback::before {
+            content: "✏️";
+            margin-left: 5px;
+        }
+
+        table.table td a.delete .icon-fallback::before {
+            content: "🗑️";
+            margin-left: 5px;
+        }
         
         /* استایل کارت خلاصه وام */
         .loan-summary-compact {
@@ -960,6 +987,7 @@
         let pendingAction = null;
         let pendingEmployeeId = null;
         let isEditing = false;
+        let fontAwesomeLoaded = false;
         
         const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbymE-RILJ8gCg4vLreCz5wchcQrx-mS5HzCmHEpuOu4RMl58Vma3rZlfJ_Ac1XUQzK0/exec';
 
@@ -968,12 +996,34 @@
         // بارگذاری اولیه
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🚀 سیستم مدیریت وام بارگذاری شد');
+            checkFontAwesome();
             setupEventListeners();
             loadFromGoogleSheets();
             
             // فعال کردن پاپ‌آپ با هاور
             setupHoverPopups();
         });
+
+        // بررسی لود شدن Font Awesome
+        function checkFontAwesome() {
+            const testIcon = document.createElement('i');
+            testIcon.className = 'fas fa-check';
+            testIcon.style.visibility = 'hidden';
+            document.body.appendChild(testIcon);
+            
+            setTimeout(() => {
+                const computedStyle = window.getComputedStyle(testIcon);
+                const fontFamily = computedStyle.fontFamily;
+                fontAwesomeLoaded = fontFamily.includes('Font Awesome');
+                
+                if (!fontAwesomeLoaded) {
+                    console.warn('Font Awesome failed to load, using fallback icons');
+                    document.body.classList.add('no-fontawesome');
+                }
+                
+                document.body.removeChild(testIcon);
+            }, 1000);
+        }
 
         // فعال کردن پاپ‌آپ با هاور
         function setupHoverPopups() {
@@ -1377,7 +1427,15 @@
                 align-items: center;
                 gap: 8px;
             `;
-            notification.innerHTML = `<i class="fas ${icon}"></i><span>${message}</span>`;
+            
+            // استفاده از fallback اگر فونت‌آوسم لود نشده
+            if (fontAwesomeLoaded) {
+                notification.innerHTML = `<i class="fas ${icon}"></i><span>${message}</span>`;
+            } else {
+                const fallbackIcon = type === 'success' ? '✅' : type === 'warning' ? '⚠️' : '❌';
+                notification.innerHTML = `<span>${fallbackIcon} ${message}</span>`;
+            }
+            
             document.body.appendChild(notification);
             setTimeout(() => notification.remove(), 4000);
         }
@@ -1474,6 +1532,15 @@
                     loanSummaryHTML = '-';
                 }
                 
+                // ایجاد آیکون‌های عملیات با fallback
+                const editIcon = fontAwesomeLoaded ? 
+                    '<i class="fas fa-edit"></i>' : 
+                    '<span class="icon-fallback">ویرایش</span>';
+                
+                const deleteIcon = fontAwesomeLoaded ? 
+                    '<i class="fas fa-trash"></i>' : 
+                    '<span class="icon-fallback">حذف</span>';
+                
                 row.innerHTML = `
                     <td>${index + 1}</td>
                     <td>${item.username || '-'}</td>
@@ -1498,10 +1565,10 @@
                     </td>
                     <td>
                         <a href="#" class="edit" onclick="requestPassword('${item.employeeNumber}', 'edit')">
-                            <i class="fas fa-edit"></i>
+                            ${editIcon}
                         </a>
                         <a href="#" class="delete" onclick="requestPassword('${item.employeeNumber}', 'delete')">
-                            <i class="fas fa-trash"></i>
+                            ${deleteIcon}
                         </a>
                     </td>
                 `;
@@ -1862,4 +1929,3 @@
     </script>
 </body>
 </html>
-
