@@ -204,6 +204,10 @@
             color: #F44336;
         }
         
+        table.table td a.details {
+            color: #17a2b8;
+        }
+        
         table.table td i {
             font-size: 16px;
         }
@@ -216,12 +220,14 @@
         }
 
         .no-fontawesome table.table td a.edit i,
-        .no-fontawesome table.table td a.delete i {
+        .no-fontawesome table.table td a.delete i,
+        .no-fontawesome table.table td a.details i {
             display: none;
         }
 
         .no-fontawesome table.table td a.edit .icon-fallback,
-        .no-fontawesome table.table td a.delete .icon-fallback {
+        .no-fontawesome table.table td a.delete .icon-fallback,
+        .no-fontawesome table.table td a.details .icon-fallback {
             display: inline;
         }
 
@@ -232,6 +238,11 @@
 
         table.table td a.delete .icon-fallback::before {
             content: "🗑️";
+            margin-left: 5px;
+        }
+
+        table.table td a.details .icon-fallback::before {
+            content: "📋";
             margin-left: 5px;
         }
         
@@ -707,6 +718,163 @@
             font-size: 11px;
             padding: 10px;
         }
+
+        /* استایل‌های جدید برای مودال جزئیات */
+        .details-modal .modal-content {
+            max-width: 700px;
+        }
+
+        .employee-summary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .employee-name {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .employee-id {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .total-loans-summary {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .total-loan-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .total-loan-card.bank {
+            border-left-color: #3498db;
+            background: linear-gradient(135deg, #ffffff, #e3f2fd);
+        }
+
+        .total-loan-card.company {
+            border-left-color: #9b59b6;
+            background: linear-gradient(135deg, #ffffff, #f3f0ff);
+        }
+
+        .total-loan-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .total-loan-amount {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2d3436;
+        }
+
+        .loan-details-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .loan-detail-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .loan-detail-card.bank {
+            border-left-color: #3498db;
+            background: linear-gradient(135deg, #ffffff, #e3f2fd);
+        }
+
+        .loan-detail-card.company {
+            border-left-color: #9b59b6;
+            background: linear-gradient(135deg, #ffffff, #f3f0ff);
+        }
+
+        .loan-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .loan-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: bold;
+            color: white;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .loan-icon.bank {
+            background-image: url('https://png.pngtree.com/element_our/png/20181114/bank-icon-png_239804.jpg');
+        }
+
+        .loan-icon.company {
+            background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQWFSpwtPhqq4DHGppjq6uV8KdPnS7EOwLoXor37HPyEb_gE6L6_9y3U9WgUq4wM9kt_yc&usqp=CAU');
+        }
+
+        .loan-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .loan-title {
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .loan-meta {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .loan-amount {
+            font-weight: 700;
+            font-size: 16px;
+            color: #2d3436;
+        }
+
+        .loan-status {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: #00b894;
+            color: white;
+        }
+
+        .status-pending {
+            background: #fdcb6e;
+            color: white;
+        }
         
         @keyframes spin {
             0% { transform: rotate(0deg); }
@@ -752,6 +920,10 @@
             
             body {
                 padding-bottom: 20px;
+            }
+
+            .total-loans-summary {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -979,6 +1151,40 @@
         </div>
     </div>
 
+    <!-- مودال جزئیات وام -->
+    <div id="loanDetailsModal" class="modal details-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>جزئیات وام‌های دریافتی</h2>
+                <span class="close" data-modal="loanDetailsModal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="employee-summary">
+                    <div class="employee-name" id="details-employee-name"></div>
+                    <div class="employee-id" id="details-employee-id"></div>
+                </div>
+
+                <div class="total-loans-summary">
+                    <div class="total-loan-card bank">
+                        <div class="total-loan-title">مجموع وام‌های بانکی</div>
+                        <div class="total-loan-amount" id="total-bank-loan">0 تومان</div>
+                    </div>
+                    <div class="total-loan-card company">
+                        <div class="total-loan-title">مجموع وام‌های شرکتی</div>
+                        <div class="total-loan-amount" id="total-company-loan">0 تومان</div>
+                    </div>
+                </div>
+
+                <div class="loan-details-grid" id="loan-details-container">
+                    <!-- جزئیات وام‌ها اینجا نمایش داده می‌شوند -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-modal="loanDetailsModal">بستن</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // داده‌ها
         let sampleData = [];
@@ -1093,6 +1299,78 @@
             if (popup) {
                 popup.style.display = 'none';
             }
+        }
+
+        // نمایش مودال جزئیات
+        function showLoanDetails(employeeNumber) {
+            const employee = sampleData.find(item => item.employeeNumber === employeeNumber);
+            if (!employee) return;
+
+            // پر کردن اطلاعات کارمند
+            document.getElementById('details-employee-name').textContent = employee.fullname;
+            document.getElementById('details-employee-id').textContent = `شماره پرسنلی: ${employee.employeeNumber}`;
+
+            // محاسبه مجموع وام‌ها
+            const bankLoanAmount = employee.bankLoan && employee.bankLoan !== 'درخواست داده شده' && employee.bankLoan !== '-' && employee.bankLoan.trim() !== '' ? employee.bankLoan : '0';
+            const companyLoanAmount = employee.companyLoan && employee.companyLoan !== 'درخواست داده شده' && employee.companyLoan !== '-' && employee.companyLoan.trim() !== '' ? employee.companyLoan : '0';
+
+            document.getElementById('total-bank-loan').textContent = bankLoanAmount + ' تومان';
+            document.getElementById('total-company-loan').textContent = companyLoanAmount + ' تومان';
+
+            // نمایش جزئیات وام‌ها
+            const detailsContainer = document.getElementById('loan-details-container');
+            detailsContainer.innerHTML = '';
+
+            if (bankLoanAmount !== '0') {
+                const bankLoanCard = createLoanDetailCard(
+                    'bank',
+                    'وام معرفی به بانک',
+                    `تاریخ دریافت: ${employee.bankLoanDate || 'ثبت نشده'}`,
+                    bankLoanAmount,
+                    'فعال'
+                );
+                detailsContainer.appendChild(bankLoanCard);
+            }
+
+            if (companyLoanAmount !== '0') {
+                const companyLoanCard = createLoanDetailCard(
+                    'company',
+                    'وام شرکتی',
+                    `تاریخ دریافت: ${employee.companyLoanDate || 'ثبت نشده'}`,
+                    companyLoanAmount,
+                    'فعال'
+                );
+                detailsContainer.appendChild(companyLoanCard);
+            }
+
+            if (bankLoanAmount === '0' && companyLoanAmount === '0') {
+                detailsContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: #666;">هیچ وامی ثبت نشده است</div>';
+            }
+
+            // نمایش مودال
+            document.getElementById('loanDetailsModal').style.display = 'block';
+        }
+
+        // ایجاد کارت جزئیات وام
+        function createLoanDetailCard(type, title, meta, amount, status) {
+            const card = document.createElement('div');
+            card.className = `loan-detail-card ${type}`;
+            
+            card.innerHTML = `
+                <div class="loan-info">
+                    <div class="loan-icon ${type}"></div>
+                    <div class="loan-text">
+                        <div class="loan-title">${title}</div>
+                        <div class="loan-meta">${meta}</div>
+                    </div>
+                </div>
+                <div style="text-align: left;">
+                    <div class="loan-amount">${amount} تومان</div>
+                    <div class="loan-status status-active">${status}</div>
+                </div>
+            `;
+            
+            return card;
         }
 
         // درخواست به Google Apps Script
@@ -1541,6 +1819,10 @@
                     '<i class="fas fa-trash"></i>' : 
                     '<span class="icon-fallback">حذف</span>';
                 
+                const detailsIcon = fontAwesomeLoaded ? 
+                    '<i class="fas fa-info-circle"></i>' : 
+                    '<span class="icon-fallback">جزئیات</span>';
+                
                 row.innerHTML = `
                     <td>${index + 1}</td>
                     <td>${item.username || '-'}</td>
@@ -1564,6 +1846,9 @@
                         </span>
                     </td>
                     <td>
+                        <a href="#" class="details" onclick="showLoanDetails('${item.employeeNumber}')">
+                            ${detailsIcon}
+                        </a>
                         <a href="#" class="edit" onclick="requestPassword('${item.employeeNumber}', 'edit')">
                             ${editIcon}
                         </a>
@@ -1918,13 +2203,11 @@
             }
         }
 
-        // توابع global برای تست
+        // توابع global برای دسترسی از HTML
+        window.showLoanDetails = showLoanDetails;
         window.deleteEmployee = deleteEmployee;
-        window.debugCurrentData = debugCurrentData;
-        window.testConnection = testConnection;
         window.toggleLoanRequest = toggleLoanRequest;
         window.editEmployee = editEmployee;
-        window.debugDataStructure = debugDataStructure;
         window.requestPassword = requestPassword;
     </script>
 </body>
