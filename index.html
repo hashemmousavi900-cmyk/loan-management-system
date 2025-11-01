@@ -410,7 +410,7 @@
             padding: 0;
             border: 1px solid #888;
             width: 90%;
-            max-width: 600px;
+            max-width: 700px;
             border-radius: 10px;
             box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
             max-height: 90vh;
@@ -448,7 +448,7 @@
         }
         
         .modal-body {
-            padding: 15px;
+            padding: 20px;
         }
         
         .modal-footer {
@@ -727,13 +727,31 @@
         .progress-bar {
             width: 0%;
             height: 20px;
-            background: linear-gradient(90deg, #4CAF50, #45a049);
+            background: linear-gradient(90deg, #667eea, #764ba2);
             border-radius: 5px;
             text-align: center;
             line-height: 20px;
             color: white;
             transition: width 0.8s ease-in-out;
             font-weight: 600;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
         }
         
         .empty-state {
@@ -798,87 +816,85 @@
         .total-loans-summary {
             display: grid;
             grid-template-columns: 1fr;
-            gap: 12px;
+            gap: 8px;
             margin-bottom: 20px;
         }
 
         .total-loan-card {
             background: white;
-            padding: 15px;
+            padding: 12px;
             border-radius: 8px;
-            border-left: 4px solid;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            border: 1px solid #e9ecef;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
             text-align: center;
         }
 
         .total-loan-card.bank {
-            border-left-color: #3498db;
-            background: linear-gradient(135deg, #ffffff, #e3f2fd);
+            border-left: 4px solid #3498db;
+            background: #f8f9fa;
         }
 
         .total-loan-card.company {
-            border-left-color: #9b59b6;
-            background: linear-gradient(135deg, #ffffff, #f3f0ff);
+            border-left: 4px solid #9b59b6;
+            background: #f8f9fa;
         }
 
         .total-loan-card.total {
-            border-left-color: #27ae60;
-            background: linear-gradient(135deg, #ffffff, #e8f6f3);
+            border-left: 4px solid #27ae60;
+            background: #f8f9fa;
         }
 
         .total-loan-title {
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 600;
-            color: #333;
-            margin-bottom: 6px;
+            color: #495057;
+            margin-bottom: 4px;
         }
 
         .total-loan-amount {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 700;
             color: #2d3436;
         }
 
         .loan-details-grid {
             display: grid;
-            gap: 10px;
+            gap: 8px;
         }
 
         .loan-detail-card {
             background: white;
-            padding: 12px;
-            border-radius: 8px;
-            border-left: 3px solid;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
         .loan-detail-card.bank {
-            border-left-color: #3498db;
-            background: linear-gradient(135deg, #ffffff, #e3f2fd);
+            border-left: 3px solid #3498db;
         }
 
         .loan-detail-card.company {
-            border-left-color: #9b59b6;
-            background: linear-gradient(135deg, #ffffff, #f3f0ff);
+            border-left: 3px solid #9b59b6;
         }
 
         .loan-info {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
 
         .loan-icon {
-            width: 32px;
-            height: 32px;
+            width: 24px;
+            height: 24px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 14px;
+            font-size: 12px;
             font-weight: bold;
             color: white;
             background-size: cover;
@@ -901,23 +917,23 @@
         .loan-title {
             font-weight: 600;
             color: #333;
-            font-size: 13px;
+            font-size: 12px;
         }
 
         .loan-meta {
-            font-size: 11px;
+            font-size: 10px;
             color: #666;
         }
 
         .loan-amount {
             font-weight: 700;
-            font-size: 14px;
+            font-size: 12px;
             color: #2d3436;
         }
 
         .loan-status {
-            padding: 3px 6px;
-            border-radius: 10px;
+            padding: 2px 6px;
+            border-radius: 8px;
             font-size: 9px;
             font-weight: 600;
         }
@@ -930,6 +946,38 @@
         .status-pending {
             background: #fdcb6e;
             color: white;
+        }
+
+        /* استایل‌های جدید برای فرم‌ها */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .form-grid .form-group {
+            margin-bottom: 0;
+        }
+
+        .form-full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-section {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #e9ecef;
+        }
+
+        .form-section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #dee2e6;
         }
         
         @keyframes spin {
@@ -975,6 +1023,10 @@
             }
 
             .total-loans-summary {
+                grid-template-columns: 1fr;
+            }
+
+            .form-grid {
                 grid-template-columns: 1fr;
             }
         }
@@ -1111,62 +1163,77 @@
                 <span class="close" data-modal="addEmployeeModal">&times;</span>
             </div>
             <form id="loan-form">
-                <div class="modal-body">					
-                    <div class="form-group">
-                        <label for="username">نام کاربری</label>
-                        <input type="text" id="username" class="form-control">
+                <div class="modal-body">
+                    <div class="form-section">
+                        <div class="form-section-title">اطلاعات شخصی</div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="username">نام کاربری</label>
+                                <input type="text" id="username" class="form-control">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="employee-number">شماره پرسنلی</label>
+                                <input type="text" id="employee-number" class="form-control" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="fullname">نام و نام خانوادگی</label>
+                                <input type="text" id="fullname" class="form-control" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="gender">جنسیت</label>
+                                <select id="gender" class="form-control" required>
+                                    <option value="مرد">مرد</option>
+                                    <option value="زن">زن</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
-                    
-                    <div class="form-group">
-                        <label for="employee-number">شماره پرسنلی</label>
-                        <input type="text" id="employee-number" class="form-control" required>
+
+                    <div class="form-section">
+                        <div class="form-section-title">اطلاعات وام</div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="bank-loan">وام معرفی به بانک</label>
+                                <input type="text" id="bank-loan" class="form-control" placeholder="مقدار وام">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="company-loan">وام شرکتی</label>
+                                <input type="text" id="company-loan" class="form-control" placeholder="مقدار وام">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="bank-loan-date">تاریخ دریافت وام بانکی</label>
+                                <input type="date" id="bank-loan-date" class="form-control">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="company-loan-date">تاریخ دریافت وام شرکتی</label>
+                                <input type="date" id="company-loan-date" class="form-control">
+                            </div>
+                        </div>
                     </div>
-                    
-                    <div class="form-group">
-                        <label for="fullname">نام و نام خانوادگی</label>
-                        <input type="text" id="fullname" class="form-control" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="gender">جنسیت</label>
-                        <select id="gender" class="form-control" required>
-                            <option value="مرد">مرد</option>
-                            <option value="زن">زن</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="bank-loan">وام معرفی به بانک</label>
-                        <input type="text" id="bank-loan" class="form-control" placeholder="مقدار وام">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="company-loan">وام شرکتی</label>
-                        <input type="text" id="company-loan" class="form-control" placeholder="مقدار وام">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="bank-loan-date">تاریخ دریافت وام معرفی به بانک</label>
-                        <input type="date" id="bank-loan-date" class="form-control">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="company-loan-date">تاریخ دریافت وام شرکتی</label>
-                        <input type="date" id="company-loan-date" class="form-control">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="priority">اولویت</label>
-                        <select id="priority" class="form-control" required>
-                            <option value="1">بالا</option>
-                            <option value="2">متوسط</option>
-                            <option value="3">پایین</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="description">توضیحات</label>
-                        <textarea id="description" class="form-control"></textarea>
+
+                    <div class="form-section">
+                        <div class="form-section-title">سایر اطلاعات</div>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="priority">اولویت</label>
+                                <select id="priority" class="form-control" required>
+                                    <option value="1">بالا</option>
+                                    <option value="2">متوسط</option>
+                                    <option value="3">پایین</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group form-full-width">
+                                <label for="description">توضیحات</label>
+                                <textarea id="description" class="form-control"></textarea>
+                            </div>
+                        </div>
                     </div>					
                 </div>
                 <div class="modal-footer">
