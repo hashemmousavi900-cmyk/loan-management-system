@@ -1146,6 +1146,39 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
             });
         }
 
+        // تست بارگذاری داده
+        async function testLoadData() {
+            console.log('🧪 شروع تست بارگذاری داده...');
+            showLoading(true, 'در حال تست بارگذاری داده...');
+            
+            try {
+                const result = await googleAppsScriptRequest('loadData');
+                console.log('📊 نتیجه تست بارگذاری:', result);
+                
+                if (result.success && result.data) {
+                    console.log('✅ تست بارگذاری موفق');
+                    console.log('📋 ساختار داده دریافتی:', result.data);
+                    console.log('🔢 تعداد آیتم‌ها:', result.data.length);
+                    
+                    if (result.data.length > 0) {
+                        console.log('📝 آیتم اول:', result.data[0]);
+                        console.log('🔑 کلیدهای آیتم اول:', Object.keys(result.data[0]));
+                    }
+                    
+                    showNotification(`تست بارگذاری موفق - ${result.data.length} آیتم دریافت شد`, 'success');
+                } else {
+                    console.log('❌ تست بارگذاری ناموفق');
+                    showNotification('تست بارگذاری ناموفق', 'error');
+                }
+            } catch (error) {
+                console.error('❌ خطا در تست بارگذاری:', error);
+                showNotification('خطا در تست بارگذاری', 'error');
+            } finally {
+                showLoading(false);
+                updateDebugInfo();
+            }
+        }
+
         // بارگذاری از Google Sheets - نسخه اصلاح شده
         async function loadFromGoogleSheets() {
             showLoading(true, 'در حال بارگذاری از Google Sheets...');
@@ -1346,7 +1379,7 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
             const testLoadBtn = document.getElementById('test-load-btn');
             if (testLoadBtn) {
                 testLoadBtn.addEventListener('click', function() {
-                    loadFromGoogleSheets();
+                    testLoadData();
                 });
             }
 
