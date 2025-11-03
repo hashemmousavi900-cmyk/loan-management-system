@@ -833,20 +833,20 @@
                 if (result.success && result.data && Array.isArray(result.data)) {
                     console.log('📊 داده‌های دریافتی:', result.data);
                     
-                    // پردازش داده‌ها
+                    // پردازش داده‌ها - با ساختار فیلدهای شما سازگار است
                     sampleData = result.data.map(item => {
                         const processedItem = {
                             username: getFieldValue(item, ['Username', 'username', 'USERNAME']),
-                            employeeNumber: String(getFieldValue(item, ['EmployeeNumber', 'employeeNumber', 'Employeenumber', 'EMPLOYEENUMBER'])),
+                            employeeNumber: String(getFieldValue(item, ['Employeenumber', 'employeeNumber', 'EMPLOYEENUMBER'])),
                             fullname: getFieldValue(item, ['Fullname', 'fullname', 'FULLNAME']),
                             gender: convertGender(getFieldValue(item, ['Gender', 'gender', 'GENDER'])),
-                            bankLoan: getFieldValue(item, ['BankLoan', 'bankLoan', 'Bankloan', 'BANKLOAN']),
-                            companyLoan: getFieldValue(item, ['CompanyLoan', 'companyLoan', 'Companyloan', 'COMPANYLOAN']),
-                            bankLoanDate: convertDateFormat(getFieldValue(item, ['BankLoanDate', 'bankLoanDate', 'Bankloandate', 'BANKLOANDATE'])),
-                            companyLoanDate: convertDateFormat(getFieldValue(item, ['CompanyLoanDate', 'companyLoanDate', 'Companyloandate', 'COMPANYLOANDATE'])),
+                            bankLoan: getFieldValue(item, ['Bankloan', 'bankLoan', 'BANKLOAN']),
+                            companyLoan: getFieldValue(item, ['Companyloan', 'companyLoan', 'COMPANYLOAN']),
+                            bankLoanDate: convertDateFormat(getFieldValue(item, ['Bankloandate', 'bankLoanDate', 'BANKLOANDATE'])),
+                            companyLoanDate: convertDateFormat(getFieldValue(item, ['Companyloandate', 'companyLoanDate', 'COMPANYLOANDATE'])),
                             priority: convertPriority(getFieldValue(item, ['Priority', 'priority', 'PRIORITY'])),
                             description: getFieldValue(item, ['Description', 'description', 'DESCRIPTION']),
-                            loanRequest: getFieldValue(item, ['LoanRequest', 'loanRequest', 'loanrequest']) === 'true'
+                            loanRequest: getFieldValue(item, ['Loanrequest', 'loanRequest', 'LOANREQUEST']) === 'true'
                         };
                         
                         return processedItem;
@@ -933,7 +933,7 @@
             }
         }
 
-        // ذخیره در Google Sheets - نسخه اصلاح شده
+        // ذخیره در Google Sheets - نسخه اصلاح شده با ساختار فیلدهای شما
         async function saveToGoogleSheetsReal() {
             if (sampleData.length === 0) {
                 console.log('⚠️ داده‌ای برای ذخیره‌سازی وجود ندارد');
@@ -946,7 +946,24 @@
             showLoading(true, 'در حال ذخیره در Google Sheets...');
             
             try {
-                const result = await googleAppsScriptRequest('saveData', sampleData);
+                // تبدیل داده‌ها به ساختار فیلدهای Google Sheets شما
+                const dataForSheets = sampleData.map(item => ({
+                    Username: item.username || '',
+                    Employeenumber: item.employeeNumber,
+                    Fullname: item.fullname,
+                    Gender: item.gender,
+                    Bankloan: item.bankLoan || '',
+                    Companyloan: item.companyLoan || '',
+                    Bankloandate: item.bankLoanDate || '',
+                    Companyloandate: item.companyLoanDate || '',
+                    Priority: item.priority,
+                    Description: item.description || '',
+                    Loanrequest: item.loanRequest ? 'true' : 'false'
+                }));
+                
+                console.log('📤 داده‌های ارسالی به Google Sheets:', dataForSheets);
+                
+                const result = await googleAppsScriptRequest('saveData', dataForSheets);
                 console.log('✅ پاسخ ذخیره‌سازی:', result);
                 
                 showLoading(false);
