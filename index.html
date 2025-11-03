@@ -812,11 +812,13 @@
             const loading = document.getElementById('loading');
             const loadingText = document.getElementById('loading-text');
             
-            if (show) {
-                loading.style.display = 'block';
-                loadingText.textContent = text;
-            } else {
-                loading.style.display = 'none';
+            if (loading && loadingText) {
+                if (show) {
+                    loading.style.display = 'block';
+                    loadingText.textContent = text;
+                } else {
+                    loading.style.display = 'none';
+                }
             }
         }
 
@@ -847,18 +849,28 @@
 
         // نمایش empty state
         function showEmptyState() {
-            document.querySelector('table.table').style.display = 'none';
-            document.getElementById('empty-state').style.display = 'block';
+            const table = document.querySelector('table.table');
+            const emptyState = document.getElementById('empty-state');
+            if (table && emptyState) {
+                table.style.display = 'none';
+                emptyState.style.display = 'block';
+            }
         }
 
         function hideEmptyState() {
-            document.querySelector('table.table').style.display = 'table';
-            document.getElementById('empty-state').style.display = 'none';
+            const table = document.querySelector('table.table');
+            const emptyState = document.getElementById('empty-state');
+            if (table && emptyState) {
+                table.style.display = 'table';
+                emptyState.style.display = 'none';
+            }
         }
 
         // رندر جدول
         function renderTable(data) {
             const tableBody = document.getElementById('loan-table-body');
+            
+            if (!tableBody) return;
             
             if (!data || data.length === 0) {
                 showEmptyState();
@@ -1359,77 +1371,9 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
 
         // ==================== رویدادها ====================
 
-        function setupDebugEventListeners() {
-            const debugBtn = document.getElementById('debug-btn');
-            if (debugBtn) {
-                debugBtn.addEventListener('click', function() {
-                    const debugPanel = document.getElementById('debug-panel');
-                    debugPanel.style.display = debugPanel.style.display === 'none' ? 'block' : 'none';
-                    updateDebugInfo();
-                });
-            }
-
-            const testSaveBtn = document.getElementById('test-save-btn');
-            if (testSaveBtn) {
-                testSaveBtn.addEventListener('click', function() {
-                    saveToGoogleSheets();
-                });
-            }
-
-            const testLoadBtn = document.getElementById('test-load-btn');
-            if (testLoadBtn) {
-                testLoadBtn.addEventListener('click', function() {
-                    testLoadData();
-                });
-            }
-
-            const addTestDataBtn = document.getElementById('add-test-data-btn');
-            if (addTestDataBtn) {
-                addTestDataBtn.addEventListener('click', function() {
-                    const testData = {
-                        username: 'debug_user_' + Date.now(),
-                        employeeNumber: 'DEBUG' + Date.now(),
-                        fullname: 'کاربر تست دیباگ',
-                        gender: 'مرد',
-                        bankLoan: '10,000,000',
-                        companyLoan: '5,000,000',
-                        bankLoanDate: '2024-01-01',
-                        companyLoanDate: '2024-01-01',
-                        priority: '2',
-                        description: 'این یک رکورد تست دیباگ است',
-                        loanRequest: false
-                    };
-                    
-                    sampleData.push(testData);
-                    renderTable(sampleData);
-                    saveToLocalStorage();
-                    showNotification('داده تست اضافه شد', 'success');
-                    updateDebugInfo();
-                });
-            }
-
-            const clearAllBtn = document.getElementById('clear-all-btn');
-            if (clearAllBtn) {
-                clearAllBtn.addEventListener('click', function() {
-                    if (confirm('⚠️ آیا از پاک کردن تمام داده‌ها اطمینان دارید؟')) {
-                        sampleData = [];
-                        localStorage.removeItem('loanData');
-                        renderTable(sampleData);
-                        showNotification('همه داده‌ها پاک شدند', 'success');
-                        updateDebugInfo();
-                    }
-                });
-            }
-
-            const forceSaveBtn = document.getElementById('force-save-btn');
-            if (forceSaveBtn) {
-                forceSaveBtn.addEventListener('click', function() {
-                    saveToGoogleSheets();
-                });
-            }
-        }
-
         function setupEventListeners() {
+            console.log('🔧 در حال تنظیم event listeners...');
+            
             // رویدادهای اصلی
             const addLoanBtn = document.getElementById('add-loan-btn');
             if (addLoanBtn) {
@@ -1539,7 +1483,78 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
             });
 
             // رویدادهای دیباگ
-            setupDebugEventListeners();
+            const debugBtn = document.getElementById('debug-btn');
+            if (debugBtn) {
+                debugBtn.addEventListener('click', function() {
+                    console.log('🔧 دکمه دیباگ کلیک شد');
+                    const debugPanel = document.getElementById('debug-panel');
+                    if (debugPanel) {
+                        debugPanel.style.display = debugPanel.style.display === 'none' ? 'block' : 'none';
+                        updateDebugInfo();
+                    }
+                });
+            }
+
+            const testSaveBtn = document.getElementById('test-save-btn');
+            if (testSaveBtn) {
+                testSaveBtn.addEventListener('click', function() {
+                    saveToGoogleSheets();
+                });
+            }
+
+            const testLoadBtn = document.getElementById('test-load-btn');
+            if (testLoadBtn) {
+                testLoadBtn.addEventListener('click', function() {
+                    testLoadData();
+                });
+            }
+
+            const addTestDataBtn = document.getElementById('add-test-data-btn');
+            if (addTestDataBtn) {
+                addTestDataBtn.addEventListener('click', function() {
+                    const testData = {
+                        username: 'debug_user_' + Date.now(),
+                        employeeNumber: 'DEBUG' + Date.now(),
+                        fullname: 'کاربر تست دیباگ',
+                        gender: 'مرد',
+                        bankLoan: '10,000,000',
+                        companyLoan: '5,000,000',
+                        bankLoanDate: '2024-01-01',
+                        companyLoanDate: '2024-01-01',
+                        priority: '2',
+                        description: 'این یک رکورد تست دیباگ است',
+                        loanRequest: false
+                    };
+                    
+                    sampleData.push(testData);
+                    renderTable(sampleData);
+                    saveToLocalStorage();
+                    showNotification('داده تست اضافه شد', 'success');
+                    updateDebugInfo();
+                });
+            }
+
+            const clearAllBtn = document.getElementById('clear-all-btn');
+            if (clearAllBtn) {
+                clearAllBtn.addEventListener('click', function() {
+                    if (confirm('⚠️ آیا از پاک کردن تمام داده‌ها اطمینان دارید؟')) {
+                        sampleData = [];
+                        localStorage.removeItem('loanData');
+                        renderTable(sampleData);
+                        showNotification('همه داده‌ها پاک شدند', 'success');
+                        updateDebugInfo();
+                    }
+                });
+            }
+
+            const forceSaveBtn = document.getElementById('force-save-btn');
+            if (forceSaveBtn) {
+                forceSaveBtn.addEventListener('click', function() {
+                    saveToGoogleSheets();
+                });
+            }
+
+            console.log('✅ تمام event listeners تنظیم شدند');
         }
 
         // ==================== توابع عملیاتی ====================
