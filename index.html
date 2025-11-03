@@ -866,17 +866,44 @@
             }
         }
 
-        // رندر جدول
+        // تابع برای نمایش اولویت
+        function getPriorityText(priority) {
+            switch(priority) {
+                case '1': return 'بالا';
+                case '2': return 'متوسط';
+                case '3': return 'پایین';
+                default: return priority;
+            }
+        }
+
+        // تابع برای دریافت کلاس اولویت
+        function getPriorityClass(priority) {
+            switch(priority) {
+                case '1': return 'priority-high-badge';
+                case '2': return 'priority-medium-badge';
+                case '3': return 'priority-low-badge';
+                default: return '';
+            }
+        }
+
+        // رندر جدول - نسخه اصلاح شده
         function renderTable(data) {
             const tableBody = document.getElementById('loan-table-body');
             
-            if (!tableBody) return;
+            if (!tableBody) {
+                console.error('❌ المان loan-table-body یافت نشد');
+                return;
+            }
+            
+            console.log('🎯 شروع رندر جدول با داده:', data);
             
             if (!data || data.length === 0) {
+                console.log('📭 داده‌ای برای نمایش وجود ندارد');
                 showEmptyState();
                 return;
             }
             
+            console.log(`📊 نمایش ${data.length} رکورد در جدول`);
             hideEmptyState();
             tableBody.innerHTML = '';
             
@@ -957,6 +984,8 @@
                 
                 tableBody.appendChild(row);
             });
+            
+            console.log('✅ جدول با موفقیت رندر شد');
         }
 
         // توابع تبدیل
@@ -979,26 +1008,6 @@
             if (priority === 'بالا' || priority === 'high' || priority === 'High') return '1';
             if (priority === 'پایین' || priority === 'low' || priority === 'Low') return '3';
             return priority || '2';
-        }
-
-        // تابع برای نمایش اولویت
-        function getPriorityText(priority) {
-            switch(priority) {
-                case '1': return 'بالا';
-                case '2': return 'متوسط';
-                case '3': return 'پایین';
-                default: return priority;
-            }
-        }
-
-        // تابع برای دریافت کلاس اولویت
-        function getPriorityClass(priority) {
-            switch(priority) {
-                case '1': return 'priority-high-badge';
-                case '2': return 'priority-medium-badge';
-                case '3': return 'priority-low-badge';
-                default: return '';
-            }
         }
 
         // توابع localStorage
