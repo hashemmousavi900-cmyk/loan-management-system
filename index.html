@@ -8,6 +8,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
     <style>
+        /* استایل‌های اصلی بدون تغییر */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -55,12 +56,6 @@
             margin-bottom: 5px;
         }
         
-        .table-title .subtitle {
-            font-size: 14px;
-            color: #666;
-            margin-bottom: 15px;
-        }
-        
         .title-separator {
             border-bottom: 1px solid #eee;
             margin-bottom: 15px;
@@ -89,8 +84,20 @@
             transition: all 0.3s ease;
         }
         
-        .table-title .btn.hidden {
-            display: none;
+        .btn-success {
+            background: #27ae60;
+        }
+        
+        .btn-warning {
+            background: #f39c12;
+        }
+        
+        .btn-primary {
+            background: #3498db;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
         }
         
         .filter-section {
@@ -175,14 +182,6 @@
             font-size: 13px;
         }
         
-        /* تنظیم اندازه ستون وام‌های دریافتی - عرض بیشتر */
-        table.table th:nth-child(6),
-        table.table td:nth-child(6) {
-            width: 220px;
-            min-width: 220px;
-            max-width: 250px;
-        }
-        
         table.table tr:hover {
             background-color: #f5f5f5;
         }
@@ -194,7 +193,6 @@
             outline: none !important;
             margin: 0 3px;
             font-weight: 500;
-            position: relative;
         }
         
         table.table td a.edit {
@@ -209,84 +207,46 @@
             color: #17a2b8;
         }
         
-        table.table td i {
-            font-size: 16px;
-        }
-
-        /* استایل tooltip برای آیکون‌ها */
-        .action-tooltip {
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #333;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            white-space: nowrap;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-            z-index: 1000;
-            margin-bottom: 5px;
-        }
-
-        .action-tooltip::after {
-            content: '';
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            border-width: 4px;
-            border-style: solid;
-            border-color: #333 transparent transparent transparent;
-        }
-
-        table.table td a:hover .action-tooltip {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        /* استایل fallback برای آیکون‌ها */
-        .icon-fallback {
-            display: none;
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .no-fontawesome table.table td a.edit i,
-        .no-fontawesome table.table td a.delete i,
-        .no-fontawesome table.table td a.details i {
-            display: none;
-        }
-
-        .no-fontawesome table.table td a.edit .icon-fallback,
-        .no-fontawesome table.table td a.delete .icon-fallback,
-        .no-fontawesome table.table td a.details .icon-fallback {
-            display: inline;
-        }
-
-        table.table td a.edit .icon-fallback::before {
-            content: "✏️";
-            margin-left: 5px;
-        }
-
-        table.table td a.delete .icon-fallback::before {
-            content: "🗑️";
-            margin-left: 5px;
-        }
-
-        table.table td a.details .icon-fallback::before {
-            content: "📋";
-            margin-left: 5px;
+        /* رفع مشکل رنگ‌بندی اولویت‌ها */
+        .priority-high {
+            background-color: #e8f5e8 !important;
         }
         
-        /* استایل کارت خلاصه وام */
+        .priority-medium {
+            background-color: #ffeaa7 !important;
+        }
+        
+        .priority-low {
+            background-color: #f8f9fa !important;
+        }
+        
+        .priority-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        
+        .priority-high-badge {
+            background: #28a745;
+            color: white;
+        }
+        
+        .priority-medium-badge {
+            background: #f39c12;
+            color: white;
+        }
+        
+        .priority-low-badge {
+            background: #6c757d;
+            color: white;
+        }
+        
         .loan-summary-compact {
             display: flex;
             flex-direction: column;
-            gap: 1px; /* کاهش گپ از 4px به 1px */
+            gap: 1px;
             font-size: 11px;
             line-height: 1.3;
         }
@@ -301,15 +261,6 @@
             border: 1px solid #e9ecef;
         }
 
-        .loan-type-compact .icon {
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background-size: cover;
-            background-position: center;
-            flex-shrink: 0;
-        }
-
         .loan-type-compact.bank {
             background: #e3f2fd;
             border-color: #bbdefb;
@@ -320,76 +271,26 @@
             border-color: #e1bee7;
         }
 
-        .loan-type-compact.bank .icon {
-            background-image: url('https://png.pngtree.com/element_our/png/20181114/bank-icon-png_239804.jpg');
-        }
-
-        .loan-type-compact.company .icon {
-            background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQWFSpwtPhqq4DHGppjq6uV8KdPnS7EOwLoXor37HPyEb_gE6L6_9y3U9WgUq4wM9kt_yc&usqp=CAU');
+        .ribbon-btn {
+            background-color: #f8f9fa;
+            color: #888;
+            padding: 5px 10px;
+            border-radius: 15px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            transition: all 0.3s ease;
+            border: 1px solid #ddd;
+            margin: 0 2px;
+            font-weight: 500;
         }
         
-        /* پاپ‌آپ با هاور */
-        .loan-popup {
-            display: none;
-            position: fixed;
-            background: white;
-            border-radius: 8px;
-            padding: 12px;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-            z-index: 9999;
-            width: 260px;
-            border: 1px solid #e1e8ed;
-            animation: fadeIn 0.2s ease;
-            font-size: 12px;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-5px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .loan-popup::before {
-            content: '';
-            position: absolute;
-            top: -8px;
-            right: 15px;
-            border-width: 0 8px 8px 8px;
-            border-style: solid;
-            border-color: transparent transparent white transparent;
-        }
-
-        .popup-title {
-            font-weight: bold;
-            color: #2c3e50;
-            margin-bottom: 8px;
-            padding-bottom: 6px;
-            border-bottom: 1px solid #eee;
-            text-align: center;
-            font-size: 13px;
-        }
-
-        .popup-item {
-            padding: 6px 0;
-            border-bottom: 1px solid #f0f0f0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .popup-item:last-child {
-            border-bottom: none;
-        }
-
-        .popup-name {
-            font-weight: bold;
-            color: #2c3e50;
-            font-size: 12px;
-        }
-
-        .popup-amount {
-            color: #27ae60;
-            font-weight: bold;
-            font-size: 12px;
+        .ribbon-btn.active {
+            background-color: #27ae60;
+            color: white;
+            border-color: #27ae60;
         }
         
         .modal {
@@ -425,9 +326,6 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 10;
         }
         
         .modal-header h2 {
@@ -443,10 +341,6 @@
             cursor: pointer;
         }
         
-        .close:hover {
-            color: #ddd;
-        }
-        
         .modal-body {
             padding: 20px;
         }
@@ -456,124 +350,14 @@
             background: #f1f1f1;
             border-radius: 0 0 10px 10px;
             text-align: left;
-            position: sticky;
-            bottom: 0;
         }
         
-        .modal .form-control {
-            border-radius: 5px;
-            box-shadow: none;
-            border-color: #dddddd;
+        .form-control {
             width: 100%;
             padding: 8px 10px;
-            font-size: 13px;
-            font-weight: 500;
-        }
-        
-        .modal textarea.form-control {
-            resize: vertical;
-            height: 80px;
-        }
-        
-        .modal .btn {
-            border-radius: 5px;
-            min-width: 80px;
-            font-weight: 500;
-            padding: 8px 12px;
-            font-size: 13px;
-        }	
-        
-        .modal form label {
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 5px;
-            font-size: 13px;
-        }
-        
-        .priority-high {
-            background-color: #ffeaa7 !important;
-        }
-        
-        .priority-medium {
-            background-color: #fab1a0 !important;
-        }
-        
-        .priority-low {
-            background-color: #ff7675 !important;
-            color: white;
-        }
-        
-        .priority-badge {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-        }
-        
-        .priority-high-badge {
-            background: #e74c3c;
-            color: white;
-        }
-        
-        .priority-medium-badge {
-            background: #f39c12;
-            color: white;
-        }
-        
-        .priority-low-badge {
-            background: #27ae60;
-            color: white;
-        }
-        
-        .loan-badge {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 5px;
-            font-size: 11px;
-            font-weight: 600;
-            background-color: #e0e0e0;
-            color: #333;
-        }
-        
-        .loan-bank {
-            background-color: #74b9ff;
-            color: #020101;
-        }
-        
-        .loan-company {
-            background-color: #a29bfe;
-            color: #020101;
-        }
-        
-        .ribbon-btn {
-            background-color: #f8f9fa;
-            color: #888;
-            padding: 5px 10px;
-            border-radius: 15px;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 11px;
-            transition: all 0.3s ease;
             border: 1px solid #ddd;
-            margin: 0 2px;
-            font-weight: 500;
-        }
-        
-        .ribbon-btn:hover {
-            background-color: #e9ecef;
-        }
-        
-        .ribbon-btn.active {
-            background-color: #27ae60;
-            color: white;
-            border-color: #27ae60;
-        }
-        
-        .ribbon-btn.active:hover {
-            background-color: #219653;
+            border-radius: 5px;
+            font-size: 13px;
         }
         
         .form-group {
@@ -587,194 +371,27 @@
             color: #333;
         }
         
-        input, select, textarea {
-            width: 100%;
-            padding: 8px 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 13px;
-            font-weight: 500;
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
         }
         
-        textarea {
-            resize: vertical;
+        .form-section {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #e9ecef;
         }
         
-        .btn {
-            display: inline-block;
-            background: #435d7d;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 5px;
-            cursor: pointer;
+        .form-section-title {
             font-size: 14px;
-            transition: all 0.3s ease;
-            text-align: center;
             font-weight: 600;
-        }
-        
-        .btn:hover {
-            background: #384e6b;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        
-        .btn-success {
-            background: #27ae60;
-        }
-        
-        .btn-success:hover {
-            background: #219653;
-        }
-        
-        .btn-danger {
-            background: #e74c3c;
-        }
-        
-        .btn-danger:hover {
-            background: #c0392b;
-        }
-        
-        .btn-primary {
-            background: #3498db;
-        }
-        
-        .btn-primary:hover {
-            background: #2980b9;
-        }
-        
-        .btn-warning {
-            background: #f39c12;
-        }
-        
-        .btn-warning:hover {
-            background: #e67e22;
-        }
-        
-        .btn-info {
-            background: #17a2b8;
-        }
-        
-        .btn-info:hover {
-            background: #138496;
-        }
-        
-        .btn-secondary {
-            background: #6c757d;
-        }
-        
-        .btn-secondary:hover {
-            background: #5a6268;
-        }
-        
-        .password-modal .modal-content {
-            max-width: 350px;
-        }
-
-        .cloud-status {
-            background: #e8f4fd;
-            border: 1px solid #b8daff;
-            border-radius: 5px;
-            padding: 10px;
-            margin-bottom: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .status-indicator {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .status-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: #28a745;
-        }
-        
-        .status-dot.offline {
-            background: #dc3545;
-        }
-        
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 20px;
-        }
-        
-        .loading-spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #3498db;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 2s linear infinite;
-            margin: 0 auto 10px;
-        }
-        
-        .progress-container {
-            width: 100%;
-            background-color: #f1f1f1;
-            border-radius: 5px;
-            margin: 10px 0;
-            display: none;
-        }
-        
-        .progress-bar {
-            width: 0%;
-            height: 20px;
-            background: linear-gradient(90deg, #667eea, #764ba2);
-            border-radius: 5px;
-            text-align: center;
-            line-height: 20px;
-            color: white;
-            transition: width 0.8s ease-in-out;
-            font-weight: 600;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .progress-bar::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            left: 0;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-            animation: shimmer 2s infinite;
-        }
-
-        @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-        
-        .empty-state {
-            text-align: center;
-            padding: 40px 20px;
-            color: #6c757d;
-        }
-        
-        .empty-state i {
-            font-size: 48px;
-            margin-bottom: 15px;
-            color: #dee2e6;
-        }
-        
-        .empty-state h3 {
-            font-size: 18px;
-            margin-bottom: 10px;
             color: #495057;
-        }
-        
-        .empty-state p {
-            font-size: 14px;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #dee2e6;
         }
         
         .footer {
@@ -788,9 +405,9 @@
             padding: 10px;
         }
 
-        /* استایل‌های جدید برای مودال جزئیات */
+        /* استایل جدید برای بخش جزئیات وام */
         .details-modal .modal-content {
-            max-width: 600px;
+            max-width: 500px;
         }
 
         .employee-summary {
@@ -813,176 +430,153 @@
             opacity: 0.9;
         }
 
-        .total-loans-summary {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 8px;
+        .loan-summary-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #e9ecef;
             margin-bottom: 20px;
         }
 
-        .total-loan-card {
-            background: white;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid #e9ecef;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-
-        .total-loan-card.bank {
-            border-left: 4px solid #3498db;
-            background: #f8f9fa;
-        }
-
-        .total-loan-card.company {
-            border-left: 4px solid #9b59b6;
-            background: #f8f9fa;
-        }
-
-        .total-loan-card.total {
-            border-left: 4px solid #27ae60;
-            background: #f8f9fa;
-        }
-
-        .total-loan-title {
-            font-size: 12px;
-            font-weight: 600;
-            color: #495057;
-            margin-bottom: 4px;
-        }
-
-        .total-loan-amount {
-            font-size: 14px;
-            font-weight: 700;
-            color: #2d3436;
-        }
-
-        .loan-details-grid {
-            display: grid;
-            gap: 8px;
-        }
-
-        .loan-detail-card {
-            background: white;
-            padding: 10px;
-            border-radius: 6px;
-            border: 1px solid #e9ecef;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        .loan-summary-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
 
-        .loan-detail-card.bank {
-            border-left: 3px solid #3498db;
-        }
-
-        .loan-detail-card.company {
-            border-left: 3px solid #9b59b6;
-        }
-
-        .loan-info {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .loan-icon {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: bold;
-            color: white;
-            background-size: cover;
-            background-position: center;
-        }
-
-        .loan-icon.bank {
-            background-image: url('https://png.pngtree.com/element_our/png/20181114/bank-icon-png_239804.jpg');
-        }
-
-        .loan-icon.company {
-            background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQWFSpwtPhqq4DHGppjq6uV8KdPnS7EOwLoXor37HPyEb_gE6L6_9y3U9WgUq4wM9kt_yc&usqp=CAU');
-        }
-
-        .loan-text {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .loan-title {
-            font-weight: 600;
-            color: #333;
-            font-size: 12px;
-        }
-
-        .loan-meta {
-            font-size: 10px;
-            color: #666;
-        }
-
-        .loan-amount {
-            font-weight: 700;
-            font-size: 12px;
-            color: #2d3436;
-        }
-
-        .loan-status {
-            padding: 2px 6px;
+        .loan-summary-row:hover {
+            background-color: #f8f9fa;
             border-radius: 8px;
-            font-size: 9px;
+            padding: 12px;
+        }
+
+        .loan-summary-row:last-child {
+            border-bottom: none;
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 10px;
+            font-weight: bold;
+            cursor: default;
+        }
+
+        .loan-summary-row:last-child:hover {
+            background: #f8f9fa;
+        }
+
+        .loan-summary-label {
             font-weight: 600;
+            color: #495057;
+            font-size: 14px;
         }
 
-        .status-active {
-            background: #00b894;
-            color: white;
+        .loan-summary-amount {
+            font-weight: 700;
+            font-size: 14px;
         }
 
-        .status-pending {
-            background: #fdcb6e;
-            color: white;
+        .loan-summary-amount.bank {
+            color: #3498db;
         }
 
-        /* استایل‌های جدید برای فرم‌ها */
-        .form-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
+        .loan-summary-amount.company {
+            color: #9b59b6;
         }
 
-        .form-grid .form-group {
-            margin-bottom: 0;
+        .loan-summary-amount.total {
+            color: #27ae60;
+            font-size: 16px;
         }
 
-        .form-full-width {
-            grid-column: 1 / -1;
+        .loan-dropdown-arrow {
+            font-size: 16px;
+            color: #6c757d;
+            transition: transform 0.3s ease;
+            margin-right: 10px;
         }
 
-        .form-section {
+        .loan-summary-row.active .loan-dropdown-arrow {
+            transform: rotate(180deg);
+            color: #007bff;
+        }
+
+        .loan-dropdown-content {
+            display: none;
             background: #f8f9fa;
             padding: 15px;
             border-radius: 8px;
-            margin-bottom: 15px;
-            border: 1px solid #e9ecef;
+            margin: 10px 0;
+            border: 1px solid #dee2e6;
         }
 
-        .form-section-title {
-            font-size: 14px;
-            font-weight: 600;
-            color: #495057;
-            margin-bottom: 10px;
-            padding-bottom: 5px;
-            border-bottom: 1px solid #dee2e6;
+        .loan-dropdown-content.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
         }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .loan-detail-line {
+            background: white;
+            border-radius: 8px;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            border-left: 4px solid #28a745;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .loan-detail-line:last-child {
+            margin-bottom: 0;
+        }
+
+        .loan-detail-line.bank {
+            border-left-color: #3498db;
+        }
+
+        .loan-detail-line.company {
+            border-left-color: #9b59b6;
+        }
+
+        .loan-detail-text {
+            color: #495057;
+        }
+
+        .loan-detail-text .amount {
+            font-weight: 700;
+            color: #27ae60;
+        }
+
+        .loan-detail-text .date {
+            color: #6c757d;
+        }
+
+        .separator {
+            color: #dee2e6;
+            margin: 0 8px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6c757d;
+        }
+
+        .cloud-status {
+            background: #e8f4fd;
+            border: 1px solid #b8daff;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 15px;
+            display: none;
         }
         
         @media (max-width: 768px) {
@@ -1011,21 +605,6 @@
                 min-width: 100%;
             }
             
-            .cloud-status {
-                flex-direction: column;
-                gap: 10px;
-                align-items: flex-start;
-            }
-            
-            .footer {
-                position: relative;
-                margin-top: 20px;
-            }
-
-            .total-loans-summary {
-                grid-template-columns: 1fr;
-            }
-
             .form-grid {
                 grid-template-columns: 1fr;
             }
@@ -1038,10 +617,9 @@
             <div class="table-wrapper">
                 <div class="table-title">
                     <h2>سیستم مدیریت وام‌ها - CR(Mashhad)</h2>
-                    <div class="subtitle"> </div>
                     <div class="title-separator"></div>
                     
-                    <div class="cloud-status" id="cloud-status" style="display: none;">
+                    <div class="cloud-status" id="cloud-status">
                         <div class="status-indicator">
                             <div class="status-dot" id="status-dot"></div>
                             <span id="status-text">در حال بارگذاری...</span>
@@ -1057,38 +635,11 @@
                             <i class="fas fa-file-excel"></i>
                             <span>خروجی اکسل</span>
                         </button>
-                        
-                        <!-- دکمه‌های غیرفعال شده -->
-                        <button class="btn btn-info hidden" id="save-to-cloud">
-                            <i class="fas fa-cloud-upload-alt"></i>
-                            <span>ذخیره در Google Sheets</span>
-                        </button>
-                        <button class="btn btn-primary hidden" id="load-from-cloud">
+                        <button class="btn btn-primary" id="load-from-cloud">
                             <i class="fas fa-cloud-download-alt"></i>
                             <span>بارگذاری از Google Sheets</span>
                         </button>
-                        <button class="btn btn-secondary hidden" id="test-connection-btn">
-                            <i class="fas fa-wifi"></i>
-                            <span>تست ارتباط</span>
-                        </button>
-                        <button class="btn btn-danger hidden" id="debug-data-btn">
-                            <i class="fas fa-bug"></i>
-                            <span>نمایش ساختار داده</span>
-                        </button>
-                        <button class="btn btn-info hidden" id="debug-current-data-btn">
-                            <i class="fas fa-database"></i>
-                            <span>نمایش داده‌های فعلی</span>
-                        </button>
                     </div>
-                </div>
-                
-                <div class="progress-container" id="progress-container">
-                    <div class="progress-bar" id="progress-bar">0%</div>
-                </div>
-                
-                <div class="loading" id="loading">
-                    <div class="loading-spinner"></div>
-                    <p id="loading-text">در حال بارگذاری...</p>
                 </div>
                 
                 <div class="filter-section">
@@ -1136,7 +687,6 @@
                         </tr>
                     </thead>
                     <tbody id="loan-table-body">
-                        <!-- داده‌ها اینجا نمایش داده می‌شوند -->
                     </tbody>
                 </table>
                 
@@ -1229,7 +779,7 @@
                                 </select>
                             </div>
                             
-                            <div class="form-group form-full-width">
+                            <div class="form-group">
                                 <label for="description">توضیحات</label>
                                 <textarea id="description" class="form-control"></textarea>
                             </div>
@@ -1239,32 +789,6 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-modal="addEmployeeModal">لغو</button>
                     <button type="submit" class="btn btn-success">ذخیره</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div id="passwordModal" class="modal password-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>تأیید هویت</h2>
-                <span class="close" data-modal="passwordModal">&times;</span>
-            </div>
-            <form id="password-form">
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label for="password">رمز عبور</label>
-                        <input type="password" id="password" class="form-control" required>
-                        <input type="hidden" id="target-action">
-                        <input type="hidden" id="target-employee-id">
-                    </div>
-                    <div id="password-error" style="color: red; display: none;">
-                        رمز عبور اشتباه است!
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-modal="passwordModal">لغو</button>
-                    <button type="submit" class="btn btn-success">تأیید</button>
                 </div>
             </form>
         </div>
@@ -1283,23 +807,34 @@
                     <div class="employee-id" id="details-employee-id"></div>
                 </div>
 
-                <div class="total-loans-summary">
-                    <div class="total-loan-card bank">
-                        <div class="total-loan-title">مجموع وام‌های بانکی</div>
-                        <div class="total-loan-amount" id="total-bank-loan">0 میلیون</div>
+                <!-- بخش خلاصه وام‌ها -->
+                <div class="loan-summary-section">
+                    <div class="loan-summary-row" onclick="toggleLoanDropdown('company')">
+                        <span class="loan-summary-label">وام‌های شرکتی:</span>
+                        <span class="loan-summary-amount company" id="summary-company-loan">0 میلیون</span>
+                        <span class="loan-dropdown-arrow">˅</span>
                     </div>
-                    <div class="total-loan-card company">
-                        <div class="total-loan-title">مجموع وام‌های شرکتی</div>
-                        <div class="total-loan-amount" id="total-company-loan">0 میلیون</div>
+                    <div class="loan-dropdown-content" id="dropdown-company">
+                        <div class="loan-detail-line company" id="detail-company-line">
+                            <!-- محتوای پویا -->
+                        </div>
                     </div>
-                    <div class="total-loan-card total">
-                        <div class="total-loan-title">مجموع کل وام‌های دریافتی</div>
-                        <div class="total-loan-amount" id="total-all-loan">0 میلیون</div>
-                    </div>
-                </div>
 
-                <div class="loan-details-grid" id="loan-details-container">
-                    <!-- جزئیات وام‌ها اینجا نمایش داده می‌شوند -->
+                    <div class="loan-summary-row" onclick="toggleLoanDropdown('bank')">
+                        <span class="loan-summary-label">وام‌های بانکی:</span>
+                        <span class="loan-summary-amount bank" id="summary-bank-loan">0 میلیون</span>
+                        <span class="loan-dropdown-arrow">˅</span>
+                    </div>
+                    <div class="loan-dropdown-content" id="dropdown-bank">
+                        <div class="loan-detail-line bank" id="detail-bank-line">
+                            <!-- محتوای پویا -->
+                        </div>
+                    </div>
+
+                    <div class="loan-summary-row">
+                        <span class="loan-summary-label">مجموع وام‌های دریافتی:</span>
+                        <span class="loan-summary-amount total" id="summary-total-loan">0 میلیون</span>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
@@ -1311,222 +846,14 @@
     <script>
         // داده‌ها
         let sampleData = [];
-        let isAuthenticated = false;
-        let authExpiryTime = null;
-        let pendingAction = null;
-        let pendingEmployeeId = null;
-        let isEditing = false;
-        let fontAwesomeLoaded = false;
-        
         const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbymE-RILJ8gCg4vLreCz5wchcQrx-mS5HzCmHEpuOu4RMl58Vma3rZlfJ_Ac1XUQzK0/exec';
 
-        // ========== توابع اصلی ==========
-        
         // بارگذاری اولیه
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🚀 سیستم مدیریت وام بارگذاری شد');
-            checkFontAwesome();
             setupEventListeners();
             loadFromGoogleSheets();
-            
-            // فعال کردن پاپ‌آپ با هاور
-            setupHoverPopups();
         });
-
-        // بررسی لود شدن Font Awesome
-        function checkFontAwesome() {
-            const testIcon = document.createElement('i');
-            testIcon.className = 'fas fa-check';
-            testIcon.style.visibility = 'hidden';
-            document.body.appendChild(testIcon);
-            
-            setTimeout(() => {
-                const computedStyle = window.getComputedStyle(testIcon);
-                const fontFamily = computedStyle.fontFamily;
-                fontAwesomeLoaded = fontFamily.includes('Font Awesome');
-                
-                if (!fontAwesomeLoaded) {
-                    console.warn('Font Awesome failed to load, using fallback icons');
-                    document.body.classList.add('no-fontawesome');
-                }
-                
-                document.body.removeChild(testIcon);
-            }, 1000);
-        }
-
-        // فعال کردن پاپ‌آپ با هاور
-        function setupHoverPopups() {
-            document.addEventListener('mouseover', function(e) {
-                const loanCard = e.target.closest('.loan-summary-compact');
-                if (loanCard) {
-                    const row = loanCard.closest('tr');
-                    const employeeNumber = row.querySelector('td:nth-child(3)').textContent;
-                    const employee = sampleData.find(item => item.employeeNumber === employeeNumber);
-                    
-                    if (employee) {
-                        showLoanPopup(employee, e.clientX, e.clientY);
-                    }
-                }
-            });
-            
-            document.addEventListener('mouseout', function(e) {
-                const loanCard = e.target.closest('.loan-summary-compact');
-                if (loanCard) {
-                    hideLoanPopup();
-                }
-            });
-        }
-
-        // نمایش پاپ‌آپ وام
-        function showLoanPopup(employee, x, y) {
-            let popupHTML = `
-                <div class="popup-title">جزئیات وام‌ها - ${employee.fullname}</div>
-            `;
-            
-            if (employee.bankLoan && employee.bankLoan !== 'درخواست داده شده' && employee.bankLoan !== '-' && employee.bankLoan.trim() !== '') {
-                popupHTML += `
-                    <div class="popup-item">
-                        <span class="popup-name">وام بانکی</span>
-                        <span class="popup-amount">${employee.bankLoan} میلیون</span>
-                    </div>
-                `;
-            }
-            
-            if (employee.companyLoan && employee.companyLoan !== 'درخواست داده شده' && employee.companyLoan !== '-' && employee.companyLoan.trim() !== '') {
-                popupHTML += `
-                    <div class="popup-item">
-                        <span class="popup-name">وام شرکتی</span>
-                        <span class="popup-amount">${employee.companyLoan} میلیون</span>
-                    </div>
-                `;
-            }
-            
-            // ایجاد پاپ‌آپ پویا
-            let popup = document.getElementById('dynamicLoanPopup');
-            if (!popup) {
-                popup = document.createElement('div');
-                popup.id = 'dynamicLoanPopup';
-                popup.className = 'loan-popup';
-                document.body.appendChild(popup);
-            }
-            
-            popup.innerHTML = popupHTML;
-            popup.style.display = 'block';
-            popup.style.left = (x + 10) + 'px';
-            popup.style.top = (y + 10) + 'px';
-        }
-
-        // مخفی کردن پاپ‌آپ
-        function hideLoanPopup() {
-            const popup = document.getElementById('dynamicLoanPopup');
-            if (popup) {
-                popup.style.display = 'none';
-            }
-        }
-
-        // نمایش مودال جزئیات
-        function showLoanDetails(employeeNumber) {
-            const employee = sampleData.find(item => item.employeeNumber === employeeNumber);
-            if (!employee) return;
-
-            // پر کردن اطلاعات کارمند
-            document.getElementById('details-employee-name').textContent = employee.fullname;
-            document.getElementById('details-employee-id').textContent = `شماره پرسنلی: ${employee.employeeNumber}`;
-
-            // محاسبه مجموع وام‌ها
-            const bankLoanAmount = employee.bankLoan && employee.bankLoan !== 'درخواست داده شده' && employee.bankLoan !== '-' && employee.bankLoan.trim() !== '' ? 
-                parseFloat(employee.bankLoan.replace(/[^0-9.]/g, '')) || 0 : 0;
-            
-            const companyLoanAmount = employee.companyLoan && employee.companyLoan !== 'درخواست داده شده' && employee.companyLoan !== '-' && employee.companyLoan.trim() !== '' ? 
-                parseFloat(employee.companyLoan.replace(/[^0-9.]/g, '')) || 0 : 0;
-
-            const totalLoanAmount = bankLoanAmount + companyLoanAmount;
-
-            document.getElementById('total-bank-loan').textContent = formatLoanAmount(bankLoanAmount) + ' میلیون';
-            document.getElementById('total-company-loan').textContent = formatLoanAmount(companyLoanAmount) + ' میلیون';
-            document.getElementById('total-all-loan').textContent = formatLoanAmount(totalLoanAmount) + ' میلیون';
-
-            // نمایش جزئیات وام‌ها
-            const detailsContainer = document.getElementById('loan-details-container');
-            detailsContainer.innerHTML = '';
-
-            if (bankLoanAmount > 0) {
-                const bankLoanCard = createLoanDetailCard(
-                    'bank',
-                    'وام معرفی به بانک',
-                    `تاریخ دریافت: ${employee.bankLoanDate || 'ثبت نشده'}`,
-                    formatLoanAmount(bankLoanAmount) + ' میلیون',
-                    'فعال'
-                );
-                detailsContainer.appendChild(bankLoanCard);
-            }
-
-            if (companyLoanAmount > 0) {
-                const companyLoanCard = createLoanDetailCard(
-                    'company',
-                    'وام شرکتی',
-                    `تاریخ دریافت: ${employee.companyLoanDate || 'ثبت نشده'}`,
-                    formatLoanAmount(companyLoanAmount) + ' میلیون',
-                    'فعال'
-                );
-                detailsContainer.appendChild(companyLoanCard);
-            }
-
-            if (bankLoanAmount === 0 && companyLoanAmount === 0) {
-                detailsContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: #666;">هیچ وامی ثبت نشده است</div>';
-            }
-
-            // نمایش مودال
-            document.getElementById('loanDetailsModal').style.display = 'block';
-        }
-
-        // فرمت کردن مبلغ وام
-        function formatLoanAmount(amount) {
-            if (amount === 0) return '0';
-            return amount.toLocaleString('fa-IR');
-        }
-
-        // ایجاد کارت جزئیات وام
-        function createLoanDetailCard(type, title, meta, amount, status) {
-            const card = document.createElement('div');
-            card.className = `loan-detail-card ${type}`;
-            
-            card.innerHTML = `
-                <div class="loan-info">
-                    <div class="loan-icon ${type}"></div>
-                    <div class="loan-text">
-                        <div class="loan-title">${title}</div>
-                        <div class="loan-meta">${meta}</div>
-                    </div>
-                </div>
-                <div style="text-align: left;">
-                    <div class="loan-amount">${amount}</div>
-                    <div class="loan-status status-active">${status}</div>
-                </div>
-            `;
-            
-            return card;
-        }
-
-        // تابع برای نمایش اولویت
-        function getPriorityText(priority) {
-            switch(priority) {
-                case '1': return 'بالا';
-                case '2': return 'متوسط';
-                case '3': return 'پایین';
-                default: return priority;
-            }
-        }
-
-        // تابع برای دریافت کلاس اولویت
-        function getPriorityClass(priority) {
-            switch(priority) {
-                case '1': return 'priority-high-badge';
-                case '2': return 'priority-medium-badge';
-                case '3': return 'priority-low-badge';
-                default: return '';
-            }
-        }
 
         // درخواست به Google Apps Script
         async function googleAppsScriptRequest(action, data = null) {
@@ -1583,29 +910,14 @@
 
         // بارگذاری از Google Sheets
         async function loadFromGoogleSheets() {
-            showProgressBar(true);
-            updateProgress(0);
-            document.getElementById('cloud-status').style.display = 'flex';
+            document.getElementById('cloud-status').style.display = 'block';
             
             try {
-                // تاخیر برای نمایش بهتر نوار پیشرفت
-                await new Promise(resolve => setTimeout(resolve, 300));
-                updateProgress(10);
-                
-                await new Promise(resolve => setTimeout(resolve, 200));
-                updateProgress(20);
-                
                 const result = await googleAppsScriptRequest('loadData');
                 console.log('🔍 پاسخ کامل:', result);
                 
-                await new Promise(resolve => setTimeout(resolve, 300));
-                updateProgress(40);
-                
                 if (result.success && result.data && Array.isArray(result.data)) {
                     console.log('📊 داده‌های دریافتی:', result.data);
-                    
-                    await new Promise(resolve => setTimeout(resolve, 400));
-                    updateProgress(60);
                     
                     // پردازش داده‌ها با بررسی نام‌ستون‌های مختلف
                     sampleData = result.data.map(item => {
@@ -1628,15 +940,9 @@
                     
                     console.log('🎯 داده‌های نهایی:', sampleData);
                     
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                    updateProgress(80);
-                    
                     if (sampleData.length > 0) {
                         renderTable(sampleData);
                         saveToLocalStorage();
-                        
-                        await new Promise(resolve => setTimeout(resolve, 400));
-                        updateProgress(100);
                         
                         // نمایش پیام موقت
                         updateStatus(`داده‌ها بارگذاری شدند (${sampleData.length} رکورد)`, 'connected');
@@ -1646,15 +952,9 @@
                             document.getElementById('cloud-status').style.display = 'none';
                         }, 3000);
                         
-                        // تاخیر قبل از پنهان کردن نوار پیشرفت
-                        setTimeout(() => {
-                            showProgressBar(false);
-                        }, 800);
-                        
                         return true;
                     } else {
                         console.log('ℹ️ هیچ داده‌ای برای نمایش وجود ندارد');
-                        showProgressBar(false);
                         showNotification('هیچ داده‌ای در Google Sheets وجود ندارد', 'info');
                         showEmptyState();
                         document.getElementById('cloud-status').style.display = 'none';
@@ -1665,7 +965,6 @@
                 }
             } catch (error) {
                 console.error('❌ خطا در بارگذاری:', error);
-                showProgressBar(false);
                 document.getElementById('cloud-status').style.display = 'none';
                 
                 // استفاده از localStorage به عنوان پشتیبان
@@ -1733,105 +1032,128 @@
             return priority || '2';
         }
 
-        // مدیریت نوار پیشرفت
-        function showProgressBar(show) {
-            const progressContainer = document.getElementById('progress-container');
-            if (show) {
-                progressContainer.style.display = 'block';
+        function updateStatus(message, status) {
+            const statusText = document.getElementById('status-text');
+            const statusDot = document.getElementById('status-dot');
+            
+            statusText.textContent = message;
+            
+            if (status === 'connected') {
+                statusDot.style.background = '#28a745';
+            } else if (status === 'connecting') {
+                statusDot.style.background = '#ffc107';
+            } else if (status === 'error') {
+                statusDot.style.background = '#dc3545';
+            }
+        }
+
+        // نمایش مودال جزئیات
+        function showLoanDetails(employeeNumber) {
+            const employee = sampleData.find(item => item.employeeNumber === employeeNumber);
+            if (!employee) return;
+
+            document.getElementById('details-employee-name').textContent = employee.fullname;
+            document.getElementById('details-employee-id').textContent = `شماره پرسنلی: ${employee.employeeNumber}`;
+
+            // به‌روزرسانی خلاصه وام‌ها
+            updateLoanSummary(employee);
+
+            // نمایش مودال
+            document.getElementById('loanDetailsModal').style.display = 'block';
+        }
+
+        // به‌روزرسانی خلاصه وام‌ها
+        function updateLoanSummary(employee) {
+            const bankLoanAmount = employee.bankLoan && employee.bankLoan !== 'درخواست داده شده' && employee.bankLoan !== '-' && employee.bankLoan.trim() !== '' ? 
+                parseFloat(employee.bankLoan.replace(/[^0-9.]/g, '')) || 0 : 0;
+            
+            const companyLoanAmount = employee.companyLoan && employee.companyLoan !== 'درخواست داده شده' && employee.companyLoan !== '-' && employee.companyLoan.trim() !== '' ? 
+                parseFloat(employee.companyLoan.replace(/[^0-9.]/g, '')) || 0 : 0;
+
+            const totalLoanAmount = bankLoanAmount + companyLoanAmount;
+
+            document.getElementById('summary-bank-loan').textContent = formatLoanAmount(bankLoanAmount) + ' میلیون';
+            document.getElementById('summary-company-loan').textContent = formatLoanAmount(companyLoanAmount) + ' میلیون';
+            document.getElementById('summary-total-loan').textContent = formatLoanAmount(totalLoanAmount) + ' میلیون';
+
+            // به‌روزرسانی جزئیات با فرمت جدید
+            updateLoanDetails(employee, bankLoanAmount, companyLoanAmount);
+        }
+
+        // به‌روزرسانی جزئیات وام با فرمت جدید
+        function updateLoanDetails(employee, bankLoanAmount, companyLoanAmount) {
+            // جزئیات وام بانکی
+            const bankDetailLine = document.getElementById('detail-bank-line');
+            if (bankLoanAmount > 0) {
+                bankDetailLine.innerHTML = `
+                    <span class="loan-detail-text">
+                        مبلغ وام: <span class="amount">${employee.bankLoan} میلیون</span>
+                        <span class="separator">-</span>
+                        تاریخ دریافت: <span class="date">${employee.bankLoanDate || 'ثبت نشده'}</span>
+                    </span>
+                `;
             } else {
-                progressContainer.style.display = 'none';
+                bankDetailLine.innerHTML = '<span class="loan-detail-text">هیچ وام بانکی ثبت نشده است</span>';
+            }
+
+            // جزئیات وام شرکتی
+            const companyDetailLine = document.getElementById('detail-company-line');
+            if (companyLoanAmount > 0) {
+                companyDetailLine.innerHTML = `
+                    <span class="loan-detail-text">
+                        مبلغ وام: <span class="amount">${employee.companyLoan} میلیون</span>
+                        <span class="separator">-</span>
+                        تاریخ دریافت: <span class="date">${employee.companyLoanDate || 'ثبت نشده'}</span>
+                    </span>
+                `;
+            } else {
+                companyDetailLine.innerHTML = '<span class="loan-detail-text">هیچ وام شرکتی ثبت نشده است</span>';
             }
         }
 
-        function updateProgress(percent) {
-            const progressBar = document.getElementById('progress-bar');
-            progressBar.style.width = percent + '%';
-            progressBar.textContent = percent + '%';
-        }
-
-        // ذخیره در Google Sheets
-        async function saveToGoogleSheetsReal() {
-            if (sampleData.length === 0) {
-                console.log('⚠️ داده‌ای برای ذخیره‌سازی وجود ندارد');
-                return true;
-            }
+        // تابع برای باز و بسته کردن دراپ‌دان
+        function toggleLoanDropdown(type) {
+            const dropdown = document.getElementById(`dropdown-${type}`);
+            const row = document.querySelector(`[onclick="toggleLoanDropdown('${type}')"]`);
             
-            console.log('💾 شروع ذخیره‌سازی...');
-            console.log('📊 تعداد داده‌ها:', sampleData.length);
-            
-            showLoading(true, 'در حال ذخیره در Google Sheets...');
-            
-            try {
-                const result = await googleAppsScriptRequest('saveData', sampleData);
-                console.log('✅ پاسخ ذخیره‌سازی:', result);
-                
-                if (result && result.success) {
-                    saveToLocalStorage();
-                    showLoading(false);
-                    return true;
-                } else {
-                    throw new Error(result.error || 'خطا در ذخیره‌سازی');
-                }
-            } catch (error) {
-                console.error('❌ خطا در ذخیره‌سازی:', error);
-                showLoading(false);
-                saveToLocalStorage();
-                return false;
+            if (dropdown.classList.contains('show')) {
+                dropdown.classList.remove('show');
+                row.classList.remove('active');
+            } else {
+                dropdown.classList.add('show');
+                row.classList.add('active');
             }
         }
 
-        async function saveToGoogleSheets() {
-            try {
-                const success = await saveToGoogleSheetsReal();
-                if (success) {
-                    showNotification('تغییرات با موفقیت در Google Sheets ذخیره شدند.', 'success');
-                    return true;
-                } else {
-                    showNotification('خطا در ذخیره‌سازی داده‌ها. داده‌ها در حافظه محلی ذخیره شدند.', 'warning');
-                    return false;
-                }
-            } catch (error) {
-                console.error('❌ خطا در saveToGoogleSheets:', error);
-                showNotification('خطا در ذخیره‌سازی داده‌ها. داده‌ها در حافظه محلی ذخیره شدند.', 'warning');
-                return false;
+        // فرمت کردن مبلغ وام
+        function formatLoanAmount(amount) {
+            if (amount === 0) return '0';
+            return amount.toString();
+        }
+
+        // تابع برای نمایش اولویت
+        function getPriorityText(priority) {
+            switch(priority) {
+                case '1': return 'بالا';
+                case '2': return 'متوسط';
+                case '3': return 'پایین';
+                default: return priority;
             }
         }
 
-        // توابع localStorage
-        function saveToLocalStorage() {
-            try {
-                localStorage.setItem('loanData', JSON.stringify(sampleData));
-                console.log('✅ داده‌ها در localStorage ذخیره شدند');
-                return true;
-            } catch (error) {
-                console.error('❌ خطا در ذخیره localStorage:', error);
-                return false;
+        // تابع برای دریافت کلاس اولویت
+        function getPriorityClass(priority) {
+            switch(priority) {
+                case '1': return 'priority-high-badge';
+                case '2': return 'priority-medium-badge';
+                case '3': return 'priority-low-badge';
+                default: return '';
             }
-        }
-
-        function loadFromLocalStorage() {
-            try {
-                const savedData = localStorage.getItem('loanData');
-                if (savedData) {
-                    sampleData = JSON.parse(savedData);
-                    if (sampleData.length > 0) {
-                        renderTable(sampleData);
-                        console.log('✅ داده‌ها از localStorage بارگذاری شدند');
-                        return true;
-                    }
-                }
-            } catch (error) {
-                console.error('❌ خطا در بارگذاری از localStorage:', error);
-            }
-            return false;
         }
 
         // توابع نمایش
         function showNotification(message, type = 'success') {
-            const backgroundColor = type === 'success' ? '#4CAF50' : 
-                                  type === 'warning' ? '#ff9800' : '#f44336';
-            const icon = type === 'success' ? 'fa-check-circle' : 
-                        type === 'warning' ? 'fa-exclamation-triangle' : 'fa-exclamation-circle';
+            const backgroundColor = type === 'success' ? '#4CAF50' : '#f44336';
             
             const notification = document.createElement('div');
             notification.style.cssText = `
@@ -1846,48 +1168,11 @@
                 box-shadow: 0 2px 10px rgba(0,0,0,0.2);
                 z-index: 10000;
                 font-size: 14px;
-                display: flex;
-                align-items: center;
-                gap: 8px;
             `;
             
-            // استفاده از fallback اگر فونت‌آوسم لود نشده
-            if (fontAwesomeLoaded) {
-                notification.innerHTML = `<i class="fas ${icon}"></i><span>${message}</span>`;
-            } else {
-                const fallbackIcon = type === 'success' ? '✅' : type === 'warning' ? '⚠️' : '❌';
-                notification.innerHTML = `<span>${fallbackIcon} ${message}</span>`;
-            }
-            
+            notification.innerHTML = `<span>${message}</span>`;
             document.body.appendChild(notification);
             setTimeout(() => notification.remove(), 4000);
-        }
-
-        function showLoading(show, text = 'در حال بارگذاری...') {
-            const loading = document.getElementById('loading');
-            const loadingText = document.getElementById('loading-text');
-            
-            if (show) {
-                loading.style.display = 'block';
-                loadingText.textContent = text;
-            } else {
-                loading.style.display = 'none';
-            }
-        }
-
-        function updateStatus(message, status) {
-            const statusText = document.getElementById('status-text');
-            const statusDot = document.getElementById('status-dot');
-            
-            statusText.textContent = message;
-            
-            if (status === 'connected') {
-                statusDot.style.background = '#28a745';
-            } else if (status === 'connecting') {
-                statusDot.style.background = '#ffc107';
-            } else if (status === 'error') {
-                statusDot.style.background = '#dc3545';
-            }
         }
 
         function showEmptyState() {
@@ -1935,7 +1220,6 @@
                     if (companyLoanCount > 0) {
                         loanSummaryHTML += `
                             <div class="loan-type-compact company">
-                                <div class="icon"></div>
                                 <span>وام شرکتی - ${companyLoanCount} وام</span>
                             </div>
                         `;
@@ -1944,7 +1228,6 @@
                     if (bankLoanCount > 0) {
                         loanSummaryHTML += `
                             <div class="loan-type-compact bank">
-                                <div class="icon"></div>
                                 <span>وام بانکی - ${bankLoanCount} وام</span>
                             </div>
                         `;
@@ -1954,19 +1237,6 @@
                 } else {
                     loanSummaryHTML = '-';
                 }
-                
-                // ایجاد آیکون‌های عملیات با fallback و tooltip
-                const detailsIcon = fontAwesomeLoaded ? 
-                    '<i class="fas fa-info-circle"></i>' : 
-                    '<span class="icon-fallback">جزئیات</span>';
-                
-                const editIcon = fontAwesomeLoaded ? 
-                    '<i class="fas fa-edit"></i>' : 
-                    '<span class="icon-fallback">ویرایش</span>';
-                
-                const deleteIcon = fontAwesomeLoaded ? 
-                    '<i class="fas fa-trash"></i>' : 
-                    '<span class="icon-fallback">حذف</span>';
                 
                 row.innerHTML = `
                     <td>${index + 1}</td>
@@ -1986,22 +1256,19 @@
                     <td>${loanCount}</td>
                     <td>
                         <span class="ribbon-btn ${item.loanRequest ? 'active' : ''}" 
-                              onclick="requestPassword('${item.employeeNumber}', 'request')">
+                              onclick="toggleLoanRequest('${item.employeeNumber}')">
                             ${item.loanRequest ? 'درخواست داده شده' : 'درخواست مجدد'}
                         </span>
                     </td>
                     <td>
                         <a href="#" class="details" onclick="showLoanDetails('${item.employeeNumber}')">
-                            ${detailsIcon}
-                            <span class="action-tooltip">جزئیات</span>
+                            <i class="fas fa-info-circle"></i>
                         </a>
-                        <a href="#" class="edit" onclick="requestPassword('${item.employeeNumber}', 'edit')">
-                            ${editIcon}
-                            <span class="action-tooltip">ویرایش</span>
+                        <a href="#" class="edit" onclick="editEmployee('${item.employeeNumber}')">
+                            <i class="fas fa-edit"></i>
                         </a>
-                        <a href="#" class="delete" onclick="requestPassword('${item.employeeNumber}', 'delete')">
-                            ${deleteIcon}
-                            <span class="action-tooltip">حذف</span>
+                        <a href="#" class="delete" onclick="deleteEmployee('${item.employeeNumber}')">
+                            <i class="fas fa-trash"></i>
                         </a>
                     </td>
                 `;
@@ -2012,86 +1279,43 @@
 
         // فیلتر و جستجو
         function setupEventListeners() {
-            // دکمه افزودن وام جدید
             document.getElementById('add-loan-btn').addEventListener('click', function() {
-                isEditing = false;
                 document.getElementById('modal-title').textContent = 'افزودن وام جدید';
                 document.getElementById('loan-form').reset();
                 openAddModal();
             });
             
-            // دکمه افزودن اولین وام
             document.getElementById('add-first-loan').addEventListener('click', function() {
-                isEditing = false;
                 document.getElementById('modal-title').textContent = 'افزودن وام جدید';
                 document.getElementById('loan-form').reset();
                 openAddModal();
             });
             
-            // فرم افزودن وام
             document.getElementById('loan-form').addEventListener('submit', function(e) {
                 e.preventDefault();
                 saveLoan();
             });
             
-            // فرم تأیید رمز عبور
-            document.getElementById('password-form').addEventListener('submit', function(e) {
-                e.preventDefault();
-                authenticate();
-            });
-            
-            // دکمه ذخیره در ابر (غیرفعال)
-            document.getElementById('save-to-cloud').addEventListener('click', function() {
-                // saveToGoogleSheets();
-            });
-            
-            // دکمه بارگذاری از ابر (غیرفعال)
-            document.getElementById('load-from-cloud').addEventListener('click', function() {
-                // if (sampleData.length > 0) {
-                //     if (confirm('⚠️ در Google Sheets ' + sampleData.length + ' رکورد موجود است.\n\nاگر ادامه دهید، داده‌های فعلی با داده‌های جدید جایگزین می‌شوند.\n\nآیا مطمئن هستید؟')) {
-                //         loadFromGoogleSheets();
-                //     }
-                // } else {
-                //     loadFromGoogleSheets();
-                // }
-            });
-            
-            // دکمه خروجی اکسل
             document.getElementById('export-excel').addEventListener('click', function() {
                 exportToExcel();
             });
             
-            // دکمه تست ارتباط (غیرفعال)
-            document.getElementById('test-connection-btn').addEventListener('click', function() {
-                // testConnection();
+            document.getElementById('load-from-cloud').addEventListener('click', function() {
+                loadFromGoogleSheets();
             });
             
-            // دکمه نمایش ساختار داده (غیرفعال)
-            document.getElementById('debug-data-btn').addEventListener('click', function() {
-                // debugDataStructure();
-            });
-            
-            // دکمه نمایش داده‌های فعلی (غیرفعال)
-            document.getElementById('debug-current-data-btn').addEventListener('click', function() {
-                // debugCurrentData();
-            });
-            
-            // جستجو
             document.getElementById('search-input').addEventListener('input', function() {
                 filterTable();
             });
             
-            // فیلتر نوع وام
             document.getElementById('loan-type-filter').addEventListener('change', function() {
                 filterTable();
             });
             
-            // فیلتر وضعیت درخواست
             document.getElementById('loan-request-filter').addEventListener('change', function() {
                 filterTable();
             });
             
-            // بستن مودال‌ها
             document.querySelectorAll('.close, .btn-default').forEach(button => {
                 button.addEventListener('click', function() {
                     const modalId = this.getAttribute('data-modal');
@@ -2107,28 +1331,29 @@
             const loanRequestFilter = document.getElementById('loan-request-filter').value;
             
             const filteredData = sampleData.filter(item => {
-                // جستجو
                 const matchesSearch = 
                     (item.fullname && item.fullname.toLowerCase().includes(searchTerm)) ||
                     (item.employeeNumber && item.employeeNumber.toLowerCase().includes(searchTerm));
                 
-                // فیلتر نوع وام
+                if (!matchesSearch) return false;
+                
                 let matchesLoanType = true;
                 if (loanTypeFilter === 'bank') {
-                    matchesLoanType = !item.bankLoan || item.bankLoan === 'درخواست داده شده' || item.bankLoan === '-' || item.bankLoan.trim() === '';
+                    matchesLoanType = item.bankLoan && item.bankLoan !== 'درخواست داده شده' && item.bankLoan !== '-' && item.bankLoan.trim() !== '';
                 } else if (loanTypeFilter === 'company') {
-                    matchesLoanType = !item.companyLoan || item.companyLoan === 'درخواست داده شده' || item.companyLoan === '-' || item.companyLoan.trim() === '';
+                    matchesLoanType = item.companyLoan && item.companyLoan !== 'درخواست داده شده' && item.companyLoan !== '-' && item.companyLoan.trim() !== '';
                 }
                 
-                // فیلتر وضعیت درخواست
+                if (!matchesLoanType) return false;
+                
                 let matchesLoanRequest = true;
                 if (loanRequestFilter === 'active') {
-                    matchesLoanRequest = item.loanRequest;
+                    matchesLoanRequest = item.loanRequest === true;
                 } else if (loanRequestFilter === 'inactive') {
-                    matchesLoanRequest = !item.loanRequest;
+                    matchesLoanRequest = item.loanRequest === false;
                 }
                 
-                return matchesSearch && matchesLoanType && matchesLoanRequest;
+                return matchesLoanRequest;
             });
             
             renderTable(filteredData);
@@ -2143,71 +1368,8 @@
             document.getElementById(modalId).style.display = 'none';
         }
 
-        // درخواست رمز عبور
-        function requestPassword(employeeNumber, action) {
-            // بررسی اگر کاربر قبلاً احراز هویت شده است
-            if (isAuthenticated && authExpiryTime > Date.now()) {
-                executeAction(employeeNumber, action);
-                return;
-            }
-            
-            pendingAction = action;
-            pendingEmployeeId = employeeNumber;
-            
-            document.getElementById('password').value = '';
-            document.getElementById('target-action').value = action;
-            document.getElementById('target-employee-id').value = employeeNumber;
-            document.getElementById('password-error').style.display = 'none';
-            
-            document.getElementById('passwordModal').style.display = 'block';
-        }
-
-        // احراز هویت
-        function authenticate() {
-            const password = document.getElementById('password').value;
-            const targetAction = document.getElementById('target-action').value;
-            const targetEmployeeId = document.getElementById('target-employee-id').value;
-            
-            // رمز عبور - می‌توانید این را تغییر دهید
-            if (password === '2025') {
-                isAuthenticated = true;
-                authExpiryTime = Date.now() + 30 * 60 * 1000; // 30 دقیقه
-                
-                document.getElementById('password-error').style.display = 'none';
-                closeModal('passwordModal');
-                
-                executeAction(targetEmployeeId, targetAction);
-                
-                showNotification('تأیید هویت موفقیت‌آمیز بود', 'success');
-            } else {
-                document.getElementById('password-error').style.display = 'block';
-            }
-        }
-
-        // اجرای عمل پس از احراز هویت
-        function executeAction(employeeNumber, action) {
-            switch(action) {
-                case 'edit':
-                    editEmployee(employeeNumber);
-                    break;
-                case 'delete':
-                    deleteEmployee(employeeNumber);
-                    break;
-                case 'request':
-                    toggleLoanRequest(employeeNumber, 'request');
-                    break;
-                case 'bank':
-                    toggleLoanRequest(employeeNumber, 'bank');
-                    break;
-                case 'company':
-                    toggleLoanRequest(employeeNumber, 'company');
-                    break;
-            }
-        }
-
         // ذخیره وام
         function saveLoan() {
-            const form = document.getElementById('loan-form');
             const employeeNumber = document.getElementById('employee-number').value;
             
             if (!employeeNumber.trim()) {
@@ -2215,7 +1377,6 @@
                 return;
             }
             
-            // بررسی تکراری نبودن شماره پرسنلی
             const existingIndex = sampleData.findIndex(item => item.employeeNumber === employeeNumber);
             
             const loanData = {
@@ -2233,18 +1394,15 @@
             };
             
             if (existingIndex === -1) {
-                // افزودن جدید
                 sampleData.push(loanData);
                 showNotification('وام جدید با موفقیت افزوده شد', 'success');
             } else {
-                // ویرایش
                 sampleData[existingIndex] = loanData;
                 showNotification('اطلاعات وام با موفقیت به‌روزرسانی شد', 'success');
             }
             
             renderTable(sampleData);
             saveToLocalStorage();
-            
             closeModal('addEmployeeModal');
         }
 
@@ -2253,10 +1411,8 @@
             const employee = sampleData.find(item => item.employeeNumber === employeeNumber);
             
             if (employee) {
-                isEditing = true;
                 document.getElementById('modal-title').textContent = 'ویرایش اطلاعات وام';
                 
-                // پر کردن فرم با اطلاعات موجود
                 document.getElementById('username').value = employee.username || '';
                 document.getElementById('employee-number').value = employee.employeeNumber;
                 document.getElementById('fullname').value = employee.fullname;
@@ -2281,7 +1437,6 @@
                 if (sampleData.length < originalLength) {
                     renderTable(sampleData);
                     saveToLocalStorage();
-                    
                     showNotification('وام با موفقیت حذف شد', 'success');
                 } else {
                     showNotification('خطا در حذف وام', 'error');
@@ -2290,36 +1445,17 @@
         }
 
         // درخواست وام
-        function toggleLoanRequest(employeeNumber, type) {
+        function toggleLoanRequest(employeeNumber) {
             const employee = sampleData.find(item => item.employeeNumber === employeeNumber);
             
             if (employee) {
-                if (type === 'request') {
-                    employee.loanRequest = !employee.loanRequest;
-                    showNotification(
-                        employee.loanRequest ? 
-                        'درخواست وام ثبت شد' : 
-                        'درخواست وام لغو شد', 
-                        'success'
-                    );
-                } else if (type === 'bank') {
-                    employee.bankLoan = (employee.bankLoan && employee.bankLoan !== 'درخواست داده شده' && employee.bankLoan !== '-' && employee.bankLoan.trim() !== '') ? '' : 'درخواست داده شده';
-                    showNotification(
-                        employee.bankLoan ? 
-                        'درخواست وام بانکی ثبت شد' : 
-                        'درخواست وام بانکی لغو شد', 
-                        'success'
-                    );
-                } else if (type === 'company') {
-                    employee.companyLoan = (employee.companyLoan && employee.companyLoan !== 'درخواست داده شده' && employee.companyLoan !== '-' && employee.companyLoan.trim() !== '') ? '' : 'درخواست داده شده';
-                    showNotification(
-                        employee.companyLoan ? 
-                        'درخواست وام شرکتی ثبت شد' : 
-                        'درخواست وام شرکتی لغو شد', 
-                        'success'
-                    );
-                }
-                
+                employee.loanRequest = !employee.loanRequest;
+                showNotification(
+                    employee.loanRequest ? 
+                    'درخواست وام ثبت شد' : 
+                    'درخواست وام لغو شد', 
+                    'success'
+                );
                 renderTable(sampleData);
                 saveToLocalStorage();
             }
@@ -2344,6 +1480,35 @@
             }
         }
 
+        // توابع localStorage
+        function saveToLocalStorage() {
+            try {
+                localStorage.setItem('loanData', JSON.stringify(sampleData));
+                console.log('✅ داده‌ها در localStorage ذخیره شدند');
+                return true;
+            } catch (error) {
+                console.error('❌ خطا در ذخیره localStorage:', error);
+                return false;
+            }
+        }
+
+        function loadFromLocalStorage() {
+            try {
+                const savedData = localStorage.getItem('loanData');
+                if (savedData) {
+                    sampleData = JSON.parse(savedData);
+                    if (sampleData.length > 0) {
+                        renderTable(sampleData);
+                        console.log('✅ داده‌ها از localStorage بارگذاری شدند');
+                        return true;
+                    }
+                }
+            } catch (error) {
+                console.error('❌ خطا در بارگذاری از localStorage:', error);
+            }
+            return false;
+        }
+
         // مدیریت کلیک خارج از مودال
         window.onclick = function(event) {
             if (event.target.classList.contains('modal')) {
@@ -2356,8 +1521,8 @@
         window.deleteEmployee = deleteEmployee;
         window.toggleLoanRequest = toggleLoanRequest;
         window.editEmployee = editEmployee;
-        window.requestPassword = requestPassword;
+        window.toggleLoanDropdown = toggleLoanDropdown;
+        window.loadFromGoogleSheets = loadFromGoogleSheets;
     </script>
 </body>
 </html>
-
