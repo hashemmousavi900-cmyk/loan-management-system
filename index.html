@@ -8,6 +8,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
     <style>
+        /* استایل‌های قبلی بدون تغییر */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -1058,7 +1059,7 @@
                             <span>خروجی اکسل</span>
                         </button>
                         
-                        <!-- دکمه‌های غیرفعال شده -->
+                        <!-- دکمه‌های مربوط به گوگل شیت -->
                         <button class="btn btn-info" id="save-to-cloud">
                             <i class="fas fa-cloud-upload-alt"></i>
                             <span>ذخیره در Google Sheets</span>
@@ -1070,14 +1071,6 @@
                         <button class="btn btn-secondary" id="test-connection-btn">
                             <i class="fas fa-wifi"></i>
                             <span>تست ارتباط</span>
-                        </button>
-                        <button class="btn btn-danger" id="debug-data-btn">
-                            <i class="fas fa-bug"></i>
-                            <span>نمایش ساختار داده</span>
-                        </button>
-                        <button class="btn btn-info" id="debug-current-data-btn">
-                            <i class="fas fa-database"></i>
-                            <span>نمایش داده‌های فعلی</span>
                         </button>
                     </div>
                 </div>
@@ -1318,6 +1311,7 @@
         let isEditing = false;
         let fontAwesomeLoaded = false;
         
+        // آدرس Google Apps Script - اگر مشکل داره این رو چک کن
         const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbymE-RILJ8gCg4vLreCz5wchcQrx-mS5HzCmHEpuOu4RMl58Vma3rZlfJ_Ac1XUQzK0/exec';
 
         // ========== توابع اصلی ==========
@@ -1327,7 +1321,11 @@
             console.log('🚀 سیستم مدیریت وام بارگذاری شد');
             checkFontAwesome();
             setupEventListeners();
-            loadFromGoogleSheets();
+            
+            // ابتدا از localStorage بارگذاری کن، سپس از Google Sheets
+            if (!loadFromLocalStorage()) {
+                loadFromGoogleSheets();
+            }
             
             // فعال کردن پاپ‌آپ با هاور
             setupHoverPopups();
@@ -1530,7 +1528,7 @@
 
         // درخواست به Google Apps Script
         async function googleAppsScriptRequest(action, data = null) {
-            console.log(`📡 ارسال درخواست ${action}...`);
+            console.log(`📡 ارسال درخواست ${action} به: ${GOOGLE_APPS_SCRIPT_URL}`);
             
             return new Promise((resolve, reject) => {
                 const callbackName = 'cb_' + Date.now();
@@ -1543,7 +1541,7 @@
                 
                 url += `&t=${Date.now()}`;
                 
-                console.log('🔗 URL درخواست:', url.substring(0, 100) + '...');
+                console.log('🔗 URL درخواست:', url);
                 
                 window[callbackName] = function(response) {
                     console.log('📥 پاسخ دریافت شد:', response);
@@ -1588,24 +1586,15 @@
             document.getElementById('cloud-status').style.display = 'flex';
             
             try {
-                // تاخیر برای نمایش بهتر نوار پیشرفت
-                await new Promise(resolve => setTimeout(resolve, 300));
-                updateProgress(10);
-                
-                await new Promise(resolve => setTimeout(resolve, 200));
                 updateProgress(20);
                 
                 const result = await googleAppsScriptRequest('loadData');
                 console.log('🔍 پاسخ کامل:', result);
                 
-                await new Promise(resolve => setTimeout(resolve, 300));
-                updateProgress(40);
+                updateProgress(60);
                 
                 if (result.success && result.data && Array.isArray(result.data)) {
                     console.log('📊 داده‌های دریافتی:', result.data);
-                    
-                    await new Promise(resolve => setTimeout(resolve, 400));
-                    updateProgress(60);
                     
                     // پردازش داده‌ها با بررسی نام‌ستون‌های مختلف
                     sampleData = result.data.map(item => {
@@ -1628,14 +1617,12 @@
                     
                     console.log('🎯 داده‌های نهایی:', sampleData);
                     
-                    await new Promise(resolve => setTimeout(resolve, 500));
                     updateProgress(80);
                     
                     if (sampleData.length > 0) {
                         renderTable(sampleData);
                         saveToLocalStorage();
                         
-                        await new Promise(resolve => setTimeout(resolve, 400));
                         updateProgress(100);
                         
                         // نمایش پیام موقت
@@ -2066,16 +2053,6 @@
                 testConnection();
             });
             
-            // دکمه نمایش ساختار داده
-            document.getElementById('debug-data-btn').addEventListener('click', function() {
-                debugDataStructure();
-            });
-            
-            // دکمه نمایش داده‌های فعلی
-            document.getElementById('debug-current-data-btn').addEventListener('click', function() {
-                debugCurrentData();
-            });
-            
             // جستجو
             document.getElementById('search-input').addEventListener('input', function() {
                 filterTable();
@@ -2360,20 +2337,8 @@
                 }
             } catch (error) {
                 showLoading(false);
-                showNotification('خطا در ارتباط با Google Sheets', 'error');
+                showNotification('خطا در ارتباط با Google Sheets: ' + error.message, 'error');
             }
-        }
-
-        // نمایش ساختار داده
-        function debugDataStructure() {
-            console.log('ساختار داده:', sampleData);
-            alert('ساختار داده در کنسول مرورگر نمایش داده شد');
-        }
-
-        // نمایش داده‌های فعلی
-        function debugCurrentData() {
-            console.log('داده‌های فعلی:', sampleData);
-            alert('داده‌های فعلی در کنسول مرورگر نمایش داده شد');
         }
 
         // مدیریت کلیک خارج از مودال
