@@ -1101,20 +1101,16 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
             }
         }
 
-        // ==================== توابع ارتباط با گوگل ====================
+       // ==================== توابع ارتباط با گوگل ====================
 
-        // درخواست به Google Apps Script - نسخه بهینه شده
-        async function googleAppsScriptRequest(action, data = null) {
-            console.log(`📡 ارسال درخواست ${action}...`);
-            
-            // برای saveData با داده‌های بزرگ از روش جایگزینی کامل استفاده می‌کنیم
-            if (action === 'saveData' && data) {
-                return await saveDataComplete(data);
-            }
-            
-            // برای سایر درخواست‌ها از GET معمولی استفاده می‌کنیم
-            return await googleAppsScriptGetRequest(action, data);
-        }
+// درخواست به Google Apps Script - نسخه اصلاح شده
+async function googleAppsScriptRequest(action, data = null) {
+    console.log(`📡 ارسال درخواست ${action}...`);
+    
+    // برای همه درخواست‌ها از GET معمولی استفاده می‌کنیم
+    // Google Apps Script اصلاح شده حالا می‌تواند همه داده‌ها را مدیریت کند
+    return await googleAppsScriptGetRequest(action, data);
+}
 
         // درخواست GET
         async function googleAppsScriptGetRequest(action, data = null) {
@@ -1963,3 +1959,4 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
     </script>
 </body>
 </html>
+
