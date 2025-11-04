@@ -1159,58 +1159,57 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
             }
         }
 
-        // ذخیره در Google Sheets
-        async function saveToGoogleSheets() {
-            if (sampleData.length === 0) {
-                console.log('⚠️ داده‌ای برای ذخیره‌سازی وجود ندارد');
-                showNotification('داده‌ای برای ذخیره‌سازی وجود ندارد', 'warning');
-                return true;
-            }
-            
-            console.log('💾 شروع ذخیره‌سازی...');
-            console.log('📊 تعداد داده‌ها:', sampleData.length);
-            
-            showLoading(true, 'در حال ذخیره در Google Sheets...');
-            
-            try {
-                // تبدیل داده‌ها به ساختار فیلدهای Google Sheets
-                const dataForSheets = sampleData.map(item => ({
-                    Username: item.username || '',
-                    Employeenumber: item.employeeNumber,
-                    Fullname: item.fullname,
-                    Gender: item.gender,
-                    Bankloan: item.bankLoan || '',
-                    Companyloan: item.companyLoan || '',
-                    Bankloandate: item.bankLoanDate || '',
-                    Companyloandate: item.companyLoanDate || '',
-                    Priority: item.priority,
-                    Description: item.description || '',
-                    Loanrequest: item.loanRequest ? 'true' : 'false'
-                }));
-                
-                console.log('📤 ارسال داده‌ها به Google Sheets...');
-                
-                const result = await googleAppsScriptRequest('saveData', dataForSheets);
-                console.log('✅ پاسخ ذخیره‌سازی:', result);
-                
-                showLoading(false);
-                
-                if (result && result.success) {
-                    saveToLocalStorage();
-                    showNotification(`تغییرات با موفقیت در Google Sheets ذخیره شدند (${result.savedCount || sampleData.length} رکورد)`, 'success');
-                    return true;
-                } else {
-                    throw new Error(result.error || 'خطا در ذخیره‌سازی');
-                }
-            } catch (error) {
-                console.error('❌ خطا در ذخیره‌سازی:', error);
-                showLoading(false);
-                saveToLocalStorage();
-                showNotification('خطا در ذخیره‌سازی داده‌ها. داده‌ها در حافظه محلی ذخیره شدند.', 'warning');
-                return false;
-            }
+      // ذخیره در Google Sheets - نسخه ساده
+async function saveToGoogleSheets() {
+    if (sampleData.length === 0) {
+        console.log('⚠️ داده‌ای برای ذخیره‌سازی وجود ندارد');
+        showNotification('داده‌ای برای ذخیره‌سازی وجود ندارد', 'warning');
+        return true;
+    }
+    
+    console.log('💾 شروع ذخیره‌سازی...');
+    console.log('📊 تعداد داده‌ها:', sampleData.length);
+    
+    showLoading(true, 'در حال ذخیره در Google Sheets...');
+    
+    try {
+        // فقط 5 رکورد اول رو ذخیره می‌کنیم برای تست
+        const dataForSheets = sampleData.slice(0, 5).map(item => ({
+            Username: item.username || '',
+            Employeenumber: item.employeeNumber,
+            Fullname: item.fullname,
+            Gender: item.gender,
+            Bankloan: item.bankLoan || '',
+            Companyloan: item.companyLoan || '',
+            Bankloandate: item.bankLoanDate || '',
+            Companyloandate: item.companyLoanDate || '',
+            Priority: item.priority,
+            Description: item.description || '',
+            Loanrequest: item.loanRequest ? 'true' : 'false'
+        }));
+        
+        console.log(`📤 ارسال ${dataForSheets.length} رکورد به Google Sheets...`);
+        
+        const result = await googleAppsScriptRequest('saveData', dataForSheets);
+        console.log('✅ پاسخ ذخیره‌سازی:', result);
+        
+        showLoading(false);
+        
+        if (result && result.success) {
+            saveToLocalStorage();
+            showNotification('۵ رکورد اول با موفقیت ذخیره شدند', 'success');
+            return true;
+        } else {
+            throw new Error(result.error || 'خطا در ذخیره‌سازی');
         }
-
+    } catch (error) {
+        console.error('❌ خطا در ذخیره‌سازی:', error);
+        showLoading(false);
+        saveToLocalStorage();
+        showNotification('خطا در ذخیره‌سازی. داده‌ها در حافظه محلی ذخیره شدند.', 'warning');
+        return false;
+    }
+}
         // تست ذخیره‌سازی ساده
         async function testSimpleSave() {
             console.log('🧪 تست ذخیره‌سازی ساده...');
@@ -1675,3 +1674,4 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
     </script>
 </body>
 </html>
+
