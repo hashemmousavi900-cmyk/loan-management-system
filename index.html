@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>سیستم مدیریت وام‌ها - نسخه ابری</title>
+    <title>سیستم مدیریت وام‌ها - CR(Mashhad)</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
@@ -22,6 +22,8 @@
             font-weight: 500;
             padding: 20px;
             min-height: 100vh;
+            position: relative;
+            padding-bottom: 60px;
         }
         
         .container {
@@ -43,7 +45,6 @@
         .table-title {
             padding-bottom: 15px;
             margin: 0 0 20px;
-            border-bottom: 1px solid #eee;
         }
         
         .table-title h2 {
@@ -51,13 +52,25 @@
             font-size: 24px;
             font-weight: 600;
             color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .table-title .subtitle {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+        
+        .title-separator {
+            border-bottom: 1px solid #eee;
+            margin-bottom: 15px;
         }
         
         .table-title .btn-group {
             display: flex;
             gap: 10px;
             justify-content: flex-start;
-            margin-top: 10px;
+            margin-top: 15px;
             flex-wrap: wrap;
         }
         
@@ -74,6 +87,10 @@
             gap: 8px;
             font-weight: 500;
             transition: all 0.3s ease;
+        }
+        
+        .table-title .btn.hidden {
+            display: none;
         }
         
         .filter-section {
@@ -156,6 +173,19 @@
             font-weight: 600;
             color: #435d7d;
             font-size: 13px;
+        }
+        
+        /* تنظیم اندازه ستون‌های وام */
+        table.table th:nth-child(6),
+        table.table td:nth-child(6) {
+            width: 120px;
+            min-width: 120px;
+        }
+
+        table.table th:nth-child(7),
+        table.table td:nth-child(7) {
+            width: 120px;
+            min-width: 120px;
         }
         
         table.table tr:hover {
@@ -314,12 +344,12 @@
         
         .loan-bank {
             background-color: #74b9ff;
-            color: #020000;
+            color: #020101;
         }
         
         .loan-company {
             background-color: #a29bfe;
-            color: #020000;
+            color: #020101;
         }
         
         .ribbon-btn {
@@ -492,6 +522,26 @@
             margin: 0 auto 10px;
         }
         
+        .progress-container {
+            width: 100%;
+            background-color: #f1f1f1;
+            border-radius: 5px;
+            margin: 10px 0;
+            display: none;
+        }
+        
+        .progress-bar {
+            width: 0%;
+            height: 20px;
+            background: linear-gradient(90deg, #4CAF50, #45a049);
+            border-radius: 5px;
+            text-align: center;
+            line-height: 20px;
+            color: white;
+            transition: width 0.8s ease-in-out;
+            font-weight: 600;
+        }
+        
         .empty-state {
             text-align: center;
             padding: 40px 20px;
@@ -513,6 +563,17 @@
         .empty-state p {
             font-size: 14px;
             margin-bottom: 20px;
+        }
+        
+        .footer {
+            position: absolute;
+            bottom: 10px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            color: rgba(0, 0, 0, 0.6);
+            font-size: 11px;
+            padding: 10px;
         }
         
         @keyframes spin {
@@ -551,6 +612,15 @@
                 gap: 10px;
                 align-items: flex-start;
             }
+            
+            .footer {
+                position: relative;
+                margin-top: 20px;
+            }
+            
+            body {
+                padding-bottom: 20px;
+            }
         }
     </style>
 </head>
@@ -559,49 +629,53 @@
         <div class="table-responsive">
             <div class="table-wrapper">
                 <div class="table-title">
-                    <div class="row">
-                        <div class="col-sm-12">
-                            <h2>سیستم مدیریت وام‌ها - نسخه ابری</h2>
-                            <div class="cloud-status">
-                                <div class="status-indicator">
-                                    <div class="status-dot" id="status-dot"></div>
-                                    <span id="status-text">آماده به کار</span>
-                                </div>
-                            </div>
-                            
-                            <div class="btn-group">
-                                <button class="btn btn-success" id="add-loan-btn">
-                                    <i class="fas fa-plus"></i> 
-                                    <span>افزودن وام جدید</span>
-                                </button>
-                                <button class="btn btn-warning" id="export-excel">
-                                    <i class="fas fa-file-excel"></i>
-                                    <span>خروجی اکسل</span>
-                                </button>
-                                <button class="btn btn-info" id="save-to-cloud">
-                                    <i class="fas fa-cloud-upload-alt"></i>
-                                    <span>ذخیره در Google Sheets</span>
-                                </button>
-                                <button class="btn btn-primary" id="load-from-cloud">
-                                    <i class="fas fa-cloud-download-alt"></i>
-                                    <span>بارگذاری از Google Sheets</span>
-                                </button>
-                                
-                                <button class="btn btn-secondary" id="test-connection-btn">
-                                    <i class="fas fa-wifi"></i>
-                                    <span>تست ارتباط</span>
-                                </button>
-                                <button class="btn btn-danger" id="debug-data-btn">
-                                    <i class="fas fa-bug"></i>
-                                    <span>نمایش ساختار داده</span>
-                                </button>
-                                <button class="btn btn-info" id="debug-current-data-btn">
-                                    <i class="fas fa-database"></i>
-                                    <span>نمایش داده‌های فعلی</span>
-                                </button>
-                            </div>
+                    <h2>سیستم مدیریت وام‌ها - CR(Mashhad)</h2>
+                    <div class="subtitle"> </div>
+                    <div class="title-separator"></div>
+                    
+                    <div class="cloud-status" id="cloud-status" style="display: none;">
+                        <div class="status-indicator">
+                            <div class="status-dot" id="status-dot"></div>
+                            <span id="status-text">در حال بارگذاری...</span>
                         </div>
                     </div>
+                    
+                    <div class="btn-group">
+                        <button class="btn btn-success" id="add-loan-btn">
+                            <i class="fas fa-plus"></i> 
+                            <span>افزودن وام جدید</span>
+                        </button>
+                        <button class="btn btn-warning" id="export-excel">
+                            <i class="fas fa-file-excel"></i>
+                            <span>خروجی اکسل</span>
+                        </button>
+                        
+                        <!-- دکمه‌های غیرفعال شده -->
+                        <button class="btn btn-info hidden" id="save-to-cloud">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <span>ذخیره در Google Sheets</span>
+                        </button>
+                        <button class="btn btn-primary hidden" id="load-from-cloud">
+                            <i class="fas fa-cloud-download-alt"></i>
+                            <span>بارگذاری از Google Sheets</span>
+                        </button>
+                        <button class="btn btn-secondary hidden" id="test-connection-btn">
+                            <i class="fas fa-wifi"></i>
+                            <span>تست ارتباط</span>
+                        </button>
+                        <button class="btn btn-danger hidden" id="debug-data-btn">
+                            <i class="fas fa-bug"></i>
+                            <span>نمایش ساختار داده</span>
+                        </button>
+                        <button class="btn btn-info hidden" id="debug-current-data-btn">
+                            <i class="fas fa-database"></i>
+                            <span>نمایش داده‌های فعلی</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="progress-container" id="progress-container">
+                    <div class="progress-bar" id="progress-bar">0%</div>
                 </div>
                 
                 <div class="loading" id="loading">
@@ -669,6 +743,10 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <div class="footer">
+        Designed by SeyedHashem Mousavi - 2025
     </div>
     
     <div id="addEmployeeModal" class="modal">
@@ -844,14 +922,29 @@
 
         // بارگذاری از Google Sheets
         async function loadFromGoogleSheets() {
-            showLoading(true, 'در حال بارگذاری از Google Sheets...');
+            showProgressBar(true);
+            updateProgress(0);
+            document.getElementById('cloud-status').style.display = 'flex';
             
             try {
+                // تاخیر برای نمایش بهتر نوار پیشرفت
+                await new Promise(resolve => setTimeout(resolve, 300));
+                updateProgress(10);
+                
+                await new Promise(resolve => setTimeout(resolve, 200));
+                updateProgress(20);
+                
                 const result = await googleAppsScriptRequest('loadData');
                 console.log('🔍 پاسخ کامل:', result);
                 
+                await new Promise(resolve => setTimeout(resolve, 300));
+                updateProgress(40);
+                
                 if (result.success && result.data && Array.isArray(result.data)) {
                     console.log('📊 داده‌های دریافتی:', result.data);
+                    
+                    await new Promise(resolve => setTimeout(resolve, 400));
+                    updateProgress(60);
                     
                     // پردازش داده‌ها با بررسی نام‌ستون‌های مختلف
                     sampleData = result.data.map(item => {
@@ -874,18 +967,36 @@
                     
                     console.log('🎯 داده‌های نهایی:', sampleData);
                     
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    updateProgress(80);
+                    
                     if (sampleData.length > 0) {
                         renderTable(sampleData);
                         saveToLocalStorage();
-                        showLoading(false);
+                        
+                        await new Promise(resolve => setTimeout(resolve, 400));
+                        updateProgress(100);
+                        
+                        // نمایش پیام موقت
                         updateStatus(`داده‌ها بارگذاری شدند (${sampleData.length} رکورد)`, 'connected');
-                        showNotification(`داده‌ها با موفقیت بارگذاری شدند (${sampleData.length} رکورد)`, 'success');
+                        
+                        // حذف پیام بعد از 3 ثانیه
+                        setTimeout(() => {
+                            document.getElementById('cloud-status').style.display = 'none';
+                        }, 3000);
+                        
+                        // تاخیر قبل از پنهان کردن نوار پیشرفت
+                        setTimeout(() => {
+                            showProgressBar(false);
+                        }, 800);
+                        
                         return true;
                     } else {
                         console.log('ℹ️ هیچ داده‌ای برای نمایش وجود ندارد');
-                        showLoading(false);
+                        showProgressBar(false);
                         showNotification('هیچ داده‌ای در Google Sheets وجود ندارد', 'info');
                         showEmptyState();
+                        document.getElementById('cloud-status').style.display = 'none';
                         return true;
                     }
                 } else {
@@ -893,7 +1004,8 @@
                 }
             } catch (error) {
                 console.error('❌ خطا در بارگذاری:', error);
-                showLoading(false);
+                showProgressBar(false);
+                document.getElementById('cloud-status').style.display = 'none';
                 
                 // استفاده از localStorage به عنوان پشتیبان
                 const loaded = loadFromLocalStorage();
@@ -904,7 +1016,6 @@
                     showEmptyState();
                 }
                 
-                updateStatus('خطا در بارگذاری از Google Sheets', 'error');
                 return false;
             }
         }
@@ -969,6 +1080,22 @@
                 case '3': return '3 (پایین)';
                 default: return priority;
             }
+        }
+
+        // مدیریت نوار پیشرفت
+        function showProgressBar(show) {
+            const progressContainer = document.getElementById('progress-container');
+            if (show) {
+                progressContainer.style.display = 'block';
+            } else {
+                progressContainer.style.display = 'none';
+            }
+        }
+
+        function updateProgress(percent) {
+            const progressBar = document.getElementById('progress-bar');
+            progressBar.style.width = percent + '%';
+            progressBar.textContent = percent + '%';
         }
 
         // ذخیره در Google Sheets
@@ -1149,13 +1276,13 @@
                     <td>
                         ${item.bankLoan && item.bankLoan !== 'درخواست داده شده' && item.bankLoan !== '-' && item.bankLoan.trim() !== '' ? 
                             `<span class="loan-badge loan-bank">${item.bankLoan}</span>` : 
-                            '<span class="ribbon-btn" onclick="requestPassword(\'' + item.employeeNumber + '\', \'bank\')">درخواست وام</span>'
+                            '-'
                         }
                     </td>
                     <td>
                         ${item.companyLoan && item.companyLoan !== 'درخواست داده شده' && item.companyLoan !== '-' && item.companyLoan.trim() !== '' ? 
                             `<span class="loan-badge loan-company">${item.companyLoan}</span>` : 
-                            '<span class="ribbon-btn" onclick="requestPassword(\'' + item.employeeNumber + '\', \'company\')">درخواست وام</span>'
+                            '-'
                         }
                     </td>
                     <td>${item.bankLoanDate || '-'}</td>
@@ -1211,20 +1338,20 @@
                 authenticate();
             });
             
-            // دکمه ذخیره در ابر
+            // دکمه ذخیره در ابر (غیرفعال)
             document.getElementById('save-to-cloud').addEventListener('click', function() {
-                saveToGoogleSheets();
+                // saveToGoogleSheets();
             });
             
-            // دکمه بارگذاری از ابر
+            // دکمه بارگذاری از ابر (غیرفعال)
             document.getElementById('load-from-cloud').addEventListener('click', function() {
-                if (sampleData.length > 0) {
-                    if (confirm('⚠️ در Google Sheets ' + sampleData.length + ' رکورد موجود است.\n\nاگر ادامه دهید، داده‌های فعلی با داده‌های جدید جایگزین می‌شوند.\n\nآیا مطمئن هستید؟')) {
-                        loadFromGoogleSheets();
-                    }
-                } else {
-                    loadFromGoogleSheets();
-                }
+                // if (sampleData.length > 0) {
+                //     if (confirm('⚠️ در Google Sheets ' + sampleData.length + ' رکورد موجود است.\n\nاگر ادامه دهید، داده‌های فعلی با داده‌های جدید جایگزین می‌شوند.\n\nآیا مطمئن هستید؟')) {
+                //         loadFromGoogleSheets();
+                //     }
+                // } else {
+                //     loadFromGoogleSheets();
+                // }
             });
             
             // دکمه خروجی اکسل
@@ -1232,19 +1359,19 @@
                 exportToExcel();
             });
             
-            // دکمه تست ارتباط
+            // دکمه تست ارتباط (غیرفعال)
             document.getElementById('test-connection-btn').addEventListener('click', function() {
-                testConnection();
+                // testConnection();
             });
             
-            // دکمه نمایش ساختار داده
+            // دکمه نمایش ساختار داده (غیرفعال)
             document.getElementById('debug-data-btn').addEventListener('click', function() {
-                debugDataStructure();
+                // debugDataStructure();
             });
             
-            // دکمه نمایش داده‌های فعلی
+            // دکمه نمایش داده‌های فعلی (غیرفعال)
             document.getElementById('debug-current-data-btn').addEventListener('click', function() {
-                debugCurrentData();
+                // debugCurrentData();
             });
             
             // جستجو
@@ -1417,13 +1544,6 @@
             renderTable(sampleData);
             saveToLocalStorage();
             
-            // ذخیره در Google Sheets
-            saveToGoogleSheets().then(success => {
-                if (success) {
-                    console.log('✅ تغییرات در Google Sheets ذخیره شد');
-                }
-            });
-            
             closeModal('addEmployeeModal');
         }
 
@@ -1457,14 +1577,7 @@
                     renderTable(sampleData);
                     saveToLocalStorage();
                     
-                    // ذخیره در Google Sheets
-                    saveToGoogleSheets().then(success => {
-                        if (success) {
-                            showNotification('وام با موفقیت حذف شد و در Google Sheets ذخیره شد', 'success');
-                        } else {
-                            showNotification('وام حذف شد اما در Google Sheets ذخیره نشد. داده‌ها در حافظه محلی ذخیره شدند.', 'warning');
-                        }
-                    });
+                    showNotification('وام با موفقیت حذف شد', 'success');
                 } else {
                     showNotification('خطا در حذف وام', 'error');
                 }
@@ -1504,13 +1617,6 @@
                 
                 renderTable(sampleData);
                 saveToLocalStorage();
-                
-                // ذخیره در Google Sheets
-                saveToGoogleSheets().then(success => {
-                    if (success) {
-                        console.log('✅ تغییرات وضعیت وام در Google Sheets ذخیره شد');
-                    }
-                });
             }
         }
 
@@ -1531,52 +1637,6 @@
                 console.error('خطا در ایجاد خروجی اکسل:', error);
                 showNotification('خطا در ایجاد خروجی اکسل', 'error');
             }
-        }
-
-        // تست ارتباط
-        async function testConnection() {
-            console.log('🔍 تست ارتباط با Google Apps Script...');
-            showLoading(true, 'در حال تست ارتباط...');
-            
-            try {
-                const result = await googleAppsScriptRequest('loadData');
-                console.log('✅ تست ارتباط موفق:', result);
-                showLoading(false);
-                showNotification('ارتباط با Google Sheets برقرار است', 'success');
-                updateStatus('ارتباط برقرار', 'connected');
-            } catch (error) {
-                console.error('❌ تست ارتباط ناموفق:', error);
-                showLoading(false);
-                showNotification('خطا در ارتباط با Google Sheets', 'error');
-                updateStatus('خطا در ارتباط', 'error');
-            }
-        }
-
-        // دیباگ ساختار داده
-        function debugDataStructure() {
-            console.log('🔍 ساختار داده‌ها:', sampleData);
-            console.log('📝 تعداد رکوردها:', sampleData.length);
-            console.log('💾 localStorage:', localStorage.getItem('loanData'));
-            
-            if (sampleData.length > 0) {
-                console.log('📋 ساختار اولین رکورد:', sampleData[0]);
-            }
-            
-            alert(`تعداد رکوردها: ${sampleData.length}\n\nساختار داده‌ها در کنسول مرورگر نمایش داده شد.`);
-        }
-
-        // دیباگ داده‌های فعلی
-        function debugCurrentData() {
-            console.log('🔍 داده‌های فعلی:', sampleData);
-            console.log('📝 تعداد رکوردها:', sampleData.length);
-            console.log('💾 localStorage:', localStorage.getItem('loanData'));
-            
-            if (sampleData.length > 0) {
-                console.log('📋 ساختار اولین رکورد:', Object.keys(sampleData[0]));
-                console.log('🔢 شماره‌های پرسنلی موجود:', sampleData.map(item => item.employeeNumber));
-            }
-            
-            alert(`تعداد رکوردها: ${sampleData.length}\n\nبرای جزئیات بیشتر کنسول مرورگر را بررسی کنید.`);
         }
 
         // مدیریت کلیک خارج از مودال
