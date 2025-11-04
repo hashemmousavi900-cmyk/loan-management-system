@@ -281,16 +281,16 @@
             font-size: 13px;
         }
         
-        .priority-1 {
-            background-color: #ffeaa7;
+        .priority-high {
+            background-color: #ffeaa7 !important;
         }
         
-        .priority-2 {
-            background-color: #fab1a0;
+        .priority-medium {
+            background-color: #fab1a0 !important;
         }
         
-        .priority-3 {
-            background-color: #ff7675;
+        .priority-low {
+            background-color: #ff7675 !important;
             color: white;
         }
         
@@ -681,7 +681,7 @@
                 <div class="modal-body">					
                     <div class="form-group">
                         <label for="username">نام کاربری</label>
-                        <input type="text" id="username" class="form-control" required>
+                        <input type="text" id="username" class="form-control">
                     </div>
                     
                     <div class="form-group">
@@ -855,9 +855,6 @@
                     
                     // پردازش داده‌ها با بررسی نام‌ستون‌های مختلف
                     sampleData = result.data.map(item => {
-                        // لاگ آیتم اصلی برای دیباگ
-                        console.log('🔍 آیتم اصلی:', item);
-                        
                         const processedItem = {
                             username: getFieldValue(item, ['Username', 'username', 'USERNAME']),
                             employeeNumber: String(getFieldValue(item, ['EmployeeNumber', 'employeeNumber', 'Employeenumber', 'EMPLOYEENUMBER'])),
@@ -869,10 +866,9 @@
                             companyLoanDate: convertDateFormat(getFieldValue(item, ['CompanyLoanDate', 'companyLoanDate', 'Companyloandate', 'COMPANYLOANDATE'])),
                             priority: convertPriority(getFieldValue(item, ['Priority', 'priority', 'PRIORITY'])),
                             description: getFieldValue(item, ['Description', 'description', 'DESCRIPTION']),
-                            loanRequest: false
+                            loanRequest: getFieldValue(item, ['LoanRequest', 'loanRequest', 'loanrequest']) === 'true'
                         };
                         
-                        console.log('✅ آیتم پردازش شده:', processedItem);
                         return processedItem;
                     }).filter(item => item.employeeNumber && item.employeeNumber.trim() !== '');
                     
@@ -917,7 +913,6 @@
         function getFieldValue(item, possibleNames) {
             for (let name of possibleNames) {
                 if (item[name] !== undefined && item[name] !== null && item[name] !== '') {
-                    console.log(`✅ فیلد "${name}" پیدا شد:`, item[name]);
                     return item[name];
                 }
             }
@@ -928,7 +923,7 @@
         function convertGender(gender) {
             if (gender === 'Female' || gender === 'female' || gender === 'F') return 'زن';
             if (gender === 'Male' || gender === 'male' || gender === 'M') return 'مرد';
-            return 'مرد'; // مقدار پیش‌فرض
+            return gender || 'مرد';
         }
 
         function convertDateFormat(dateString) {
@@ -949,7 +944,7 @@
         function convertPriority(priority) {
             if (priority === 'بالا' || priority === 'high' || priority === 'High') return '1';
             if (priority === 'پایین' || priority === 'low' || priority === 'Low') return '3';
-            return '2'; // مقدار پیش‌فرض
+            return priority || '2';
         }
 
         // ذخیره در Google Sheets
@@ -984,13 +979,20 @@
         }
 
         async function saveToGoogleSheets() {
-            const success = await saveToGoogleSheetsReal();
-            if (success) {
-                showNotification('تغییرات با موفقیت در Google Sheets ذخیره شدند.', 'success');
-            } else {
+            try {
+                const success = await saveToGoogleSheetsReal();
+                if (success) {
+                    showNotification('تغییرات با موفقیت در Google Sheets ذخیره شدند.', 'success');
+                    return true;
+                } else {
+                    showNotification('خطا در ذخیره‌سازی داده‌ها. داده‌ها در حافظه محلی ذخیره شدند.', 'warning');
+                    return false;
+                }
+            } catch (error) {
+                console.error('❌ خطا در saveToGoogleSheets:', error);
                 showNotification('خطا در ذخیره‌سازی داده‌ها. داده‌ها در حافظه محلی ذخیره شدند.', 'warning');
+                return false;
             }
-            return success;
         }
 
         // توابع localStorage
@@ -1104,13 +1106,14 @@
             data.forEach((item, index) => {
                 const row = document.createElement('tr');
                 
-                // کلاس اولویت
-                if (item.priority === '1') row.classList.add('priority-1');
-                else if (item.priority === '2') row.classList.add('priority-2');
-                else if (item.priority === '3') row.classList.add('priority-3');
+                // کلاس اولویت - اصلاح شده
+                if (item.priority === '1') row.classList.add('priority-high');
+                else if (item.priority === '2') row.classList.add('priority-medium');
+                else if (item.priority === '3') row.classList.add('priority-low');
                 
                 // محاسبه تعداد وام‌های دریافتی
-                const loanCount = (item.bankLoan ? 1 : 0) + (item.companyLoan ? 1 : 0);
+                const loanCount = (item.bankLoan && item.bankLoan !== 'درخواست داده شده' ? 1 : 0) + 
+                                 (item.companyLoan && item.companyLoan !== 'درخواست داده شده' ? 1 : 0);
                 
                 row.innerHTML = `
                     <td>${index + 1}</td>
@@ -1119,15 +1122,15 @@
                     <td>${item.fullname}</td>
                     <td>${item.gender}</td>
                     <td>
-                        ${item.bankLoan ? 
+                        ${item.bankLoan && item.bankLoan !== 'درخواست داده شده' ? 
                             `<span class="loan-badge loan-bank">${item.bankLoan}</span>` : 
-                            '<span class="ribbon-btn" onclick="toggleLoanRequest(\'' + item.employeeNumber + '\', \'bank\')">درخواست وام</span>'
+                            '<span class="ribbon-btn" onclick="requestPassword(\'' + item.employeeNumber + '\', \'bank\')">درخواست وام</span>'
                         }
                     </td>
                     <td>
-                        ${item.companyLoan ? 
+                        ${item.companyLoan && item.companyLoan !== 'درخواست داده شده' ? 
                             `<span class="loan-badge loan-company">${item.companyLoan}</span>` : 
-                            '<span class="ribbon-btn" onclick="toggleLoanRequest(\'' + item.employeeNumber + '\', \'company\')">درخواست وام</span>'
+                            '<span class="ribbon-btn" onclick="requestPassword(\'' + item.employeeNumber + '\', \'company\')">درخواست وام</span>'
                         }
                     </td>
                     <td>${item.bankLoanDate || '-'}</td>
@@ -1142,15 +1145,15 @@
                     <td>${loanCount}</td>
                     <td>
                         <span class="ribbon-btn ${item.loanRequest ? 'active' : ''}" 
-                              onclick="toggleLoanRequest('${item.employeeNumber}', 'request')">
+                              onclick="requestPassword('${item.employeeNumber}', 'request')">
                             ${item.loanRequest ? 'درخواست داده شده' : 'درخواست مجدد'}
                         </span>
                     </td>
                     <td>
-                        <a href="#" class="edit" onclick="editEmployee('${item.employeeNumber}')">
+                        <a href="#" class="edit" onclick="requestPassword('${item.employeeNumber}', 'edit')">
                             <i class="fas fa-edit"></i>
                         </a>
-                        <a href="#" class="delete" onclick="deleteEmployee('${item.employeeNumber}')">
+                        <a href="#" class="delete" onclick="requestPassword('${item.employeeNumber}', 'delete')">
                             <i class="fas fa-trash"></i>
                         </a>
                     </td>
@@ -1259,9 +1262,9 @@
                 // فیلتر نوع وام
                 let matchesLoanType = true;
                 if (loanTypeFilter === 'bank') {
-                    matchesLoanType = !item.bankLoan;
+                    matchesLoanType = !item.bankLoan || item.bankLoan === 'درخواست داده شده';
                 } else if (loanTypeFilter === 'company') {
-                    matchesLoanType = !item.companyLoan;
+                    matchesLoanType = !item.companyLoan || item.companyLoan === 'درخواست داده شده';
                 }
                 
                 // فیلتر وضعیت درخواست
@@ -1286,6 +1289,68 @@
 
         function closeModal(modalId) {
             document.getElementById(modalId).style.display = 'none';
+        }
+
+        // درخواست رمز عبور
+        function requestPassword(employeeNumber, action) {
+            // بررسی اگر کاربر قبلاً احراز هویت شده است
+            if (isAuthenticated && authExpiryTime > Date.now()) {
+                executeAction(employeeNumber, action);
+                return;
+            }
+            
+            pendingAction = action;
+            pendingEmployeeId = employeeNumber;
+            
+            document.getElementById('password').value = '';
+            document.getElementById('target-action').value = action;
+            document.getElementById('target-employee-id').value = employeeNumber;
+            document.getElementById('password-error').style.display = 'none';
+            
+            document.getElementById('passwordModal').style.display = 'block';
+        }
+
+        // احراز هویت
+        function authenticate() {
+            const password = document.getElementById('password').value;
+            const targetAction = document.getElementById('target-action').value;
+            const targetEmployeeId = document.getElementById('target-employee-id').value;
+            
+            // رمز عبور - می‌توانید این را تغییر دهید
+            if (password === '2025') {
+                isAuthenticated = true;
+                authExpiryTime = Date.now() + 30 * 60 * 1000; // 30 دقیقه
+                
+                document.getElementById('password-error').style.display = 'none';
+                closeModal('passwordModal');
+                
+                executeAction(targetEmployeeId, targetAction);
+                
+                showNotification('تأیید هویت موفقیت‌آمیز بود', 'success');
+            } else {
+                document.getElementById('password-error').style.display = 'block';
+            }
+        }
+
+        // اجرای عمل پس از احراز هویت
+        function executeAction(employeeNumber, action) {
+            switch(action) {
+                case 'edit':
+                    editEmployee(employeeNumber);
+                    break;
+                case 'delete':
+                    deleteEmployee(employeeNumber);
+                    break;
+                case 'request':
+                    toggleLoanRequest(employeeNumber, 'request');
+                    break;
+                case 'bank':
+                    toggleLoanRequest(employeeNumber, 'bank');
+                    break;
+                case 'company':
+                    toggleLoanRequest(employeeNumber, 'company');
+                    break;
+            }
         }
 
         // ذخیره وام
@@ -1396,7 +1461,7 @@
                         'success'
                     );
                 } else if (type === 'bank') {
-                    employee.bankLoan = employee.bankLoan ? '' : 'درخواست داده شده';
+                    employee.bankLoan = employee.bankLoan && employee.bankLoan !== 'درخواست داده شده' ? '' : 'درخواست داده شده';
                     showNotification(
                         employee.bankLoan ? 
                         'درخواست وام بانکی ثبت شد' : 
@@ -1404,7 +1469,7 @@
                         'success'
                     );
                 } else if (type === 'company') {
-                    employee.companyLoan = employee.companyLoan ? '' : 'درخواست داده شده';
+                    employee.companyLoan = employee.companyLoan && employee.companyLoan !== 'درخواست داده شده' ? '' : 'درخواست داده شده';
                     showNotification(
                         employee.companyLoan ? 
                         'درخواست وام شرکتی ثبت شد' : 
@@ -1441,30 +1506,6 @@
             } catch (error) {
                 console.error('خطا در ایجاد خروجی اکسل:', error);
                 showNotification('خطا در ایجاد خروجی اکسل', 'error');
-            }
-        }
-
-        // تأیید هویت
-        function authenticate() {
-            const password = document.getElementById('password').value;
-            const targetAction = document.getElementById('target-action').value;
-            const targetEmployeeId = document.getElementById('target-employee-id').value;
-            
-            // رمز عبور پیش‌فرض - در محیط واقعی باید ایمن‌تر باشد
-            if (password === 'admin123') {
-                isAuthenticated = true;
-                authExpiryTime = Date.now() + 30 * 60 * 1000; // 30 دقیقه
-                
-                document.getElementById('password-error').style.display = 'none';
-                closeModal('passwordModal');
-                
-                if (targetAction === 'delete') {
-                    deleteEmployee(targetEmployeeId);
-                }
-                
-                showNotification('تأیید هویت موفقیت‌آمیز بود', 'success');
-            } else {
-                document.getElementById('password-error').style.display = 'block';
             }
         }
 
@@ -1528,6 +1569,7 @@
         window.toggleLoanRequest = toggleLoanRequest;
         window.editEmployee = editEmployee;
         window.debugDataStructure = debugDataStructure;
+        window.requestPassword = requestPassword;
     </script>
 </body>
 </html>
