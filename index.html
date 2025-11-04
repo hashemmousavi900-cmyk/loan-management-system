@@ -8,6 +8,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
     <style>
+        /* استایل‌ها بدون تغییر */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -1167,40 +1168,7 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
             });
         }
 
-        // تست بارگذاری داده
-        async function testLoadData() {
-            console.log('🧪 شروع تست بارگذاری داده...');
-            showLoading(true, 'در حال تست بارگذاری داده...');
-            
-            try {
-                const result = await googleAppsScriptRequest('loadData');
-                console.log('📊 نتیجه تست بارگذاری:', result);
-                
-                if (result.success && result.data) {
-                    console.log('✅ تست بارگذاری موفق');
-                    console.log('📋 ساختار داده دریافتی:', result.data);
-                    console.log('🔢 تعداد آیتم‌ها:', result.data.length);
-                    
-                    if (result.data.length > 0) {
-                        console.log('📝 آیتم اول:', result.data[0]);
-                        console.log('🔑 کلیدهای آیتم اول:', Object.keys(result.data[0]));
-                    }
-                    
-                    showNotification(`تست بارگذاری موفق - ${result.data.length} آیتم دریافت شد`, 'success');
-                } else {
-                    console.log('❌ تست بارگذاری ناموفق');
-                    showNotification('تست بارگذاری ناموفق', 'error');
-                }
-            } catch (error) {
-                console.error('❌ خطا در تست بارگذاری:', error);
-                showNotification('خطا در تست بارگذاری', 'error');
-            } finally {
-                showLoading(false);
-                updateDebugInfo();
-            }
-        }
-
-        // بارگذاری از Google Sheets - نسخه اصلاح شده
+        // بارگذاری از Google Sheets - نسخه کاملاً اصلاح شده
         async function loadFromGoogleSheets() {
             showLoading(true, 'در حال بارگذاری از Google Sheets...');
             
@@ -1219,29 +1187,29 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
                         return;
                     }
                     
-                    // پردازش داده‌ها - بررسی ساختار هر آیتم
+                    // پردازش داده‌ها - نسخه بهبود یافته
                     sampleData = result.data.map((item, index) => {
                         console.log(`🔍 پردازش آیتم ${index}:`, item);
                         
-                        // بررسی ساختار داده‌ها
+                        // بررسی و تبدیل تمام فیلدها
                         const processedItem = {
-                            username: item.Username || item.username || '',
+                            username: String(item.Username || item.username || ''),
                             employeeNumber: String(item.Employeenumber || item.employeeNumber || item['Employeenumber'] || ''),
-                            fullname: item.Fullname || item.fullname || '',
+                            fullname: String(item.Fullname || item.fullname || ''),
                             gender: convertGender(item.Gender || item.gender || ''),
-                            bankLoan: item.Bankloan || item.bankLoan || '',
-                            companyLoan: item.Companyloan || item.companyLoan || '',
+                            bankLoan: String(item.Bankloan || item.bankLoan || ''),
+                            companyLoan: String(item.Companyloan || item.companyLoan || ''),
                             bankLoanDate: convertDateFormat(item.Bankloandate || item.bankLoanDate || ''),
                             companyLoanDate: convertDateFormat(item.Companyloandate || item.companyLoanDate || ''),
                             priority: convertPriority(item.Priority || item.priority || ''),
-                            description: item.Description || item.description || '',
-                            loanRequest: (item.Loanrequest || item.loanRequest || item['Loanrequest']) === 'true'
+                            description: String(item.Description || item.description || ''),
+                            loanRequest: String(item.Loanrequest || item.loanRequest || item['Loanrequest'] || 'false').toLowerCase() === 'true'
                         };
                         
                         console.log(`✅ آیتم پردازش شده ${index}:`, processedItem);
                         return processedItem;
                     }).filter(item => {
-                        // فیلتر آیتم‌های معتبر
+                        // فیلتر آیتم‌های معتبر - فقط آیتم‌هایی که شماره پرسنلی دارند
                         const isValid = item.employeeNumber && item.employeeNumber.trim() !== '';
                         if (!isValid) {
                             console.log('❌ آیتم حذف شده (شماره پرسنلی نامعتبر):', item);
@@ -1249,12 +1217,12 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
                         return isValid;
                     });
                     
-                    console.log('🎯 داده‌های نهایی:', sampleData);
+                    console.log('🎯 داده‌های نهایی پس از پردازش:', sampleData);
                     
                     if (sampleData.length > 0) {
                         renderTable(sampleData);
                         saveToLocalStorage();
-                        showNotification(`داده‌ها بارگذاری شدند (${sampleData.length} رکورد)`, 'success');
+                        showNotification(`داده‌ها با موفقیت بارگذاری شدند (${sampleData.length} رکورد)`, 'success');
                     } else {
                         console.log('❌ هیچ داده معتبری پس از پردازش باقی نماند');
                         showNotification('هیچ داده معتبری در Google Sheets وجود ندارد', 'info');
@@ -1265,8 +1233,9 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
                     throw new Error(result.error || 'خطا در بارگذاری داده‌ها');
                 }
             } catch (error) {
-                console.error('❌ خطا در بارگذاری:', error);
+                console.error('❌ خطا در بارگذاری از گوگل شیت:', error);
                 // استفاده از localStorage به عنوان پشتیبان
+                console.log('🔄 استفاده از localStorage به عنوان پشتیبان...');
                 const loaded = loadFromLocalStorage();
                 if (loaded) {
                     showNotification('داده‌ها از حافظه محلی بارگذاری شدند', 'warning');
@@ -1329,6 +1298,39 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
                 saveToLocalStorage();
                 showNotification('خطا در ذخیره‌سازی داده‌ها. داده‌ها در حافظه محلی ذخیره شدند.', 'warning');
                 return false;
+            }
+        }
+
+        // تست بارگذاری داده
+        async function testLoadData() {
+            console.log('🧪 شروع تست بارگذاری داده...');
+            showLoading(true, 'در حال تست بارگذاری داده...');
+            
+            try {
+                const result = await googleAppsScriptRequest('loadData');
+                console.log('📊 نتیجه تست بارگذاری:', result);
+                
+                if (result.success && result.data) {
+                    console.log('✅ تست بارگذاری موفق');
+                    console.log('📋 ساختار داده دریافتی:', result.data);
+                    console.log('🔢 تعداد آیتم‌ها:', result.data.length);
+                    
+                    if (result.data.length > 0) {
+                        console.log('📝 آیتم اول:', result.data[0]);
+                        console.log('🔑 کلیدهای آیتم اول:', Object.keys(result.data[0]));
+                    }
+                    
+                    showNotification(`تست بارگذاری موفق - ${result.data.length} آیتم دریافت شد`, 'success');
+                } else {
+                    console.log('❌ تست بارگذاری ناموفق');
+                    showNotification('تست بارگذاری ناموفق', 'error');
+                }
+            } catch (error) {
+                console.error('❌ خطا در تست بارگذاری:', error);
+                showNotification('خطا در تست بارگذاری', 'error');
+            } finally {
+                showLoading(false);
+                updateDebugInfo();
             }
         }
 
