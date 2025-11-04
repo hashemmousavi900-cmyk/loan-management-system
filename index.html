@@ -1101,20 +1101,18 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
             }
         }
 
-      // ==================== توابع ارتباط با گوگل ====================
+// ==================== توابع ارتباط با گوگل ====================
 
-// درخواست به Google Apps Script - نسخه بهبود یافته
+// درخواست به Google Apps Script - نسخه تکه‌تکه
 async function googleAppsScriptRequest(action, data = null) {
     console.log(`📡 ارسال درخواست ${action}...`);
     
-    const startTime = Date.now();
-    
-    // برای saveData از POST استفاده می‌کنیم
-    if (action === 'saveData' && data) {
-        return await googleAppsScriptPostRequest(action, data);
+    // برای saveData با داده‌های بزرگ از تکه‌تکه‌سازی استفاده می‌کنیم
+    if (action === 'saveData' && data && data.length > 10) {
+        return await saveDataChunked(data);
     }
     
-    // برای سایر درخواست‌ها از GET استفاده می‌کنیم
+    // برای سایر درخواست‌ها از GET معمولی استفاده می‌کنیم
     return await googleAppsScriptGetRequest(action, data);
 }
 
@@ -1134,7 +1132,7 @@ async function googleAppsScriptGetRequest(action, data = null) {
         
         url += `&t=${requestId}`;
         
-        console.log('🔗 URL درخواست GET:', url);
+        console.log('🔗 URL درخواست GET:', url.length, 'کاراکتر');
         
         window[callbackName] = function(response) {
             const endTime = Date.now();
@@ -1185,6 +1183,59 @@ async function googleAppsScriptGetRequest(action, data = null) {
         }, 30000);
     });
 }
+
+// ذخیره‌سازی تکه‌تکه برای داده‌های بزرگ
+async function saveDataChunked(data) {
+    console.log('💾 شروع ذخیره‌سازی تکه‌تکه...');
+    
+    // تقسیم داده‌ها به تکه‌های کوچک
+    const chunkSize = 5; // تعداد کم برای جلوگیری از طولانی شدن URL
+    const chunks = [];
+    for (let i = 0; i < data.length; i += chunkSize) {
+        chunks.push(data.slice(i, i + chunkSize));
+    }
+    
+    console.log(`📦 تقسیم داده‌ها به ${chunks.length} تکه`);
+    
+    let successCount = 0;
+    let errorCount = 0;
+    
+    for (let i = 0; i < chunks.length; i++) {
+        console.log(`💾 ذخیره‌سازی تکه ${i + 1} از ${chunks.length}...`);
+        
+        try {
+            const result = await googleAppsScriptGetRequest('saveData', chunks[i]);
+            
+            if (result && result.success) {
+                successCount++;
+                console.log(`✅ تکه ${i + 1} با موفقیت ذخیره شد`);
+            } else {
+                errorCount++;
+                console.error(`❌ خطا در ذخیره تکه ${i + 1}:`, result.error);
+            }
+        } catch (error) {
+            errorCount++;
+            console.error(`❌ خطا در ذخیره تکه ${i + 1}:`, error);
+        }
+        
+        // تأخیر بین درخواست‌ها برای جلوگیری از Rate Limit
+        await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+    
+    if (errorCount === 0) {
+        return {
+            success: true,
+            message: `تمامی داده‌ها (${data.length} رکورد) با موفقیت ذخیره شدند`,
+            savedCount: data.length
+        };
+    } else {
+        return {
+            success: false,
+            error: `${successCount} تکه موفق، ${errorCount} تکه ناموفق`
+        };
+    }
+}
+        
 
 // درخواست POST برای ذخیره داده‌های بزرگ
 async function googleAppsScriptPostRequest(action, data) {
@@ -1942,4 +1993,5 @@ async function googleAppsScriptPostRequest(action, data) {
     </script>
 </body>
 </html>
+
 
