@@ -377,7 +377,7 @@
         <div class="table-responsive">
             <div class="table-wrapper">
                 <div class="table-title">
-                    <h2>سیستم مدیریت وام‌ها - CR(Mashhad)</h2>
+                    <h2>سیستم مدیریت وام‌ها - CR(Mashhad) - نسخه بهبود یافته</h2>
                     <div class="btn-group">
                         <button class="btn btn-success" id="add-loan-btn">
                             <i class="fas fa-plus"></i> 
@@ -471,7 +471,7 @@
                 
                 <!-- پنل دیباگ -->
                 <div id="debug-panel" class="debug-panel" style="display: none;">
-                    <h3>🔧 پنل دیباگ و تست سیستم</h3>
+                    <h3>🔧 پنل دیباگ و تست سیستم - نسخه بهبود یافته</h3>
                     
                     <div class="debug-section">
                         <h4>📊 وضعیت سیستم</h4>
@@ -513,6 +513,12 @@
                         <button class="btn btn-success" id="force-save-btn">
                             <i class="fas fa-save"></i> ذخیره اجباری
                         </button>
+                        <button class="btn btn-warning" id="test-post-method-btn">
+                            <i class="fas fa-paper-plane"></i> تست روش POST
+                        </button>
+                        <button class="btn btn-info" id="performance-test-btn">
+                            <i class="fas fa-tachometer-alt"></i> تست عملکرد
+                        </button>
                     </div>
                 </div>
             </div>
@@ -520,7 +526,7 @@
     </div>
 
     <div class="footer">
-        Designed by SeyedHashem Mousavi - 2025
+        Designed by SeyedHashem Mousavi - 2025 - نسخه بهبود یافته برای داده‌های بزرگ
     </div>
     
     <!-- مودال افزودن/ویرایش وام -->
@@ -648,9 +654,9 @@
 
         // بارگذاری اولیه
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 سیستم مدیریت وام بارگذاری شد');
+            console.log('🚀 سیستم مدیریت وام بارگذاری شد - نسخه بهبود یافته');
             setupEventListeners();
-            loadFromGoogleSheets();
+            loadLargeDataFromSheets();
             updateDebugInfo();
         });
 
@@ -895,7 +901,8 @@
                 action: action,
                 data: data ? `داده ارسالی (${JSON.stringify(data).length} کاراکتر)` : 'بدون داده',
                 response: response ? JSON.stringify(response) : 'بدون پاسخ',
-                error: error
+                error: error,
+                method: data ? 'POST' : 'GET'
             };
             
             requestLogs.unshift(log);
@@ -919,6 +926,7 @@
 وضعیت احراز هویت: ${isAuthenticated ? '✅ فعال' : '❌ غیرفعال'}
 آدرس اسکریپت: ${GOOGLE_APPS_SCRIPT_URL}
 حافظه محلی: ${localStorage.getItem('loanData') ? '✅ دارای داده' : '❌ خالی'}
+نسخه: بهبود یافته برای داده‌های بزرگ
                 `.trim();
             }
             
@@ -928,7 +936,7 @@
                 } else {
                     requestLogsElement.innerHTML = requestLogs.map(log => `
 ⏰ ${log.timestamp}
-🎯 ${log.action}
+🎯 ${log.action} | 📡 ${log.method}
 📦 ${log.data}
 ${log.response ? `✅ ${log.response}` : ''}
 ${log.error ? `❌ خطا: ${log.error}` : ''}
@@ -942,38 +950,42 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
             }
         }
 
-        // ==================== توابع ارتباط با گوگل ====================
+        // ==================== توابع ارتباط با گوگل - نسخه بهبود یافته ====================
 
-        // درخواست به Google Apps Script - نسخه اصلاح شده
+        // درخواست به Google Apps Script - نسخه بهبود یافته
         async function googleAppsScriptRequest(action, data = null) {
             console.log(`📡 ارسال درخواست ${action}...`);
             
-            // برای saveData و debugSaveData از POST استفاده کنیم
-            if ((action === 'saveData' || action === 'debugSaveData') && data) {
+            // برای تمام درخواست‌های دارای داده از POST استفاده کنیم
+            if (data || action === 'saveData' || action === 'debugSaveData') {
                 console.log('🔄 استفاده از POST برای داده‌های بزرگ');
                 return await googleAppsScriptPostRequest(action, data);
             }
             
-            // برای سایر درخواست‌ها از GET استفاده می‌کنیم
-            return await googleAppsScriptGetRequest(action, data);
+            // برای درخواست‌های ساده بدون داده از GET استفاده می‌کنیم
+            return await googleAppsScriptGetRequest(action);
         }
 
-        // تابع جدید برای درخواست POST
+        // تابع POST بهبود یافته
         async function googleAppsScriptPostRequest(action, data = null) {
             const startTime = Date.now();
             
             try {
-                const formData = new FormData();
-                formData.append('action', action);
-                if (data) {
-                    formData.append('data', JSON.stringify(data));
-                }
+                const payload = {
+                    action: action,
+                    data: data ? JSON.stringify(data) : null
+                };
                 
                 console.log(`📤 ارسال POST برای ${action} با ${data ? data.length : 0} رکورد`);
                 
                 const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
                     method: 'POST',
-                    body: formData
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: Object.keys(payload).map(key => 
+                        key + '=' + encodeURIComponent(payload[key] || '')
+                    ).join('&')
                 });
                 
                 const result = await response.json();
@@ -992,129 +1004,45 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
             }
         }
 
-        // تابع GET
-        async function googleAppsScriptGetRequest(action, data = null) {
-            const requestId = Date.now();
+        // تابع GET فقط برای درخواست‌های ساده
+        async function googleAppsScriptGetRequest(action) {
             const startTime = Date.now();
             
-            return new Promise((resolve, reject) => {
-                const callbackName = 'cb_' + requestId;
+            try {
+                let url = `${GOOGLE_APPS_SCRIPT_URL}?action=${action}&t=${Date.now()}`;
                 
-                let url = `${GOOGLE_APPS_SCRIPT_URL}?action=${action}&callback=${callbackName}`;
+                console.log('🔗 ارسال درخواست GET ساده:', url);
                 
-                if (data) {
-                    const dataString = JSON.stringify(data);
-                    console.log(`📦 حجم داده: ${dataString.length} کاراکتر`);
-                    url += `&data=${encodeURIComponent(dataString)}`;
-                }
+                const response = await fetch(url);
+                const result = await response.json();
+                const duration = Date.now() - startTime;
                 
-                url += `&t=${requestId}`;
+                console.log(`📥 پاسخ GET دریافت شد (${duration}ms):`, result);
+                logRequest(action, null, result);
                 
-                console.log('🔗 URL درخواست GET:', url.length < 500 ? url : url.substring(0, 500) + '...');
+                return result;
                 
-                window[callbackName] = function(response) {
-                    const endTime = Date.now();
-                    const duration = endTime - startTime;
-                    
-                    console.log(`📥 پاسخ دریافت شد (${duration}ms):`, response);
-                    logRequest(action, data, response);
-                    
-                    delete window[callbackName];
-                    if (script.parentNode) {
-                        document.body.removeChild(script);
-                    }
-                    resolve(response);
-                };
-                
-                const script = document.createElement('script');
-                script.src = url;
-                
-                script.onerror = function() {
-                    const endTime = Date.now();
-                    const duration = endTime - startTime;
-                    const error = new Error('خطا در بارگذاری اسکریپت');
-                    
-                    console.error(`❌ خطا در بارگذاری اسکریپت (${duration}ms)`);
-                    logRequest(action, data, null, error.message);
-                    
-                    delete window[callbackName];
-                    if (script.parentNode) {
-                        document.body.removeChild(script);
-                    }
-                    reject(error);
-                };
-                
-                document.body.appendChild(script);
-                
-                setTimeout(() => {
-                    if (window[callbackName]) {
-                        const error = new Error('تایم‌اوت درخواست');
-                        console.error(`⏰ تایم‌اوت درخواست ${action} (30000ms)`);
-                        logRequest(action, data, null, error.message);
-                        
-                        delete window[callbackName];
-                        if (script.parentNode) {
-                            document.body.removeChild(script);
-                        }
-                        reject(error);
-                    }
-                }, 30000);
-            });
-        }
-
-        // تست ارسال داده‌های زیاد
-        async function testLargeDataSave() {
-          console.log('🧪 تست ذخیره‌سازی داده‌های زیاد...');
-          
-          // ایجاد 20 رکورد تستی
-          const testData = [];
-          for (let i = 1; i <= 20; i++) {
-            testData.push({
-              Username: `testuser${i}`,
-              Employeenumber: `TEST${i}`,
-              Fullname: `کاربر تست ${i}`,
-              Gender: i % 2 === 0 ? 'زن' : 'مرد',
-              Bankloan: `${i},000,000`,
-              Companyloan: `${i}00,000`,
-              Bankloandate: '2024-01-01',
-              Companyloandate: '2024-01-01',
-              Priority: ((i % 3) + 1).toString(),
-              Description: `توضیحات تست ${i}`,
-              Loanrequest: i % 2 === 0
-            });
-          }
-          
-          console.log(`📤 ارسال ${testData.length} رکورد تستی...`);
-          
-          try {
-            // تست با تابع دیباگ
-            const result = await googleAppsScriptRequest('debugSaveData', testData);
-            console.log('✅ نتیجه تست:', result);
-            
-            if (result.debug) {
-              console.log('📊 آمار دیباگ:', result.debug);
-              showNotification(`تست: دریافت ${result.debug.receivedCount} | ذخیره ${result.debug.savedCount}`, 'success');
+            } catch (error) {
+                const duration = Date.now() - startTime;
+                console.error(`❌ خطا در GET (${duration}ms):`, error);
+                logRequest(action, null, null, error.message);
+                throw error;
             }
-            
-          } catch (error) {
-            console.error('❌ خطا در تست:', error);
-            showNotification('خطا در تست ذخیره‌سازی', 'error');
-          }
         }
 
-        // بارگذاری از Google Sheets
-        async function loadFromGoogleSheets() {
-            showLoading(true, 'در حال بارگذاری از Google Sheets...');
+        // بارگذاری از Google Sheets - نسخه بهبود یافته
+        async function loadLargeDataFromSheets() {
+            showLoading(true, 'در حال بارگذاری داده‌های بزرگ از Google Sheets...');
             
             try {
-                const result = await googleAppsScriptRequest('loadData');
+                // استفاده از GET ساده برای بارگذاری
+                const result = await googleAppsScriptGetRequest('loadData');
                 console.log('📊 پاسخ کامل loadData:', result);
                 
                 if (result.success && result.data && Array.isArray(result.data)) {
-                    console.log('📊 داده‌های دریافتی:', result.data);
+                    console.log(`📊 ${result.data.length} رکورد دریافتی`);
                     
                     if (result.data.length === 0) {
-                        console.log('📭 آرایه داده خالی است');
                         showNotification('هیچ داده‌ای در Google Sheets وجود ندارد', 'info');
                         showEmptyState();
                         return;
@@ -1142,19 +1070,17 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
                         return isValid;
                     });
                     
-                    console.log('🎯 داده‌های نهایی پس از پردازش:', sampleData);
+                    console.log(`🎯 ${sampleData.length} رکورد معتبر پس از پردازش`);
                     
                     if (sampleData.length > 0) {
                         renderTable(sampleData);
                         saveToLocalStorage();
                         showNotification(`داده‌ها با موفقیت بارگذاری شدند (${sampleData.length} رکورد)`, 'success');
                     } else {
-                        console.log('❌ هیچ داده معتبری پس از پردازش باقی نماند');
                         showNotification('هیچ داده معتبری در Google Sheets وجود ندارد', 'info');
                         showEmptyState();
                     }
                 } else {
-                    console.log('❌ ساختار پاسخ نامعتبر:', result);
                     throw new Error(result.error || 'خطا در بارگذاری داده‌ها');
                 }
             } catch (error) {
@@ -1172,7 +1098,7 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
             }
         }
 
-        // ذخیره در Google Sheets
+        // ذخیره در Google Sheets - نسخه بهبود یافته
         async function saveToGoogleSheets() {
             if (sampleData.length === 0) {
                 console.log('⚠️ داده‌ای برای ذخیره‌سازی وجود ندارد');
@@ -1201,16 +1127,17 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
                     Loanrequest: item.loanRequest ? 'true' : 'false'
                 }));
                 
-                console.log('📤 ارسال داده‌ها به Google Sheets...');
+                console.log(`📤 ارسال ${dataForSheets.length} رکورد به Google Sheets...`);
                 
-                const result = await googleAppsScriptRequest('saveData', dataForSheets);
+                // استفاده از POST برای ذخیره‌سازی
+                const result = await googleAppsScriptPostRequest('saveData', dataForSheets);
                 console.log('✅ پاسخ ذخیره‌سازی:', result);
                 
                 showLoading(false);
                 
                 if (result && result.success) {
                     saveToLocalStorage();
-                    showNotification('تغییرات با موفقیت در Google Sheets ذخیره شدند.', 'success');
+                    showNotification(`تغییرات با موفقیت در Google Sheets ذخیره شدند (${result.savedCount || dataForSheets.length} رکورد)`, 'success');
                     return true;
                 } else {
                     throw new Error(result.error || 'خطا در ذخیره‌سازی');
@@ -1221,6 +1148,105 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
                 saveToLocalStorage();
                 showNotification('خطا در ذخیره‌سازی داده‌ها. داده‌ها در حافظه محلی ذخیره شدند.', 'warning');
                 return false;
+            }
+        }
+
+        // ==================== توابع تست و دیباگ ====================
+
+        // تست سیستم با داده‌های زیاد
+        async function testLargeDataSave() {
+            console.log('🧪 تست ذخیره‌سازی داده‌های زیاد...');
+            
+            // ایجاد ۵۰ رکورد تستی
+            const testData = [];
+            for (let i = 1; i <= 50; i++) {
+                testData.push({
+                    Username: `testuser${i}`,
+                    Employeenumber: `TEST${String(i).padStart(3, '0')}`,
+                    Fullname: `کاربر تست ${i}`,
+                    Gender: i % 2 === 0 ? 'زن' : 'مرد',
+                    Bankloan: `${i * 1000000} ریال`,
+                    Companyloan: `${i * 500000} ریال`,
+                    Bankloandate: '2024-01-01',
+                    Companyloandate: '2024-01-01',
+                    Priority: ((i % 3) + 1).toString(),
+                    Description: `توضیحات تست برای کاربر ${i}`,
+                    Loanrequest: i % 4 === 0
+                });
+            }
+            
+            console.log(`📤 تست با ${testData.length} رکورد...`);
+            
+            try {
+                const result = await googleAppsScriptPostRequest('debugSaveData', testData);
+                console.log('✅ نتیجه تست:', result);
+                
+                if (result.success) {
+                    showNotification(`تست موفق: ${result.debug?.message || 'داده‌ها ذخیره شدند'}`, 'success');
+                }
+                
+            } catch (error) {
+                console.error('❌ خطا در تست:', error);
+                showNotification('خطا در تست سیستم', 'error');
+            }
+        }
+
+        // تست عملکرد POST
+        async function testPostMethod() {
+            console.log('🧪 تست روش POST...');
+            
+            const testData = [
+                {
+                    Username: 'post_test_user',
+                    Employeenumber: 'POST001',
+                    Fullname: 'کاربر تست POST',
+                    Gender: 'مرد',
+                    Bankloan: '10,000,000',
+                    Companyloan: '5,000,000',
+                    Bankloandate: '2024-01-01',
+                    Companyloandate: '2024-01-01',
+                    Priority: '2',
+                    Description: 'این یک تست برای روش POST است',
+                    Loanrequest: false
+                }
+            ];
+            
+            try {
+                const result = await googleAppsScriptPostRequest('debugSaveData', testData);
+                console.log('✅ نتیجه تست POST:', result);
+                showNotification('تست POST موفقیت‌آمیز بود', 'success');
+            } catch (error) {
+                console.error('❌ خطا در تست POST:', error);
+                showNotification('خطا در تست POST', 'error');
+            }
+        }
+
+        // تست عملکرد کلی
+        async function performanceTest() {
+            console.log('🚀 شروع تست عملکرد...');
+            const startTime = Date.now();
+            
+            try {
+                // تست اتصال
+                const connectionTest = await googleAppsScriptGetRequest('test');
+                console.log('✅ تست اتصال:', connectionTest);
+                
+                // تست بارگذاری
+                const loadTest = await googleAppsScriptGetRequest('loadData');
+                console.log('✅ تست بارگذاری:', loadTest.success ? `${loadTest.data?.length || 0} رکورد` : 'خطا');
+                
+                // تست ذخیره‌سازی
+                if (sampleData.length > 0) {
+                    const saveTest = await googleAppsScriptPostRequest('debugSaveData', sampleData.slice(0, 5));
+                    console.log('✅ تست ذخیره‌سازی:', saveTest);
+                }
+                
+                const duration = Date.now() - startTime;
+                showNotification(`تست عملکرد کامل شد (${duration}ms)`, 'success');
+                
+            } catch (error) {
+                console.error('❌ خطا در تست عملکرد:', error);
+                showNotification('خطا در تست عملکرد', 'error');
             }
         }
 
@@ -1278,10 +1304,10 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
                 loadFromCloud.addEventListener('click', function() {
                     if (sampleData.length > 0) {
                         if (confirm('⚠️ اگر ادامه دهید، داده‌های فعلی با داده‌های جدید جایگزین می‌شوند.\n\nآیا مطمئن هستید؟')) {
-                            loadFromGoogleSheets();
+                            loadLargeDataFromSheets();
                         }
                     } else {
-                        loadFromGoogleSheets();
+                        loadLargeDataFromSheets();
                     }
                 });
             }
@@ -1366,7 +1392,7 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
             const testLoadBtn = document.getElementById('test-load-btn');
             if (testLoadBtn) {
                 testLoadBtn.addEventListener('click', function() {
-                    loadFromGoogleSheets();
+                    loadLargeDataFromSheets();
                 });
             }
 
@@ -1419,6 +1445,20 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
             if (forceSaveBtn) {
                 forceSaveBtn.addEventListener('click', function() {
                     saveToGoogleSheets();
+                });
+            }
+
+            const testPostMethodBtn = document.getElementById('test-post-method-btn');
+            if (testPostMethodBtn) {
+                testPostMethodBtn.addEventListener('click', function() {
+                    testPostMethod();
+                });
+            }
+
+            const performanceTestBtn = document.getElementById('performance-test-btn');
+            if (performanceTestBtn) {
+                performanceTestBtn.addEventListener('click', function() {
+                    performanceTest();
                 });
             }
 
@@ -1621,6 +1661,8 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
         window.editEmployee = editEmployee;
         window.requestPassword = requestPassword;
         window.testLargeDataSave = testLargeDataSave;
+        window.testPostMethod = testPostMethod;
+        window.performanceTest = performanceTest;
     </script>
 </body>
 </html>
