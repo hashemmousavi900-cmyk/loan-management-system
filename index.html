@@ -649,7 +649,33 @@
                             در حال بارگذاری...
                         </div>
                     </div>
-                    
+                    <div class="debug-controls">
+    <button class="btn btn-secondary" id="test-save-btn">
+        <i class="fas fa-vial"></i> تست ذخیره‌سازی
+    </button>
+    <button class="btn btn-warning" id="test-load-btn">
+        <i class="fas fa-sync"></i> تست بارگذاری
+    </button>
+    <button class="btn btn-info" id="add-test-data-btn">
+        <i class="fas fa-plus-circle"></i> افزودن داده تست
+    </button>
+    <!-- 🆕 این دکمه جدید رو اضافه کن: -->
+    <button class="btn btn-primary" id="test-large-data-btn">
+        <i class="fas fa-database"></i> تست داده‌های زیاد
+    </button>
+    <button class="btn btn-danger" id="clear-all-btn">
+        <i class="fas fa-trash"></i> پاک کردن همه داده‌ها
+    </button>
+    <button class="btn btn-success" id="force-save-btn">
+        <i class="fas fa-save"></i> ذخیره اجباری
+    </button>
+    <button class="btn btn-warning" id="test-edit-btn">
+        <i class="fas fa-edit"></i> تست ویرایش و ذخیره
+    </button>
+    <button class="btn btn-info" id="test-chunked-save-btn">
+        <i class="fas fa-layer-group"></i> تست ذخیره تکه‌ای
+    </button>
+</div>
                     <div class="debug-controls">
                         <button class="btn btn-secondary" id="test-save-btn">
                             <i class="fas fa-vial"></i> تست ذخیره‌سازی
@@ -1101,12 +1127,58 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
             }
         }
 
-      // ==================== توابع ارتباط با گوگل ====================
+   // ==================== توابع ارتباط با گوگل ====================
 
-// درخواست به Google Apps Script - نسخه ساده شده
+// درخواست به Google Apps Script - نسخه اصلاح شده
 async function googleAppsScriptRequest(action, data = null) {
     console.log(`📡 ارسال درخواست ${action}...`);
     
+    // برای saveData از POST استفاده کنیم (حل مشکل محدودیت URL)
+    if (action === 'saveData' && data && data.length > 10) {
+        console.log('🔄 استفاده از POST برای داده‌های بزرگ');
+        return await googleAppsScriptPostRequest(action, data);
+    }
+    
+    // برای سایر درخواست‌ها از GET استفاده می‌کنیم
+    return await googleAppsScriptGetRequest(action, data);
+}
+
+// تابع جدید برای درخواست POST
+async function googleAppsScriptPostRequest(action, data = null) {
+    const startTime = Date.now();
+    
+    try {
+        const formData = new FormData();
+        formData.append('action', action);
+        if (data) {
+            formData.append('data', JSON.stringify(data));
+        }
+        
+        console.log(`📤 ارسال POST برای ${action} با ${data ? data.length : 0} رکورد`);
+        
+        const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        const duration = Date.now() - startTime;
+        
+        console.log(`📥 پاسخ POST دریافت شد (${duration}ms):`, result);
+        logRequest(action, data, result);
+        
+        return result;
+        
+    } catch (error) {
+        const duration = Date.now() - startTime;
+        console.error(`❌ خطا در POST (${duration}ms):`, error);
+        logRequest(action, data, null, error.message);
+        throw error;
+    }
+}
+
+// تابع GET (همان قبلی)
+async function googleAppsScriptGetRequest(action, data = null) {
     const requestId = Date.now();
     const startTime = Date.now();
     
@@ -1174,7 +1246,6 @@ async function googleAppsScriptRequest(action, data = null) {
         }, 30000);
     });
 }
-
 // تابع saveDataChunked را می‌توانید حذف کنید چون دیگر نیازی نیست
 
         // ذخیره‌سازی کامل داده‌ها - جایگزینی همه داده‌ها
@@ -1525,7 +1596,61 @@ async function googleAppsScriptRequest(action, data = null) {
                 console.error('خطا در تست پیشرفته:', error);
             }
         }
+// تست ویرایش و ذخیره
+async function testEditAndSave() {
+    // ... کدهای موجود این تابع ...
+}
 
+// 🆕 این تابع جدید رو اینجا اضافه کن:
+// تست ارسال داده‌های زیاد
+async function testLargeDataSave() {
+  console.log('🧪 تست ذخیره‌سازی داده‌های زیاد...');
+  
+  // ایجاد 20 رکورد تستی
+  const testData = [];
+  for (let i = 1; i <= 20; i++) {
+    testData.push({
+      Username: `testuser${i}`,
+      Employeenumber: `TEST${i}`,
+      Fullname: `کاربر تست ${i}`,
+      Gender: i % 2 === 0 ? 'زن' : 'مرد',
+      Bankloan: `${i},000,000`,
+      Companyloan: `${i}00,000`,
+      Bankloandate: '2024-01-01',
+      Companyloandate: '2024-01-01',
+      Priority: ((i % 3) + 1).toString(),
+      Description: `توضیحات تست ${i}`,
+      Loanrequest: i % 2 === 0
+    });
+  }
+  
+  console.log(`📤 ارسال ${testData.length} رکورد تستی...`);
+  
+  try {
+    // تست با تابع دیباگ
+    const result = await googleAppsScriptRequest('debugSaveData', testData);
+    console.log('✅ نتیجه تست:', result);
+    
+    if (result.debug) {
+      console.log('📊 آمار دیباگ:', result.debug);
+      showNotification(`تست: دریافت ${result.debug.receivedCount} | ذخیره ${result.debug.savedCount}`, 'success');
+    }
+    
+  } catch (error) {
+    console.error('❌ خطا در تست:', error);
+    showNotification('خطا در تست ذخیره‌سازی', 'error');
+  }
+}
+
+// 🆕 همچنین این دکمه رو به پنل دیباگ اضافه کن:
+// در بخش event listeners، این رو اضافه کن:
+const testLargeDataBtn = document.getElementById('test-large-data-btn');
+if (testLargeDataBtn) {
+    testLargeDataBtn.addEventListener('click', function() {
+        testLargeDataSave();
+    });
+}
+        
         // ==================== رویدادها ====================
 
         function setupEventListeners() {
@@ -1954,5 +2079,6 @@ async function googleAppsScriptRequest(action, data = null) {
     </script>
 </body>
 </html>
+
 
 
