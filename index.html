@@ -1063,59 +1063,82 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
             requestQueue.push({ fn });
             processRequestQueue();
         }
+// درخواست به Google Apps Script - نسخه JSONP
+async function googleAppsScriptRequest(action, data = null) {
+    console.log(`📡 ارسال درخواست ${action}...`);
+    
+    // برای تمام درخواست‌ها از JSONP استفاده می‌کنیم تا CORS حل شود
+    return await googleAppsScriptJsonpRequest(action, data);
+}
 
-        // درخواست به Google Apps Script - نسخه سریع
-        async function googleAppsScriptRequest(action, data = null) {
-            console.log(`📡 ارسال درخواست ${action}...`);
-            
-            // برای تمام درخواست‌های دارای داده از POST استفاده کنیم
-            if (data || action === 'saveData' || action === 'debugSaveData') {
-                return await googleAppsScriptPostRequest(action, data);
-            }
-            
-            // برای درخواست‌های ساده بدون داده از GET استفاده می‌کنیم
-            return await googleAppsScriptGetRequest(action);
+// تابع JSONP برای دور زدن CORS
+function googleAppsScriptJsonpRequest(action, data = null) {
+    return new Promise((resolve, reject) => {
+        const requestId = Date.now();
+        const callbackName = 'jsonp_cb_' + requestId;
+        const startTime = Date.now();
+        
+        let url = `${GOOGLE_APPS_SCRIPT_URL}?action=${action}&callback=${callbackName}`;
+        
+        if (data) {
+            const dataString = JSON.stringify(data);
+            console.log(`📦 ارسال ${data.length} رکورد با JSONP`);
+            url += `&data=${encodeURIComponent(dataString)}`;
         }
-
-        // تابع POST سریع
-        async function googleAppsScriptPostRequest(action, data = null) {
-            const startTime = Date.now();
+        
+        url += `&t=${requestId}`;
+        
+        console.log('🔗 ارسال درخواست JSONP برای دور زدن CORS');
+        
+        window[callbackName] = function(response) {
+            const duration = Date.now() - startTime;
             
-            try {
-                const payload = {
-                    action: action,
-                    data: data ? JSON.stringify(data) : null
-                };
-                
-                console.log(`📤 ارسال POST برای ${action} با ${data ? data.length : 0} رکورد`);
-                
-                const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: Object.keys(payload).map(key => 
-                        key + '=' + encodeURIComponent(payload[key] || '')
-                    ).join('&')
-                });
-                
-                const result = await response.json();
-                const duration = Date.now() - startTime;
-                
-                console.log(`📥 پاسخ POST دریافت شد (${duration}ms):`, result);
-                logRequest(action, data, result, null, duration);
-                showResponseTime(duration);
-                
-                return result;
-                
-            } catch (error) {
-                const duration = Date.now() - startTime;
-                console.error(`❌ خطا در POST (${duration}ms):`, error);
-                logRequest(action, data, null, error.message, duration);
-                showResponseTime(duration);
-                throw error;
+            console.log(`📥 پاسخ JSONP دریافت شد (${duration}ms):`, response);
+            logRequest(action, data, response, null, duration);
+            showResponseTime(duration);
+            
+            delete window[callbackName];
+            if (script.parentNode) {
+                document.body.removeChild(script);
             }
-        }
+            resolve(response);
+        };
+        
+        const script = document.createElement('script');
+        script.src = url;
+        
+        script.onerror = function() {
+            const duration = Date.now() - startTime;
+            const error = new Error('خطا در بارگذاری اسکریپت JSONP');
+            
+            console.error(`❌ خطا در JSONP (${duration}ms)`);
+            logRequest(action, data, null, error.message, duration);
+            
+            delete window[callbackName];
+            if (script.parentNode) {
+                document.body.removeChild(script);
+            }
+            reject(error);
+        };
+        
+        document.body.appendChild(script);
+        
+        // تایم‌اوت
+        setTimeout(() => {
+            if (window[callbackName]) {
+                const error = new Error('تایم‌اوت درخواست JSONP');
+                console.error(`⏰ تایم‌اوت JSONP ${action} بعد از 30 ثانیه`);
+                logRequest(action, data, null, error.message, Date.now() - startTime);
+                
+                delete window[callbackName];
+                if (script.parentNode) {
+                    document.body.removeChild(script);
+                }
+                reject(error);
+            }
+        }, 30000);
+    });
+}
 
         // تابع GET سریع
         async function googleAppsScriptGetRequest(action) {
@@ -1828,3 +1851,4 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
     </script>
 </body>
 </html>
+
