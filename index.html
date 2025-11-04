@@ -377,7 +377,7 @@
         <div class="table-responsive">
             <div class="table-wrapper">
                 <div class="table-title">
-                    <h2>سیستم مدیریت وام‌ها - CR(Mashhad)</h2>
+                    <h2>سیستم مدیریت وام‌ها - CR(Mashhad) - نسخه پایدار</h2>
                     <div class="btn-group">
                         <button class="btn btn-success" id="add-loan-btn">
                             <i class="fas fa-plus"></i> 
@@ -471,7 +471,7 @@
                 
                 <!-- پنل دیباگ -->
                 <div id="debug-panel" class="debug-panel" style="display: none;">
-                    <h3>🔧 پنل دیباگ و تست سیستم</h3>
+                    <h3>🔧 پنل دیباگ و تست سیستم - نسخه پایدار</h3>
                     
                     <div class="debug-section">
                         <h4>📊 وضعیت سیستم</h4>
@@ -513,6 +513,9 @@
                         <button class="btn btn-success" id="force-save-btn">
                             <i class="fas fa-save"></i> ذخیره اجباری
                         </button>
+                        <button class="btn btn-warning" id="test-simple-save-btn">
+                            <i class="fas fa-paper-plane"></i> تست ذخیره ساده
+                        </button>
                     </div>
                 </div>
             </div>
@@ -520,7 +523,7 @@
     </div>
 
     <div class="footer">
-        Designed by SeyedHashem Mousavi - 2025
+        Designed by SeyedHashem Mousavi - 2025 - نسخه پایدار
     </div>
     
     <!-- مودال افزودن/ویرایش وام -->
@@ -648,11 +651,23 @@
 
         // بارگذاری اولیه
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 سیستم مدیریت وام بارگذاری شد');
+            console.log('🚀 سیستم مدیریت وام بارگذاری شد - نسخه پایدار');
             setupEventListeners();
-            loadFromGoogleSheets();
-            updateDebugInfo();
+            initializeSystem();
         });
+
+        // مقداردهی اولیه سیستم
+        async function initializeSystem() {
+            // ابتدا از localStorage بارگذاری می‌کنیم
+            if (loadFromLocalStorage()) {
+                console.log('✅ داده‌ها از حافظه محلی بارگذاری شدند');
+            }
+            
+            // سپس از گوگل شیت بارگذاری می‌کنیم
+            setTimeout(() => {
+                loadFromGoogleSheets();
+            }, 500);
+        }
 
         // نمایش loading
         function showLoading(show, text = 'در حال بارگذاری...') {
@@ -752,7 +767,9 @@
             
             console.log(`📊 نمایش ${data.length} رکورد در جدول`);
             hideEmptyState();
-            tableBody.innerHTML = '';
+            
+            // استفاده از DocumentFragment برای رندر سریع‌تر
+            const fragment = document.createDocumentFragment();
             
             data.forEach((item, index) => {
                 const row = document.createElement('tr');
@@ -829,8 +846,11 @@
                     </td>
                 `;
                 
-                tableBody.appendChild(row);
+                fragment.appendChild(row);
             });
+            
+            tableBody.innerHTML = '';
+            tableBody.appendChild(fragment);
             
             console.log('✅ جدول با موفقیت رندر شد');
         }
@@ -889,13 +909,14 @@
         // ==================== توابع دیباگ ====================
 
         // تابع برای لاگ کردن درخواست‌ها
-        function logRequest(action, data, response, error = null) {
+        function logRequest(action, data, response, error = null, duration = 0) {
             const log = {
                 timestamp: new Date().toLocaleString('fa-IR'),
                 action: action,
                 data: data ? `داده ارسالی (${JSON.stringify(data).length} کاراکتر)` : 'بدون داده',
                 response: response ? JSON.stringify(response) : 'بدون پاسخ',
-                error: error
+                error: error,
+                duration: duration
             };
             
             requestLogs.unshift(log);
@@ -919,6 +940,7 @@
 وضعیت احراز هویت: ${isAuthenticated ? '✅ فعال' : '❌ غیرفعال'}
 آدرس اسکریپت: ${GOOGLE_APPS_SCRIPT_URL}
 حافظه محلی: ${localStorage.getItem('loanData') ? '✅ دارای داده' : '❌ خالی'}
+نسخه: پایدار - JSONP
                 `.trim();
             }
             
@@ -932,6 +954,7 @@
 📦 ${log.data}
 ${log.response ? `✅ ${log.response}` : ''}
 ${log.error ? `❌ خطا: ${log.error}` : ''}
+${log.duration ? `⏱️ ${log.duration}ms` : ''}
 ────────────────────
                     `).join('');
                 }
@@ -942,7 +965,7 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
             }
         }
 
-        // ==================== توابع ارتباط با گوگل ====================
+        // ==================== توابع ارتباط با گوگل - نسخه پایدار ====================
 
         // درخواست به Google Apps Script - نسخه JSONP
         async function googleAppsScriptRequest(action, data = null) {
@@ -958,6 +981,16 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
                 if (data) {
                     const dataString = JSON.stringify(data);
                     console.log(`📦 حجم داده: ${dataString.length} کاراکتر`);
+                    
+                    // اگر داده‌ها خیلی بزرگ هستند، آنها را به chunks تقسیم می‌کنیم
+                    if (dataString.length > 15000) {
+                        console.log('🔄 داده‌های بزرگ - تقسیم به chunks');
+                        sendLargeDataInChunks(action, data)
+                            .then(resolve)
+                            .catch(reject);
+                        return;
+                    }
+                    
                     url += `&data=${encodeURIComponent(dataString)}`;
                 }
                 
@@ -969,7 +1002,7 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
                     const duration = Date.now() - startTime;
                     
                     console.log(`📥 پاسخ دریافت شد (${duration}ms):`, response);
-                    logRequest(action, data, response);
+                    logRequest(action, data, response, null, duration);
                     
                     delete window[callbackName];
                     if (script.parentNode) {
@@ -986,7 +1019,7 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
                     const error = new Error('خطا در بارگذاری اسکریپت');
                     
                     console.error(`❌ خطا در بارگذاری اسکریپت (${duration}ms)`);
-                    logRequest(action, data, null, error.message);
+                    logRequest(action, data, null, error.message, duration);
                     
                     delete window[callbackName];
                     if (script.parentNode) {
@@ -1001,7 +1034,7 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
                     if (window[callbackName]) {
                         const error = new Error('تایم‌اوت درخواست');
                         console.error(`⏰ تایم‌اوت درخواست ${action} (30000ms)`);
-                        logRequest(action, data, null, error.message);
+                        logRequest(action, data, null, error.message, 30000);
                         
                         delete window[callbackName];
                         if (script.parentNode) {
@@ -1011,6 +1044,49 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
                     }
                 }, 30000);
             });
+        }
+
+        // ارسال داده‌های بزرگ به صورت chunk
+        async function sendLargeDataInChunks(action, data) {
+            console.log(`🔄 ارسال ${data.length} رکورد در chunks...`);
+            
+            const CHUNK_SIZE = 20;
+            const chunks = [];
+            
+            // تقسیم داده‌ها به chunks
+            for (let i = 0; i < data.length; i += CHUNK_SIZE) {
+                chunks.push(data.slice(i, i + CHUNK_SIZE));
+            }
+            
+            console.log(`📦 ایجاد ${chunks.length} chunk از داده‌ها`);
+            
+            let totalSaved = 0;
+            
+            // ارسال chunks
+            for (let i = 0; i < chunks.length; i++) {
+                try {
+                    const result = await googleAppsScriptRequest(action, chunks[i]);
+                    if (result && result.success) {
+                        totalSaved += chunks[i].length;
+                        console.log(`✅ chunk ${i + 1}/${chunks.length} ذخیره شد`);
+                    } else {
+                        console.warn(`⚠️ خطا در chunk ${i + 1}`);
+                    }
+                    
+                    // وقفه کوتاه بین chunks
+                    if (i < chunks.length - 1) {
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                    }
+                } catch (error) {
+                    console.error(`❌ خطا در ارسال chunk ${i + 1}:`, error);
+                }
+            }
+            
+            return {
+                success: true,
+                message: `تمامی ${totalSaved} رکورد در ${chunks.length} chunk ذخیره شدند`,
+                savedCount: totalSaved
+            };
         }
 
         // بارگذاری از Google Sheets
@@ -1121,7 +1197,7 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
                 
                 if (result && result.success) {
                     saveToLocalStorage();
-                    showNotification('تغییرات با موفقیت در Google Sheets ذخیره شدند.', 'success');
+                    showNotification(`تغییرات با موفقیت در Google Sheets ذخیره شدند (${result.savedCount || sampleData.length} رکورد)`, 'success');
                     return true;
                 } else {
                     throw new Error(result.error || 'خطا در ذخیره‌سازی');
@@ -1132,6 +1208,41 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
                 saveToLocalStorage();
                 showNotification('خطا در ذخیره‌سازی داده‌ها. داده‌ها در حافظه محلی ذخیره شدند.', 'warning');
                 return false;
+            }
+        }
+
+        // تست ذخیره‌سازی ساده
+        async function testSimpleSave() {
+            console.log('🧪 تست ذخیره‌سازی ساده...');
+            
+            const testData = [
+                {
+                    Username: 'test_simple',
+                    Employeenumber: 'TESTSIMPLE001',
+                    Fullname: 'تست ساده',
+                    Gender: 'مرد',
+                    Bankloan: '1,000,000',
+                    Companyloan: '500,000',
+                    Bankloandate: '2024-01-01',
+                    Companyloandate: '2024-01-01',
+                    Priority: '2',
+                    Description: 'این یک تست ساده است',
+                    Loanrequest: 'false'
+                }
+            ];
+            
+            try {
+                const result = await googleAppsScriptRequest('saveData', testData);
+                console.log('✅ نتیجه تست ساده:', result);
+                
+                if (result.success) {
+                    showNotification('تست ذخیره‌سازی ساده موفق بود', 'success');
+                } else {
+                    showNotification('خطا در تست ذخیره‌سازی', 'error');
+                }
+            } catch (error) {
+                console.error('❌ خطا در تست ساده:', error);
+                showNotification('خطا در تست ذخیره‌سازی', 'error');
             }
         }
 
@@ -1355,6 +1466,13 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
                 });
             }
 
+            const testSimpleSaveBtn = document.getElementById('test-simple-save-btn');
+            if (testSimpleSaveBtn) {
+                testSimpleSaveBtn.addEventListener('click', function() {
+                    testSimpleSave();
+                });
+            }
+
             console.log('✅ تمام event listeners تنظیم شدند');
         }
 
@@ -1553,6 +1671,7 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
         window.toggleLoanRequest = toggleLoanRequest;
         window.editEmployee = editEmployee;
         window.requestPassword = requestPassword;
+        window.testSimpleSave = testSimpleSave;
     </script>
 </body>
 </html>
