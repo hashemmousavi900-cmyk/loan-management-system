@@ -669,6 +669,9 @@
                         <button class="btn btn-warning" id="test-edit-btn">
                             <i class="fas fa-edit"></i> تست ویرایش و ذخیره
                         </button>
+                        <button class="btn btn-info" id="test-chunked-save-btn">
+                            <i class="fas fa-layer-group"></i> تست ذخیره تکه‌ای
+                        </button>
                     </div>
                 </div>
             </div>
@@ -1100,21 +1103,10 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
 
         // ==================== توابع ارتباط با گوگل ====================
 
-        // درخواست به Google Apps Script با POST
+        // درخواست به Google Apps Script - فقط GET
         async function googleAppsScriptRequest(action, data = null) {
             console.log(`📡 ارسال درخواست ${action}...`);
             
-            // برای saveData از POST استفاده می‌کنیم
-            if (action === 'saveData' && data) {
-                return await googleAppsScriptPostRequest(action, data);
-            }
-            
-            // برای سایر درخواست‌ها از GET استفاده می‌کنیم
-            return await googleAppsScriptGetRequest(action, data);
-        }
-
-        // درخواست GET
-        async function googleAppsScriptGetRequest(action, data = null) {
             const requestId = Date.now();
             const startTime = Date.now();
             
@@ -1129,7 +1121,7 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
                 
                 url += `&t=${requestId}`;
                 
-                console.log('🔗 URL درخواست GET:', url);
+                console.log('🔗 URL درخواست:', url);
                 
                 window[callbackName] = function(response) {
                     const endTime = Date.now();
@@ -1179,40 +1171,6 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
                     }
                 }, 30000);
             });
-        }
-
-        // درخواست POST برای ذخیره داده‌های بزرگ
-        async function googleAppsScriptPostRequest(action, data) {
-            const startTime = Date.now();
-            
-            try {
-                console.log(`📮 ارسال درخواست POST برای ${action}...`);
-                
-                const response = await fetch(GOOGLE_APPS_SCRIPT_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: `action=${action}&data=${encodeURIComponent(JSON.stringify(data))}`
-                });
-                
-                const result = await response.json();
-                const endTime = Date.now();
-                const duration = endTime - startTime;
-                
-                console.log(`📥 پاسخ POST دریافت شد (${duration}ms):`, result);
-                logRequest(action + '_POST', data, result);
-                
-                return result;
-                
-            } catch (error) {
-                const endTime = Date.now();
-                const duration = endTime - startTime;
-                
-                console.error(`❌ خطا در درخواست POST (${duration}ms):`, error);
-                logRequest(action + '_POST', data, null, error.message);
-                throw error;
-            }
         }
 
         // بارگذاری از Google Sheets
@@ -1285,7 +1243,7 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
             }
         }
 
-        // ذخیره در Google Sheets با POST
+        // ذخیره در Google Sheets - نسخه اصلی
         async function saveToGoogleSheets() {
             if (sampleData.length === 0) {
                 console.log('⚠️ داده‌ای برای ذخیره‌سازی وجود ندارد');
@@ -1293,7 +1251,7 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
                 return true;
             }
             
-            console.log('💾 شروع ذخیره‌سازی با POST...');
+            console.log('💾 شروع ذخیره‌سازی...');
             console.log('📊 تعداد داده‌ها:', sampleData.length);
             
             showLoading(true, 'در حال ذخیره در Google Sheets...');
@@ -1333,6 +1291,79 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
                 showLoading(false);
                 saveToLocalStorage();
                 showNotification('خطا در ذخیره‌سازی داده‌ها. داده‌ها در حافظه محلی ذخیره شدند.', 'warning');
+                return false;
+            }
+        }
+
+        // ذخیره‌سازی تکه‌تکه - برای داده‌های بزرگ
+        async function saveToGoogleSheetsChunked() {
+            if (sampleData.length === 0) {
+                console.log('⚠️ داده‌ای برای ذخیره‌سازی وجود ندارد');
+                showNotification('داده‌ای برای ذخیره‌سازی وجود ندارد', 'warning');
+                return true;
+            }
+            
+            console.log('💾 شروع ذخیره‌سازی تکه‌تکه...');
+            console.log('📊 تعداد داده‌ها:', sampleData.length);
+            
+            showLoading(true, 'در حال ذخیره تکه‌تکه در Google Sheets...');
+            
+            try {
+                // تبدیل داده‌ها
+                const dataForSheets = sampleData.map(item => ({
+                    Username: item.username || '',
+                    Employeenumber: item.employeeNumber,
+                    Fullname: item.fullname,
+                    Gender: item.gender,
+                    Bankloan: item.bankLoan || '',
+                    Companyloan: item.companyLoan || '',
+                    Bankloandate: item.bankLoanDate || '',
+                    Companyloandate: item.companyLoanDate || '',
+                    Priority: item.priority,
+                    Description: item.description || '',
+                    Loanrequest: item.loanRequest ? 'true' : 'false'
+                }));
+                
+                // تقسیم داده‌ها به تکه‌های ۲۰ تایی
+                const chunkSize = 20;
+                const chunks = [];
+                for (let i = 0; i < dataForSheets.length; i += chunkSize) {
+                    chunks.push(dataForSheets.slice(i, i + chunkSize));
+                }
+                
+                console.log(`📦 تقسیم داده‌ها به ${chunks.length} تکه`);
+                
+                // ذخیره‌سازی هر تکه
+                let successCount = 0;
+                for (let i = 0; i < chunks.length; i++) {
+                    console.log(`💾 ذخیره‌سازی تکه ${i + 1} از ${chunks.length}...`);
+                    showLoading(true, `در حال ذخیره تکه ${i + 1} از ${chunks.length}...`);
+                    
+                    const result = await googleAppsScriptRequest('saveData', chunks[i]);
+                    
+                    if (result && result.success) {
+                        successCount++;
+                        console.log(`✅ تکه ${i + 1} با موفقیت ذخیره شد`);
+                    } else {
+                        throw new Error(`خطا در ذخیره تکه ${i + 1}: ${result.error}`);
+                    }
+                }
+                
+                showLoading(false);
+                
+                if (successCount === chunks.length) {
+                    saveToLocalStorage();
+                    showNotification(`تمامی داده‌ها (${sampleData.length} رکورد) با موفقیت ذخیره شدند`, 'success');
+                    return true;
+                } else {
+                    throw new Error('برخی تکه‌ها ذخیره نشدند');
+                }
+                
+            } catch (error) {
+                console.error('❌ خطا در ذخیره‌سازی تکه‌تکه:', error);
+                showLoading(false);
+                saveToLocalStorage();
+                showNotification('خطا در ذخیره‌سازی. داده‌ها در حافظه محلی ذخیره شدند.', 'warning');
                 return false;
             }
         }
@@ -1654,6 +1685,13 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
                 });
             }
 
+            const testChunkedSaveBtn = document.getElementById('test-chunked-save-btn');
+            if (testChunkedSaveBtn) {
+                testChunkedSaveBtn.addEventListener('click', function() {
+                    saveToGoogleSheetsChunked();
+                });
+            }
+
             console.log('✅ تمام event listeners تنظیم شدند');
         }
 
@@ -1853,6 +1891,7 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
         window.editEmployee = editEmployee;
         window.requestPassword = requestPassword;
         window.testEditAndSave = testEditAndSave;
+        window.saveToGoogleSheetsChunked = saveToGoogleSheetsChunked;
     </script>
 </body>
 </html>
