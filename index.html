@@ -1103,13 +1103,13 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
 
 // ==================== توابع ارتباط با گوگل ====================
 
-// درخواست به Google Apps Script - نسخه تکه‌تکه
+// درخواست به Google Apps Script - نسخه بهینه شده
 async function googleAppsScriptRequest(action, data = null) {
     console.log(`📡 ارسال درخواست ${action}...`);
     
-    // برای saveData با داده‌های بزرگ از تکه‌تکه‌سازی استفاده می‌کنیم
-    if (action === 'saveData' && data && data.length > 10) {
-        return await saveDataChunked(data);
+    // برای saveData با داده‌های بزرگ از روش جایگزینی کامل استفاده می‌کنیم
+    if (action === 'saveData' && data) {
+        return await saveDataComplete(data);
     }
     
     // برای سایر درخواست‌ها از GET معمولی استفاده می‌کنیم
@@ -1127,12 +1127,14 @@ async function googleAppsScriptGetRequest(action, data = null) {
         let url = `${GOOGLE_APPS_SCRIPT_URL}?action=${action}&callback=${callbackName}`;
         
         if (data) {
-            url += `&data=${encodeURIComponent(JSON.stringify(data))}`;
+            const dataString = JSON.stringify(data);
+            console.log(`📦 حجم داده: ${dataString.length} کاراکتر`);
+            url += `&data=${encodeURIComponent(dataString)}`;
         }
         
         url += `&t=${requestId}`;
         
-        console.log('🔗 URL درخواست GET:', url.length, 'کاراکتر');
+        console.log('🔗 URL درخواست GET:', url.length < 500 ? url : url.substring(0, 500) + '...');
         
         window[callbackName] = function(response) {
             const endTime = Date.now();
@@ -1184,6 +1186,107 @@ async function googleAppsScriptGetRequest(action, data = null) {
     });
 }
 
+// ذخیره‌سازی کامل داده‌ها - جایگزینی همه داده‌ها
+async function saveDataComplete(data) {
+    console.log('💾 شروع ذخیره‌سازی کامل داده‌ها...');
+    console.log(`📊 تعداد داده‌ها: ${data.length}`);
+    
+    try {
+        // مستقیماً همه داده‌ها رو ذخیره کن (جایگزینی کامل)
+        const result = await googleAppsScriptGetRequest('saveData', data);
+        
+        if (result && result.success) {
+            console.log('✅ ذخیره‌سازی کامل با موفقیت انجام شد');
+            return result;
+        } else {
+            throw new Error(result.error || 'خطا در ذخیره‌سازی کامل');
+        }
+        
+    } catch (error) {
+        console.error('❌ خطا در ذخیره‌سازی کامل:', error);
+        
+        // اگر خطا بخورد، از روش تکه‌تکه استفاده کن
+        console.log('🔄 استفاده از روش تکه‌تکه به دلیل خطا...');
+        return await saveDataChunked(data);
+    }
+}
+
+// ذخیره‌سازی تکه‌تکه برای داده‌های بزرگ (فقط در صورت خطا)
+async function saveDataChunked(data) {
+    console.log('💾 شروع ذخیره‌سازی تکه‌تکه...');
+    
+    // ابتدا شیت رو با اولین تکه پاک و دوباره پر کن
+    console.log('🧹 پاکسازی شیت با اولین تکه...');
+    const firstChunk = data.slice(0, 10);
+    
+    try {
+        const clearResult = await googleAppsScriptGetRequest('saveData', firstChunk);
+        
+        if (!clearResult || !clearResult.success) {
+            throw new Error('خطا در پاکسازی اولیه شیت');
+        }
+        
+        console.log('✅ شیت با موفقیت پاکسازی شد');
+        
+    } catch (error) {
+        console.error('❌ خطا در پاکسازی شیت:', error);
+        return {
+            success: false,
+            error: 'خطا در پاکسازی شیت: ' + error.message
+        };
+    }
+    
+    // اگر داده‌ها بیشتر از 10 تا هستن، بقیه رو اضافه کن
+    if (data.length > 10) {
+        const remainingData = data.slice(10);
+        const chunkSize = 15;
+        const chunks = [];
+        
+        for (let i = 0; i < remainingData.length; i += chunkSize) {
+            chunks.push(remainingData.slice(i, i + chunkSize));
+        }
+        
+        console.log(`📦 اضافه کردن ${chunks.length} تکه باقیمانده...`);
+        
+        let successCount = 0;
+        let errorCount = 0;
+        
+        for (let i = 0; i < chunks.length; i++) {
+            console.log(`💾 اضافه کردن تکه ${i + 1} از ${chunks.length}...`);
+            
+            try {
+                const result = await googleAppsScriptGetRequest('appendData', chunks[i]);
+                
+                if (result && result.success) {
+                    successCount++;
+                    console.log(`✅ تکه ${i + 1} با موفقیت اضافه شد`);
+                } else {
+                    errorCount++;
+                    console.error(`❌ خطا در اضافه کردن تکه ${i + 1}:`, result ? result.error : 'بدون پاسخ');
+                }
+            } catch (error) {
+                errorCount++;
+                console.error(`❌ خطا در اضافه کردن تکه ${i + 1}:`, error);
+            }
+            
+            // تأخیر بین درخواست‌ها
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
+        
+        if (errorCount > 0) {
+            return {
+                success: false,
+                error: `${successCount} تکه موفق، ${errorCount} تکه ناموفق`
+            };
+        }
+    }
+    
+    return {
+        success: true,
+        message: `تمامی داده‌ها (${data.length} رکورد) با موفقیت ذخیره شدند`,
+        savedCount: data.length
+    };
+}
 // ذخیره‌سازی تکه‌تکه برای داده‌های بزرگ
 async function saveDataChunked(data) {
     console.log('💾 شروع ذخیره‌سازی تکه‌تکه...');
@@ -1340,59 +1443,57 @@ async function googleAppsScriptPostRequest(action, data) {
                 updateDebugInfo();
             }
         }
-
-        // ذخیره در Google Sheets - نسخه اصلی
-        async function saveToGoogleSheets() {
-            if (sampleData.length === 0) {
-                console.log('⚠️ داده‌ای برای ذخیره‌سازی وجود ندارد');
-                showNotification('داده‌ای برای ذخیره‌سازی وجود ندارد', 'warning');
-                return true;
-            }
-            
-            console.log('💾 شروع ذخیره‌سازی...');
-            console.log('📊 تعداد داده‌ها:', sampleData.length);
-            
-            showLoading(true, 'در حال ذخیره در Google Sheets...');
-            
-            try {
-                // تبدیل داده‌ها به ساختار فیلدهای Google Sheets
-                const dataForSheets = sampleData.map(item => ({
-                    Username: item.username || '',
-                    Employeenumber: item.employeeNumber,
-                    Fullname: item.fullname,
-                    Gender: item.gender,
-                    Bankloan: item.bankLoan || '',
-                    Companyloan: item.companyLoan || '',
-                    Bankloandate: item.bankLoanDate || '',
-                    Companyloandate: item.companyLoanDate || '',
-                    Priority: item.priority,
-                    Description: item.description || '',
-                    Loanrequest: item.loanRequest ? 'true' : 'false'
-                }));
-                
-                console.log('📤 داده‌های ارسالی به Google Sheets:', dataForSheets);
-                
-                const result = await googleAppsScriptRequest('saveData', dataForSheets);
-                console.log('✅ پاسخ ذخیره‌سازی:', result);
-                
-                showLoading(false);
-                
-                if (result && result.success) {
-                    saveToLocalStorage();
-                    showNotification('تغییرات با موفقیت در Google Sheets ذخیره شدند.', 'success');
-                    return true;
-                } else {
-                    throw new Error(result.error || 'خطا در ذخیره‌سازی');
-                }
-            } catch (error) {
-                console.error('❌ خطا در ذخیره‌سازی:', error);
-                showLoading(false);
-                saveToLocalStorage();
-                showNotification('خطا در ذخیره‌سازی داده‌ها. داده‌ها در حافظه محلی ذخیره شدند.', 'warning');
-                return false;
-            }
+// ذخیره در Google Sheets - نسخه ساده شده
+async function saveToGoogleSheets() {
+    if (sampleData.length === 0) {
+        console.log('⚠️ داده‌ای برای ذخیره‌سازی وجود ندارد');
+        showNotification('داده‌ای برای ذخیره‌سازی وجود ندارد', 'warning');
+        return true;
+    }
+    
+    console.log('💾 شروع ذخیره‌سازی...');
+    console.log('📊 تعداد داده‌ها:', sampleData.length);
+    
+    showLoading(true, 'در حال ذخیره در Google Sheets...');
+    
+    try {
+        // تبدیل داده‌ها به ساختار فیلدهای Google Sheets
+        const dataForSheets = sampleData.map(item => ({
+            Username: item.username || '',
+            Employeenumber: item.employeeNumber,
+            Fullname: item.fullname,
+            Gender: item.gender,
+            Bankloan: item.bankLoan || '',
+            Companyloan: item.companyLoan || '',
+            Bankloandate: item.bankLoanDate || '',
+            Companyloandate: item.companyLoanDate || '',
+            Priority: item.priority,
+            Description: item.description || '',
+            Loanrequest: item.loanRequest ? 'true' : 'false'
+        }));
+        
+        console.log('📤 ارسال داده‌ها به Google Sheets...');
+        
+        const result = await googleAppsScriptRequest('saveData', dataForSheets);
+        console.log('✅ پاسخ ذخیره‌سازی:', result);
+        
+        showLoading(false);
+        
+        if (result && result.success) {
+            saveToLocalStorage();
+            showNotification('تغییرات با موفقیت در Google Sheets ذخیره شدند.', 'success');
+            return true;
+        } else {
+            throw new Error(result.error || 'خطا در ذخیره‌سازی');
         }
-
+    } catch (error) {
+        console.error('❌ خطا در ذخیره‌سازی:', error);
+        showLoading(false);
+        saveToLocalStorage();
+        showNotification('خطا در ذخیره‌سازی داده‌ها. داده‌ها در حافظه محلی ذخیره شدند.', 'warning');
+        return false;
+    }
+}
         // ذخیره‌سازی تکه‌تکه - برای داده‌های بزرگ
         async function saveToGoogleSheetsChunked() {
             if (sampleData.length === 0) {
@@ -1993,5 +2094,6 @@ async function googleAppsScriptPostRequest(action, data) {
     </script>
 </body>
 </html>
+
 
 
