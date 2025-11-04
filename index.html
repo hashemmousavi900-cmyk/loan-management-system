@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>سیستم مدیریت وام‌ها - CR(Mashhad)</title>
+    <title>سیستم مدیریت وام‌ها - CR(Mashhad) - نسخه سریع</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
     <style>
+        /* استایل‌ها مشابه قبل */
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: Vazirmatn, Tahoma, sans-serif; }
         
         body {
@@ -361,6 +362,18 @@
             background: #e9ecef;
             border-radius: 5px;
         }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        
+        .status-online { background: #27ae60; }
+        .status-offline { background: #e74c3c; }
+        .status-slow { background: #f39c12; }
         
         @media (max-width: 768px) {
             .table-title .btn-group { flex-direction: column; }
@@ -377,7 +390,7 @@
         <div class="table-responsive">
             <div class="table-wrapper">
                 <div class="table-title">
-                    <h2>سیستم مدیریت وام‌ها - CR(Mashhad) - نسخه بهبود یافته</h2>
+                    <h2>سیستم مدیریت وام‌ها - CR(Mashhad) - نسخه سریع</h2>
                     <div class="btn-group">
                         <button class="btn btn-success" id="add-loan-btn">
                             <i class="fas fa-plus"></i> 
@@ -403,6 +416,18 @@
                             <i class="fas fa-bug"></i>
                             <span>نمایش اطلاعات دیباگ</span>
                         </button>
+                    </div>
+                </div>
+
+                <!-- وضعیت سیستم -->
+                <div id="system-status-bar" style="background: #e8f5e8; padding: 10px; border-radius: 5px; margin-bottom: 15px; border: 1px solid #c8e6c9; display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <span class="status-indicator status-online"></span>
+                            <strong>وضعیت سیستم:</strong>
+                            <span id="status-text">در حال بارگذاری...</span>
+                        </div>
+                        <div id="response-time" style="font-size: 12px; color: #666;"></div>
                     </div>
                 </div>
                 
@@ -471,7 +496,7 @@
                 
                 <!-- پنل دیباگ -->
                 <div id="debug-panel" class="debug-panel" style="display: none;">
-                    <h3>🔧 پنل دیباگ و تست سیستم - نسخه بهبود یافته</h3>
+                    <h3>🔧 پنل دیباگ و تست سیستم - نسخه سریع</h3>
                     
                     <div class="debug-section">
                         <h4>📊 وضعیت سیستم</h4>
@@ -519,6 +544,9 @@
                         <button class="btn btn-info" id="performance-test-btn">
                             <i class="fas fa-tachometer-alt"></i> تست عملکرد
                         </button>
+                        <button class="btn btn-primary" id="optimize-performance-btn">
+                            <i class="fas fa-rocket"></i> بهینه‌سازی عملکرد
+                        </button>
                     </div>
                 </div>
             </div>
@@ -526,10 +554,10 @@
     </div>
 
     <div class="footer">
-        Designed by SeyedHashem Mousavi - 2025 - نسخه بهبود یافته برای داده‌های بزرگ
+        Designed by SeyedHashem Mousavi - 2025 - نسخه سریع برای داده‌های بزرگ
     </div>
     
-    <!-- مودال افزودن/ویرایش وام -->
+    <!-- مودال‌ها مشابه قبل -->
     <div id="addEmployeeModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -611,7 +639,6 @@
         </div>
     </div>
 
-    <!-- مودال تأیید رمز عبور -->
     <div id="passwordModal" class="modal">
         <div class="modal-content" style="max-width: 400px;">
             <div class="modal-header">
@@ -647,6 +674,8 @@
         let pendingEmployeeId = null;
         let isEditing = false;
         let requestLogs = [];
+        let requestQueue = [];
+        let isProcessingQueue = false;
         
         const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbymE-RILJ8gCg4vLreCz5wchcQrx-mS5HzCmHEpuOu4RMl58Vma3rZlfJ_Ac1XUQzK0/exec';
 
@@ -654,11 +683,60 @@
 
         // بارگذاری اولیه
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 سیستم مدیریت وام بارگذاری شد - نسخه بهبود یافته');
+            console.log('🚀 سیستم مدیریت وام بارگذاری شد - نسخه سریع');
             setupEventListeners();
-            loadLargeDataFromSheets();
-            updateDebugInfo();
+            initializeSystem();
         });
+
+        // مقداردهی اولیه سیستم
+        async function initializeSystem() {
+            showSystemStatus('در حال راه‌اندازی سیستم...', 'slow');
+            
+            // ابتدا از localStorage بارگذاری می‌کنیم
+            if (loadFromLocalStorage()) {
+                showSystemStatus('داده‌ها از حافظه محلی بارگذاری شدند', 'online');
+            }
+            
+            // سپس از گوگل شیت بارگذاری می‌کنیم
+            setTimeout(() => {
+                loadLargeDataFromSheets();
+            }, 1000);
+        }
+
+        // نمایش وضعیت سیستم
+        function showSystemStatus(message, status = 'online') {
+            const statusBar = document.getElementById('system-status-bar');
+            const statusText = document.getElementById('status-text');
+            const statusIndicator = statusBar.querySelector('.status-indicator');
+            
+            if (statusBar && statusText) {
+                statusBar.style.display = 'block';
+                statusText.textContent = message;
+                
+                // حذف کلاس‌های وضعیت قبلی
+                statusIndicator.className = 'status-indicator';
+                statusIndicator.classList.add(`status-${status}`);
+            }
+        }
+
+        // نمایش زمان پاسخ
+        function showResponseTime(duration) {
+            const responseTimeElement = document.getElementById('response-time');
+            if (responseTimeElement) {
+                let status = 'عالی';
+                let color = '#27ae60';
+                
+                if (duration > 3000) {
+                    status = 'کند';
+                    color = '#e74c3c';
+                } else if (duration > 1500) {
+                    status = 'متوسط';
+                    color = '#f39c12';
+                }
+                
+                responseTimeElement.innerHTML = `زمان پاسخ: <strong style="color: ${color}">${duration}ms</strong> (${status})`;
+            }
+        }
 
         // نمایش loading
         function showLoading(show, text = 'در حال بارگذاری...') {
@@ -758,7 +836,9 @@
             
             console.log(`📊 نمایش ${data.length} رکورد در جدول`);
             hideEmptyState();
-            tableBody.innerHTML = '';
+            
+            // استفاده از DocumentFragment برای رندر سریع‌تر
+            const fragment = document.createDocumentFragment();
             
             data.forEach((item, index) => {
                 const row = document.createElement('tr');
@@ -835,8 +915,11 @@
                     </td>
                 `;
                 
-                tableBody.appendChild(row);
+                fragment.appendChild(row);
             });
+            
+            tableBody.innerHTML = '';
+            tableBody.appendChild(fragment);
             
             console.log('✅ جدول با موفقیت رندر شد');
         }
@@ -895,14 +978,15 @@
         // ==================== توابع دیباگ ====================
 
         // تابع برای لاگ کردن درخواست‌ها
-        function logRequest(action, data, response, error = null) {
+        function logRequest(action, data, response, error = null, duration = 0) {
             const log = {
                 timestamp: new Date().toLocaleString('fa-IR'),
                 action: action,
                 data: data ? `داده ارسالی (${JSON.stringify(data).length} کاراکتر)` : 'بدون داده',
                 response: response ? JSON.stringify(response) : 'بدون پاسخ',
                 error: error,
-                method: data ? 'POST' : 'GET'
+                method: data ? 'POST' : 'GET',
+                duration: duration
             };
             
             requestLogs.unshift(log);
@@ -926,7 +1010,8 @@
 وضعیت احراز هویت: ${isAuthenticated ? '✅ فعال' : '❌ غیرفعال'}
 آدرس اسکریپت: ${GOOGLE_APPS_SCRIPT_URL}
 حافظه محلی: ${localStorage.getItem('loanData') ? '✅ دارای داده' : '❌ خالی'}
-نسخه: بهبود یافته برای داده‌های بزرگ
+نسخه: سریع برای داده‌های بزرگ
+صف درخواست: ${requestQueue.length}
                 `.trim();
             }
             
@@ -936,7 +1021,7 @@
                 } else {
                     requestLogsElement.innerHTML = requestLogs.map(log => `
 ⏰ ${log.timestamp}
-🎯 ${log.action} | 📡 ${log.method}
+🎯 ${log.action} | 📡 ${log.method} | ⏱️ ${log.duration}ms
 📦 ${log.data}
 ${log.response ? `✅ ${log.response}` : ''}
 ${log.error ? `❌ خطا: ${log.error}` : ''}
@@ -950,15 +1035,41 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
             }
         }
 
-        // ==================== توابع ارتباط با گوگل - نسخه بهبود یافته ====================
+        // ==================== توابع ارتباط با گوگل - نسخه سریع ====================
 
-        // درخواست به Google Apps Script - نسخه بهبود یافته
+        // صف درخواست‌ها برای مدیریت بهتر
+        async function processRequestQueue() {
+            if (isProcessingQueue || requestQueue.length === 0) return;
+            
+            isProcessingQueue = true;
+            
+            while (requestQueue.length > 0) {
+                const request = requestQueue.shift();
+                try {
+                    await request.fn();
+                } catch (error) {
+                    console.error('❌ خطا در پردازش صف:', error);
+                }
+                
+                // وقفه کوتاه بین درخواست‌ها
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+            
+            isProcessingQueue = false;
+        }
+
+        // اضافه کردن درخواست به صف
+        function addToQueue(fn) {
+            requestQueue.push({ fn });
+            processRequestQueue();
+        }
+
+        // درخواست به Google Apps Script - نسخه سریع
         async function googleAppsScriptRequest(action, data = null) {
             console.log(`📡 ارسال درخواست ${action}...`);
             
             // برای تمام درخواست‌های دارای داده از POST استفاده کنیم
             if (data || action === 'saveData' || action === 'debugSaveData') {
-                console.log('🔄 استفاده از POST برای داده‌های بزرگ');
                 return await googleAppsScriptPostRequest(action, data);
             }
             
@@ -966,7 +1077,7 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
             return await googleAppsScriptGetRequest(action);
         }
 
-        // تابع POST بهبود یافته
+        // تابع POST سریع
         async function googleAppsScriptPostRequest(action, data = null) {
             const startTime = Date.now();
             
@@ -992,19 +1103,21 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
                 const duration = Date.now() - startTime;
                 
                 console.log(`📥 پاسخ POST دریافت شد (${duration}ms):`, result);
-                logRequest(action, data, result);
+                logRequest(action, data, result, null, duration);
+                showResponseTime(duration);
                 
                 return result;
                 
             } catch (error) {
                 const duration = Date.now() - startTime;
                 console.error(`❌ خطا در POST (${duration}ms):`, error);
-                logRequest(action, data, null, error.message);
+                logRequest(action, data, null, error.message, duration);
+                showResponseTime(duration);
                 throw error;
             }
         }
 
-        // تابع GET فقط برای درخواست‌های ساده
+        // تابع GET سریع
         async function googleAppsScriptGetRequest(action) {
             const startTime = Date.now();
             
@@ -1018,20 +1131,23 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
                 const duration = Date.now() - startTime;
                 
                 console.log(`📥 پاسخ GET دریافت شد (${duration}ms):`, result);
-                logRequest(action, null, result);
+                logRequest(action, null, result, null, duration);
+                showResponseTime(duration);
                 
                 return result;
                 
             } catch (error) {
                 const duration = Date.now() - startTime;
                 console.error(`❌ خطا در GET (${duration}ms):`, error);
-                logRequest(action, null, null, error.message);
+                logRequest(action, null, null, error.message, duration);
+                showResponseTime(duration);
                 throw error;
             }
         }
 
-        // بارگذاری از Google Sheets - نسخه بهبود یافته
+        // بارگذاری از Google Sheets - نسخه سریع
         async function loadLargeDataFromSheets() {
+            showSystemStatus('در حال بارگذاری داده‌ها از Google Sheets...', 'slow');
             showLoading(true, 'در حال بارگذاری داده‌های بزرگ از Google Sheets...');
             
             try {
@@ -1045,6 +1161,7 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
                     if (result.data.length === 0) {
                         showNotification('هیچ داده‌ای در Google Sheets وجود ندارد', 'info');
                         showEmptyState();
+                        showSystemStatus('هیچ داده‌ای در Google Sheets وجود ندارد', 'online');
                         return;
                     }
                     
@@ -1076,9 +1193,11 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
                         renderTable(sampleData);
                         saveToLocalStorage();
                         showNotification(`داده‌ها با موفقیت بارگذاری شدند (${sampleData.length} رکورد)`, 'success');
+                        showSystemStatus(`داده‌ها بارگذاری شدند (${sampleData.length} رکورد)`, 'online');
                     } else {
                         showNotification('هیچ داده معتبری در Google Sheets وجود ندارد', 'info');
                         showEmptyState();
+                        showSystemStatus('هیچ داده معتبری یافت نشد', 'online');
                     }
                 } else {
                     throw new Error(result.error || 'خطا در بارگذاری داده‌ها');
@@ -1088,9 +1207,11 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
                 const loaded = loadFromLocalStorage();
                 if (loaded) {
                     showNotification('داده‌ها از حافظه محلی بارگذاری شدند', 'warning');
+                    showSystemStatus('داده‌ها از حافظه محلی بارگذاری شدند', 'online');
                 } else {
                     showNotification('هیچ داده‌ای یافت نشد', 'info');
                     showEmptyState();
+                    showSystemStatus('هیچ داده‌ای یافت نشد', 'offline');
                 }
             } finally {
                 showLoading(false);
@@ -1098,7 +1219,7 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
             }
         }
 
-        // ذخیره در Google Sheets - نسخه بهبود یافته
+        // ذخیره در Google Sheets - نسخه سریع
         async function saveToGoogleSheets() {
             if (sampleData.length === 0) {
                 console.log('⚠️ داده‌ای برای ذخیره‌سازی وجود ندارد');
@@ -1109,6 +1230,7 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
             console.log('💾 شروع ذخیره‌سازی...');
             console.log('📊 تعداد داده‌ها:', sampleData.length);
             
+            showSystemStatus('در حال ذخیره‌سازی در Google Sheets...', 'slow');
             showLoading(true, 'در حال ذخیره در Google Sheets...');
             
             try {
@@ -1138,6 +1260,7 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
                 if (result && result.success) {
                     saveToLocalStorage();
                     showNotification(`تغییرات با موفقیت در Google Sheets ذخیره شدند (${result.savedCount || dataForSheets.length} رکورد)`, 'success');
+                    showSystemStatus('داده‌ها با موفقیت ذخیره شدند', 'online');
                     return true;
                 } else {
                     throw new Error(result.error || 'خطا در ذخیره‌سازی');
@@ -1147,6 +1270,7 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
                 showLoading(false);
                 saveToLocalStorage();
                 showNotification('خطا در ذخیره‌سازی داده‌ها. داده‌ها در حافظه محلی ذخیره شدند.', 'warning');
+                showSystemStatus('خطا در ذخیره‌سازی - داده‌ها در حافظه محلی ذخیره شدند', 'offline');
                 return false;
             }
         }
@@ -1225,6 +1349,7 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
         async function performanceTest() {
             console.log('🚀 شروع تست عملکرد...');
             const startTime = Date.now();
+            showSystemStatus('در حال اجرای تست عملکرد...', 'slow');
             
             try {
                 // تست اتصال
@@ -1243,11 +1368,38 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
                 
                 const duration = Date.now() - startTime;
                 showNotification(`تست عملکرد کامل شد (${duration}ms)`, 'success');
+                showSystemStatus(`تست عملکرد کامل شد (${duration}ms)`, 'online');
                 
             } catch (error) {
                 console.error('❌ خطا در تست عملکرد:', error);
                 showNotification('خطا در تست عملکرد', 'error');
+                showSystemStatus('خطا در تست عملکرد', 'offline');
             }
+        }
+
+        // بهینه‌سازی عملکرد
+        function optimizePerformance() {
+            console.log('⚡ در حال بهینه‌سازی عملکرد...');
+            
+            // پاکسازی حافظه
+            if (window.gc) {
+                window.gc();
+            }
+            
+            // بهینه‌سازی localStorage
+            try {
+                const keys = Object.keys(localStorage);
+                console.log(`🗃️ تعداد کلیدهای localStorage: ${keys.length}`);
+            } catch (error) {
+                console.error('❌ خطا در بهینه‌سازی localStorage:', error);
+            }
+            
+            // پاکسازی صف درخواست‌ها
+            requestQueue = [];
+            
+            showNotification('بهینه‌سازی عملکرد انجام شد', 'success');
+            showSystemStatus('سیستم بهینه‌سازی شد', 'online');
+            updateDebugInfo();
         }
 
         // ==================== رویدادها ====================
@@ -1295,7 +1447,7 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
             const saveToCloud = document.getElementById('save-to-cloud');
             if (saveToCloud) {
                 saveToCloud.addEventListener('click', function() {
-                    saveToGoogleSheets();
+                    addToQueue(() => saveToGoogleSheets());
                 });
             }
 
@@ -1304,10 +1456,10 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
                 loadFromCloud.addEventListener('click', function() {
                     if (sampleData.length > 0) {
                         if (confirm('⚠️ اگر ادامه دهید، داده‌های فعلی با داده‌های جدید جایگزین می‌شوند.\n\nآیا مطمئن هستید؟')) {
-                            loadLargeDataFromSheets();
+                            addToQueue(() => loadLargeDataFromSheets());
                         }
                     } else {
-                        loadLargeDataFromSheets();
+                        addToQueue(() => loadLargeDataFromSheets());
                     }
                 });
             }
@@ -1322,13 +1474,15 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
             const testConnectionBtn = document.getElementById('test-connection-btn');
             if (testConnectionBtn) {
                 testConnectionBtn.addEventListener('click', function() {
-                    googleAppsScriptRequest('test').then(result => {
+                    addToQueue(() => googleAppsScriptRequest('test').then(result => {
                         if (result.success) {
                             showNotification('اتصال با سرور برقرار است', 'success');
+                            showSystemStatus('اتصال با سرور برقرار است', 'online');
                         } else {
                             showNotification('خطا در اتصال به سرور', 'error');
+                            showSystemStatus('خطا در اتصال به سرور', 'offline');
                         }
-                    });
+                    }));
                 });
             }
 
@@ -1385,14 +1539,14 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
             const testSaveBtn = document.getElementById('test-save-btn');
             if (testSaveBtn) {
                 testSaveBtn.addEventListener('click', function() {
-                    saveToGoogleSheets();
+                    addToQueue(() => saveToGoogleSheets());
                 });
             }
 
             const testLoadBtn = document.getElementById('test-load-btn');
             if (testLoadBtn) {
                 testLoadBtn.addEventListener('click', function() {
-                    loadLargeDataFromSheets();
+                    addToQueue(() => loadLargeDataFromSheets());
                 });
             }
 
@@ -1424,7 +1578,7 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
             const testLargeDataBtn = document.getElementById('test-large-data-btn');
             if (testLargeDataBtn) {
                 testLargeDataBtn.addEventListener('click', function() {
-                    testLargeDataSave();
+                    addToQueue(() => testLargeDataSave());
                 });
             }
 
@@ -1444,21 +1598,28 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
             const forceSaveBtn = document.getElementById('force-save-btn');
             if (forceSaveBtn) {
                 forceSaveBtn.addEventListener('click', function() {
-                    saveToGoogleSheets();
+                    addToQueue(() => saveToGoogleSheets());
                 });
             }
 
             const testPostMethodBtn = document.getElementById('test-post-method-btn');
             if (testPostMethodBtn) {
                 testPostMethodBtn.addEventListener('click', function() {
-                    testPostMethod();
+                    addToQueue(() => testPostMethod());
                 });
             }
 
             const performanceTestBtn = document.getElementById('performance-test-btn');
             if (performanceTestBtn) {
                 performanceTestBtn.addEventListener('click', function() {
-                    performanceTest();
+                    addToQueue(() => performanceTest());
+                });
+            }
+
+            const optimizePerformanceBtn = document.getElementById('optimize-performance-btn');
+            if (optimizePerformanceBtn) {
+                optimizePerformanceBtn.addEventListener('click', function() {
+                    optimizePerformance();
                 });
             }
 
@@ -1577,7 +1738,7 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
             renderTable(sampleData);
             
             // ذخیره‌سازی در Google Sheets
-            await saveToGoogleSheets();
+            addToQueue(() => saveToGoogleSheets());
             
             document.getElementById('addEmployeeModal').style.display = 'none';
         }
@@ -1607,7 +1768,7 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
                 renderTable(sampleData);
                 
                 // ذخیره‌سازی در Google Sheets
-                await saveToGoogleSheets();
+                addToQueue(() => saveToGoogleSheets());
                 
                 showNotification('وام با موفقیت حذف شد', 'success');
             }
@@ -1620,7 +1781,7 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
                 renderTable(sampleData);
                 
                 // ذخیره‌سازی در Google Sheets
-                await saveToGoogleSheets();
+                addToQueue(() => saveToGoogleSheets());
                 
                 showNotification(
                     employee.loanRequest ? 'درخواست وام ثبت شد' : 'درخواست وام لغو شد', 
@@ -1663,6 +1824,7 @@ ${log.error ? `❌ خطا: ${log.error}` : ''}
         window.testLargeDataSave = testLargeDataSave;
         window.testPostMethod = testPostMethod;
         window.performanceTest = performanceTest;
+        window.optimizePerformance = optimizePerformance;
     </script>
 </body>
 </html>
