@@ -3,12 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>سیستم وام - نسخه ساده</title>
+    <title>سیستم وام - نسخه بهبود یافته</title>
     <style>
         body { font-family: Tahoma; padding: 20px; background: #f5f5f5; }
         .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; }
         .btn { background: #27ae60; color: white; border: none; padding: 10px 15px; margin: 5px; border-radius: 5px; cursor: pointer; }
         .btn:hover { background: #219653; }
+        .btn-warning { background: #f39c12; }
+        .btn-warning:hover { background: #e67e22; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
         th { background: #f0f0f0; }
@@ -16,15 +18,21 @@
 </head>
 <body>
     <div class="container">
-        <h1>سیستم مدیریت وام - نسخه ساده</h1>
+        <h1>سیستم مدیریت وام - تست داده‌های زیاد</h1>
         
         <div>
-            <button class="btn" onclick="loadFromSheets()">📥 بارگذاری از Sheets</button>
-            <button class="btn" onclick="addTestData()">➕ اضافه کردن ۳۰ رکورد تست</button>
+            <button class="btn" onclick="loadFromSheets()">🔄 بارگذاری مجدد از Sheets</button>
+            <button class="btn btn-warning" onclick="add50TestData()">➕ اضافه کردن ۵۰ رکورد تست</button>
             <button class="btn" onclick="saveToSheets()">💾 ذخیره در Sheets</button>
+            <button class="btn" onclick="clearLocalData()">🗑️ پاک کردن داده‌های محلی</button>
         </div>
 
-        <div id="status" style="margin: 10px 0; padding: 10px; background: #e8f5e8; border-radius: 5px;"></div>
+        <div id="status" style="margin: 10px 0; padding: 10px; border-radius: 5px;"></div>
+
+        <div>
+            <strong>آمار:</strong>
+            <span id="stats">در حال بارگذاری...</span>
+        </div>
 
         <table>
             <thead>
@@ -46,7 +54,7 @@
 
         // بارگذاری از Google Sheets
         async function loadFromSheets() {
-            showStatus('در حال بارگذاری...', 'blue');
+            showStatus('در حال بارگذاری از سرور...', 'blue');
             
             try {
                 const response = await fetch(`${SCRIPT_URL}?action=loadData`);
@@ -55,50 +63,53 @@
                 if (result.success) {
                     allData = result.data;
                     renderTable();
-                    showStatus(`بارگذاری شد: ${result.data.length} رکورد`, 'green');
+                    updateStats();
+                    showStatus(`✅ داده‌ها از سرور بارگذاری شدند: ${result.data.length} رکورد`, 'green');
                 } else {
-                    showStatus('خطا در بارگذاری: ' + result.error, 'red');
+                    showStatus('❌ خطا در بارگذاری: ' + result.error, 'red');
                 }
             } catch (error) {
-                showStatus('خطا: ' + error.message, 'red');
+                showStatus('❌ خطا در اتصال: ' + error.message, 'red');
             }
         }
 
         // ذخیره در Google Sheets
         async function saveToSheets() {
             if (allData.length === 0) {
-                showStatus('داده‌ای برای ذخیره وجود ندارد', 'orange');
+                showStatus('⚠️ داده‌ای برای ذخیره وجود ندارد', 'orange');
                 return;
             }
 
-            showStatus('در حال ذخیره‌سازی...', 'blue');
+            showStatus('🔄 در حال ذخیره‌سازی در سرور...', 'blue');
             
             try {
-                // استفاده از JSONP برای دور زدن CORS
                 const result = await new Promise((resolve, reject) => {
                     const callbackName = 'saveCallback_' + Date.now();
                     window[callbackName] = resolve;
                     
                     const script = document.createElement('script');
                     script.src = `${SCRIPT_URL}?action=saveData&callback=${callbackName}&data=${encodeURIComponent(JSON.stringify(allData))}`;
-                    script.onerror = () => reject(new Error('خطا در ارسال'));
+                    script.onerror = () => reject(new Error('خطا در ارسال داده'));
                     document.head.appendChild(script);
+                    
+                    setTimeout(() => reject(new Error('تایم‌اوت در ذخیره‌سازی')), 30000);
                 });
 
                 if (result.success) {
-                    showStatus(`ذخیره شد: ${result.savedCount || allData.length} رکورد`, 'green');
+                    showStatus(`✅ ذخیره‌سازی موفق: ${result.savedCount || allData.length} رکورد`, 'green');
                 } else {
-                    showStatus('خطا در ذخیره: ' + result.error, 'red');
+                    showStatus('❌ خطا در ذخیره: ' + result.error, 'red');
                 }
             } catch (error) {
-                showStatus('خطا: ' + error.message, 'red');
+                showStatus('❌ خطا در ذخیره‌سازی: ' + error.message, 'red');
             }
         }
 
-        // اضافه کردن داده تستی
-        function addTestData() {
-            for (let i = 1; i <= 30; i++) {
-                allData.push({
+        // اضافه کردن ۵۰ رکورد تستی
+        function add50TestData() {
+            const newData = [];
+            for (let i = 1; i <= 50; i++) {
+                newData.push({
                     Username: `testuser${i}`,
                     Employeenumber: `TEST${i.toString().padStart(3, '0')}`,
                     Fullname: `کاربر تست ${i}`,
@@ -112,8 +123,18 @@
                     Loanrequest: false
                 });
             }
+            allData = allData.concat(newData);
             renderTable();
-            showStatus('۳۰ رکورد تست اضافه شد', 'green');
+            updateStats();
+            showStatus('✅ ۵۰ رکورد تست اضافه شد', 'green');
+        }
+
+        // پاک کردن داده‌های محلی
+        function clearLocalData() {
+            allData = [];
+            renderTable();
+            updateStats();
+            showStatus('✅ داده‌های محلی پاک شدند', 'orange');
         }
 
         // نمایش جدول
@@ -129,27 +150,37 @@
                     <td>${item.Fullname}</td>
                     <td>${item.Bankloan}</td>
                     <td>
-                        <button class="btn" style="background: #e74c3c; padding: 5px 10px;" onclick="deleteItem(${index})">🗑️ حذف</button>
+                        <button class="btn" style="background: #e74c3c; padding: 5px 10px;" onclick="deleteItem(${index})">🗑️</button>
                     </td>
                 `;
                 tbody.appendChild(row);
             });
         }
 
+        // آمار
+        function updateStats() {
+            document.getElementById('stats').textContent = 
+                `تعداد رکوردها: ${allData.length} | حافظه محلی`;
+        }
+
         // حذف آیتم
         function deleteItem(index) {
             allData.splice(index, 1);
             renderTable();
-            showStatus('رکورد حذف شد', 'orange');
+            updateStats();
+            showStatus('✅ رکورد حذف شد', 'orange');
         }
 
         // نمایش وضعیت
         function showStatus(message, color) {
             const status = document.getElementById('status');
             status.textContent = message;
-            status.style.color = color === 'green' ? '#27ae60' : 
-                               color === 'red' ? '#e74c3c' : 
-                               color === 'orange' ? '#f39c12' : '#3498db';
+            status.style.background = color === 'green' ? '#d4edda' : 
+                                   color === 'red' ? '#f8d7da' : 
+                                   color === 'orange' ? '#fff3cd' : '#d1ecf1';
+            status.style.color = color === 'green' ? '#155724' : 
+                               color === 'red' ? '#721c24' : 
+                               color === 'orange' ? '#856404' : '#0c5460';
         }
 
         // بارگذاری اولیه
