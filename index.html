@@ -16,6 +16,7 @@
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
         th { background: #f0f0f0; }
+        .loading { opacity: 0.6; pointer-events: none; }
     </style>
 </head>
 <body>
@@ -59,8 +60,7 @@
             showStatus('در حال بارگذاری از سرور...', 'blue');
             
             try {
-                const response = await fetch(`${SCRIPT_URL}?action=loadData`);
-                const result = await response.json();
+                const result = await jsonpRequest('loadData');
                 
                 if (result.success) {
                     allData = result.data;
@@ -75,93 +75,114 @@
             }
         }
 
-      // ذخیره در Google Sheets - با chunking و استفاده از POST
-async function saveToSheets() {
-    if (allData.length === 0) {
-        showStatus('⚠️ داده‌ای برای ذخیره وجود ندارد', 'orange');
-        return;
-    }
-
-    showStatus('🔄 در حال ذخیره‌سازی در سرور...', 'blue');
-    
-    try {
-        // تقسیم داده‌ها به chunks کوچک
-        const CHUNK_SIZE = 10;
-        const chunks = [];
-        
-        for (let i = 0; i < allData.length; i += CHUNK_SIZE) {
-            chunks.push(allData.slice(i, i + CHUNK_SIZE));
-        }
-        
-        showStatus(`📦 تقسیم داده‌ها به ${chunks.length} بخش...`, 'blue');
-        
-        let totalSaved = 0;
-        let successCount = 0;
-        
-        // اول شیت رو پاک کن
-        try {
-            const clearResponse = await fetch(SCRIPT_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `action=clearSheet`
-            });
-            const clearResult = await clearResponse.json();
-            
-            if (clearResult.success) {
-                showStatus('🧹 شیت پاک شد، شروع ذخیره‌سازی...', 'blue');
-            } else {
-                showStatus('⚠️ خطا در پاک کردن شیت، ادامه عملیات...', 'orange');
+        // ذخیره در Google Sheets - با chunking و JSONP
+        async function saveToSheets() {
+            if (allData.length === 0) {
+                showStatus('⚠️ داده‌ای برای ذخیره وجود ندارد', 'orange');
+                return;
             }
-        } catch (error) {
-            console.log('⚠️ خطا در پاک کردن شیت:', error);
-        }
-        
-        // ارسال chunks با POST
-        for (let i = 0; i < chunks.length; i++) {
-            try {
-                showStatus(`📤 ارسال بخش ${i + 1} از ${chunks.length}... (${chunks[i].length} رکورد)`, 'blue');
-                
-                const formData = new FormData();
-                formData.append('action', 'appendData');
-                formData.append('data', JSON.stringify(chunks[i]));
-                
-                const response = await fetch(SCRIPT_URL, {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                const result = await response.json();
 
-                if (result.success) {
-                    totalSaved += chunks[i].length;
-                    successCount++;
-                    showStatus(`✅ بخش ${i + 1} از ${chunks.length} ذخیره شد (${chunks[i].length} رکورد)`, 'green');
-                } else {
-                    showStatus(`⚠️ خطا در بخش ${i + 1}: ${result.error}`, 'orange');
+            showStatus('🔄 در حال ذخیره‌سازی در سرور...', 'blue');
+            
+            try {
+                // تقسیم داده‌ها به chunks کوچک
+                const CHUNK_SIZE = 10;
+                const chunks = [];
+                
+                for (let i = 0; i < allData.length; i += CHUNK_SIZE) {
+                    chunks.push(allData.slice(i, i + CHUNK_SIZE));
                 }
                 
-                // وقفه بین chunks
-                if (i < chunks.length - 1) {
-                    await new Promise(resolve => setTimeout(resolve, 1000));
+                showStatus(`📦 تقسیم داده‌ها به ${chunks.length} بخش...`, 'blue');
+                
+                let totalSaved = 0;
+                let successCount = 0;
+                
+                // اول شیت رو پاک کن
+                try {
+                    await jsonpRequest('clearSheet');
+                    showStatus('🧹 شیت پاک شد، شروع ذخیره‌سازی...', 'blue');
+                } catch (error) {
+                    console.log('⚠️ خطا در پاک کردن شیت:', error);
+                    showStatus('⚠️ خطا در پاک کردن شیت، ادامه عملیات...', 'orange');
+                }
+                
+                // ارسال chunks با JSONP
+                for (let i = 0; i < chunks.length; i++) {
+                    try {
+                        showStatus(`📤 ارسال بخش ${i + 1} از ${chunks.length}... (${chunks[i].length} رکورد)`, 'blue');
+                        
+                        const result = await jsonpRequest('appendData', chunks[i]);
+
+                        if (result.success) {
+                            totalSaved += chunks[i].length;
+                            successCount++;
+                            showStatus(`✅ بخش ${i + 1} از ${chunks.length} ذخیره شد (${chunks[i].length} رکورد)`, 'green');
+                        } else {
+                            showStatus(`⚠️ خطا در بخش ${i + 1}: ${result.error}`, 'orange');
+                        }
+                        
+                        // وقفه بین chunks
+                        if (i < chunks.length - 1) {
+                            await new Promise(resolve => setTimeout(resolve, 1000));
+                        }
+                        
+                    } catch (error) {
+                        showStatus(`❌ خطا در بخش ${i + 1}: ${error.message}`, 'red');
+                    }
+                }
+                
+                if (successCount === chunks.length) {
+                    showStatus(`✅ همه ${totalSaved} رکورد ذخیره شدند`, 'green');
+                } else {
+                    showStatus(`⚠️ ${totalSaved} از ${allData.length} رکورد ذخیره شد`, 'orange');
                 }
                 
             } catch (error) {
-                showStatus(`❌ خطا در بخش ${i + 1}: ${error.message}`, 'red');
+                showStatus('❌ خطا در ذخیره‌سازی: ' + error.message, 'red');
             }
         }
-        
-        if (successCount === chunks.length) {
-            showStatus(`✅ همه ${totalSaved} رکورد ذخیره شدند`, 'green');
-        } else {
-            showStatus(`⚠️ ${totalSaved} از ${allData.length} رکورد ذخیره شد`, 'orange');
+
+        // تابع کمکی برای درخواست‌های JSONP
+        function jsonpRequest(action, data = null) {
+            return new Promise((resolve, reject) => {
+                const callbackName = 'jsonpCallback_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                
+                window[callbackName] = function(response) {
+                    // تمیز کردن
+                    delete window[callbackName];
+                    document.head.removeChild(script);
+                    clearTimeout(timeoutId);
+                    
+                    resolve(response);
+                };
+                
+                // ساختن URL
+                let url = `${SCRIPT_URL}?action=${action}&callback=${callbackName}`;
+                if (data) {
+                    url += `&data=${encodeURIComponent(JSON.stringify(data))}`;
+                }
+                
+                const script = document.createElement('script');
+                script.src = url;
+                script.onerror = () => {
+                    delete window[callbackName];
+                    document.head.removeChild(script);
+                    reject(new Error('Failed to load script'));
+                };
+                
+                document.head.appendChild(script);
+                
+                // تایم‌اوت
+                const timeoutId = setTimeout(() => {
+                    delete window[callbackName];
+                    if (document.head.contains(script)) {
+                        document.head.removeChild(script);
+                    }
+                    reject(new Error('Request timeout'));
+                }, 30000);
+            });
         }
-        
-    } catch (error) {
-        showStatus('❌ خطا در ذخیره‌سازی: ' + error.message, 'red');
-    }
-}
 
         // اضافه کردن ۵۰ رکورد تستی
         function add50TestData() {
@@ -189,10 +210,12 @@ async function saveToSheets() {
 
         // پاک کردن داده‌های محلی
         function clearLocalData() {
-            allData = [];
-            renderTable();
-            updateStats();
-            showStatus('✅ داده‌های محلی پاک شدند', 'orange');
+            if (confirm('آیا از پاک کردن تمام داده‌های محلی اطمینان دارید؟')) {
+                allData = [];
+                renderTable();
+                updateStats();
+                showStatus('✅ داده‌های محلی پاک شدند', 'orange');
+            }
         }
 
         // نمایش جدول
@@ -204,9 +227,9 @@ async function saveToSheets() {
                 const row = document.createElement('tr');
                 row.innerHTML = `
                     <td>${index + 1}</td>
-                    <td>${item.Employeenumber}</td>
-                    <td>${item.Fullname}</td>
-                    <td>${item.Bankloan}</td>
+                    <td>${item.Employeenumber || ''}</td>
+                    <td>${item.Fullname || ''}</td>
+                    <td>${item.Bankloan || ''}</td>
                     <td>
                         <button class="btn btn-danger" style="padding: 5px 10px;" onclick="deleteItem(${index})">🗑️</button>
                     </td>
@@ -223,10 +246,12 @@ async function saveToSheets() {
 
         // حذف آیتم
         function deleteItem(index) {
-            allData.splice(index, 1);
-            renderTable();
-            updateStats();
-            showStatus('✅ رکورد حذف شد', 'orange');
+            if (confirm('آیا از حذف این رکورد اطمینان دارید؟')) {
+                allData.splice(index, 1);
+                renderTable();
+                updateStats();
+                showStatus('✅ رکورد حذف شد', 'orange');
+            }
         }
 
         // نمایش وضعیت
@@ -241,9 +266,22 @@ async function saveToSheets() {
                                color === 'orange' ? '#856404' : '#0c5460';
         }
 
+        // تست اتصال اولیه
+        async function testConnection() {
+            try {
+                const result = await jsonpRequest('test');
+                if (result.success) {
+                    console.log('✅ Connection test successful');
+                    loadFromSheets();
+                }
+            } catch (error) {
+                console.error('❌ Connection test failed:', error);
+                showStatus('❌ خطا در اتصال به سرور', 'red');
+            }
+        }
+
         // بارگذاری اولیه
-        loadFromSheets();
+        testConnection();
     </script>
 </body>
 </html>
-
