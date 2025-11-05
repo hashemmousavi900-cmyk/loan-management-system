@@ -1022,87 +1022,89 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
             }
         }
 
-        // ==================== توابع ارتباط با گوگل - نسخه پایدار ====================
-
-        // درخواست به Google Apps Script - نسخه JSONP
-        async function googleAppsScriptRequest(action, data = null) {
-            console.log(`📡 ارسال درخواست ${action}...`);
-            
-            return new Promise((resolve, reject) => {
-                const requestId = Date.now();
-                const callbackName = 'cb_' + requestId;
-                const startTime = Date.now();
-                
-                let url = `${GOOGLE_APPS_SCRIPT_URL}?action=${action}&callback=${callbackName}`;
-                
-                if (data) {
-                    const dataString = JSON.stringify(data);
-                    console.log(`📦 حجم داده: ${dataString.length} کاراکتر`);
-                    
-                    // اگر داده‌ها خیلی بزرگ هستند، آنها را به chunks تقسیم می‌کنیم
-                    if (dataString.length > 15000) {
-                        console.log('🔄 داده‌های بزرگ - تقسیم به chunks');
-                        sendLargeDataInChunks(action, data)
-                            .then(resolve)
-                            .catch(reject);
-                        return;
-                    }
-                    
-                    url += `&data=${encodeURIComponent(dataString)}`;
-                }
-                
-                url += `&t=${requestId}`;
-                
-                console.log('🔗 URL درخواست:', url.length < 500 ? url : url.substring(0, 500) + '...');
-                
-                window[callbackName] = function(response) {
-                    const duration = Date.now() - startTime;
-                    
-                    console.log(`📥 پاسخ دریافت شد (${duration}ms):`, response);
-                    logRequest(action, data, response, null, duration);
-                    
-                    delete window[callbackName];
-                    if (script.parentNode) {
-                        document.body.removeChild(script);
-                    }
-                    resolve(response);
-                };
-                
-                const script = document.createElement('script');
-                script.src = url;
-                
-                script.onerror = function() {
-                    const duration = Date.now() - startTime;
-                    const error = new Error('خطا در بارگذاری اسکریپت');
-                    
-                    console.error(`❌ خطا در بارگذاری اسکریپت (${duration}ms)`);
-                    logRequest(action, data, null, error.message, duration);
-                    
-                    delete window[callbackName];
-                    if (script.parentNode) {
-                        document.body.removeChild(script);
-                    }
-                    reject(error);
-                };
-                
-                document.body.appendChild(script);
-                
-                setTimeout(() => {
-                    if (window[callbackName]) {
-                        const error = new Error('تایم‌اوت درخواست');
-                        console.error(`⏰ تایم‌اوت درخواست ${action} (30000ms)`);
-                        logRequest(action, data, null, error.message, 30000);
-                        
-                        delete window[callbackName];
-                        if (script.parentNode) {
-                            document.body.removeChild(script);
-                        }
-                        reject(error);
-                    }
-                }, 30000);
-            });
+      // درخواست به Google Apps Script - نسخه دیباگ پیشرفته
+async function googleAppsScriptRequest(action, data = null) {
+    console.log(`📡 ارسال درخواست ${action}...`);
+    
+    return new Promise((resolve, reject) => {
+        const requestId = Date.now();
+        const callbackName = 'cb_' + requestId;
+        const startTime = Date.now();
+        
+        let url = `${GOOGLE_APPS_SCRIPT_URL}?action=${action}&callback=${callbackName}`;
+        
+        if (data) {
+            const dataString = JSON.stringify(data);
+            console.log(`📦 حجم داده: ${dataString.length} کاراکتر`);
+            url += `&data=${encodeURIComponent(dataString)}`;
         }
-
+        
+        url += `&t=${requestId}`;
+        
+        console.log('🔗 URL کامل درخواست:', url);
+        
+        window[callbackName] = function(response) {
+            const duration = Date.now() - startTime;
+            
+            console.log(`📥 پاسخ دریافت شد (${duration}ms):`, response);
+            logRequest(action, data, response, null, duration);
+            
+            delete window[callbackName];
+            if (script.parentNode) {
+                document.body.removeChild(script);
+            }
+            
+            if (response && typeof response === 'object') {
+                resolve(response);
+            } else {
+                reject(new Error('پاسخ نامعتبر از سرور'));
+            }
+        };
+        
+        const script = document.createElement('script');
+        script.src = url;
+        
+        script.onerror = function() {
+            const duration = Date.now() - startTime;
+            const error = new Error('خطا در بارگذاری اسکریپت - ممکن است CORS مشکل داشته باشد');
+            
+            console.error(`❌ خطا در بارگذاری اسکریپت (${duration}ms)`, error);
+            console.error('🔗 URL مشکل‌دار:', url);
+            logRequest(action, data, null, error.message, duration);
+            
+            delete window[callbackName];
+            if (script.parentNode) {
+                document.body.removeChild(script);
+            }
+            reject(error);
+        };
+        
+        // تایم‌اوت کوتاه‌تر برای تست
+        const timeout = setTimeout(() => {
+            if (window[callbackName]) {
+                const error = new Error('تایم‌اوت درخواست - سرور پاسخ نمی‌دهد');
+                console.error(`⏰ تایم‌اوت درخواست ${action} (15000ms)`);
+                console.error('🔗 URL:', url);
+                logRequest(action, data, null, error.message, 15000);
+                
+                delete window[callbackName];
+                if (script.parentNode) {
+                    document.body.removeChild(script);
+                }
+                reject(error);
+            }
+        }, 15000);
+        
+        // لغو تایم‌اوت وقتی پاسخ دریافت شد
+        const originalCallback = window[callbackName];
+        window[callbackName] = function(response) {
+            clearTimeout(timeout);
+            originalCallback(response);
+        };
+        
+        document.body.appendChild(script);
+    });
+}
         // ارسال داده‌های بزرگ به صورت chunk
         async function sendLargeDataInChunks(action, data) {
             console.log(`🔄 ارسال ${data.length} رکورد در chunks...`);
@@ -1162,85 +1164,94 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
             };
         }
 
-        // بارگذاری از Google Sheets
-        async function loadFromGoogleSheets() {
-            showLoading(true, 'در حال بارگذاری از Google Sheets...');
+       // بارگذاری از Google Sheets - نسخه دیباگ
+async function loadFromGoogleSheets() {
+    showLoading(true, 'در حال بارگذاری از Google Sheets...');
+    
+    try {
+        console.log('🔄 شروع بارگذاری از Google Sheets...');
+        console.log('🔗 URL اسکریپت:', GOOGLE_APPS_SCRIPT_URL);
+        
+        const result = await googleAppsScriptRequest('loadData');
+        console.log('📊 پاسخ کامل loadData:', result);
+        
+        if (result && result.success) {
+            console.log('✅ درخواست loadData موفق بود');
             
-            try {
-                console.log('🔄 شروع بارگذاری از Google Sheets...');
+            if (result.data && Array.isArray(result.data)) {
+                console.log(`📥 دریافت ${result.data.length} رکورد از سرور`);
                 
-                const result = await googleAppsScriptRequest('loadData');
-                console.log('📊 پاسخ کامل loadData:', result);
-                
-                if (result.success && result.data && Array.isArray(result.data)) {
-                    console.log(`📥 دریافت ${result.data.length} رکورد از سرور`);
-                    
-                    if (result.data.length === 0) {
-                        console.log('📭 هیچ داده‌ای در Google Sheets وجود ندارد');
-                        showNotification('هیچ داده‌ای در Google Sheets وجود ندارد', 'info');
-                        showEmptyState();
-                        return;
-                    }
-                    
-                    // پردازش داده‌ها - نسخه ساده‌تر
-                    sampleData = [];
-                    
-                    result.data.forEach((item, index) => {
-                        console.log(`📝 پردازش رکورد ${index + 1}:`, item);
-                        
-                        // بررسی وجود شماره پرسنلی
-                        const employeeNumber = item.Employeenumber || item.employeeNumber || item['Employeenumber'] || '';
-                        
-                        if (employeeNumber && employeeNumber.toString().trim() !== '') {
-                            const processedItem = {
-                                username: String(item.Username || item.username || ''),
-                                employeeNumber: employeeNumber.toString(),
-                                fullname: String(item.Fullname || item.fullname || ''),
-                                gender: convertGender(item.Gender || item.gender || ''),
-                                bankLoan: String(item.Bankloan || item.bankLoan || ''),
-                                companyLoan: String(item.Companyloan || item.companyLoan || ''),
-                                bankLoanDate: convertDateFormat(item.Bankloandate || item.bankLoanDate || ''),
-                                companyLoanDate: convertDateFormat(item.Companyloandate || item.companyLoanDate || ''),
-                                priority: convertPriority(item.Priority || item.priority || ''),
-                                description: String(item.Description || item.description || ''),
-                                loanRequest: String(item.Loanrequest || item.loanRequest || item['Loanrequest'] || 'false').toLowerCase() === 'true'
-                            };
-                            
-                            sampleData.push(processedItem);
-                        }
-                    });
-                    
-                    console.log(`✅ پردازش کامل شد: ${sampleData.length} رکورد معتبر`);
-                    
-                    if (sampleData.length > 0) {
-                        renderTable(sampleData);
-                        saveToLocalStorage();
-                        showNotification(`داده‌ها با موفقیت بارگذاری شدند (${sampleData.length} رکورد)`, 'success');
-                    } else {
-                        console.log('❌ هیچ داده معتبری پس از پردازش باقی نماند');
-                        showNotification('هیچ داده معتبری در Google Sheets وجود ندارد', 'info');
-                        showEmptyState();
-                    }
-                } else {
-                    console.log('❌ ساختار پاسخ نامعتبر:', result);
-                    throw new Error(result.error || 'خطا در بارگذاری داده‌ها از سرور');
+                if (result.data.length === 0) {
+                    console.log('📭 هیچ داده‌ای در Google Sheets وجود ندارد');
+                    showNotification('هیچ داده‌ای در Google Sheets وجود ندارد', 'info');
+                    showEmptyState();
+                    return;
                 }
-            } catch (error) {
-                console.error('❌ خطا در بارگذاری از گوگل شیت:', error);
                 
-                // تلاش برای بارگذاری از حافظه محلی
-                const loaded = loadFromLocalStorage();
-                if (loaded) {
-                    showNotification('داده‌ها از حافظه محلی بارگذاری شدند', 'warning');
+                // پردازش داده‌ها
+                sampleData = [];
+                
+                result.data.forEach((item, index) => {
+                    console.log(`📝 پردازش رکورد ${index + 1}:`, item);
+                    
+                    // بررسی وجود شماره پرسنلی
+                    const employeeNumber = item.Employeenumber || item.employeeNumber || item['Employeenumber'] || '';
+                    
+                    if (employeeNumber && employeeNumber.toString().trim() !== '') {
+                        const processedItem = {
+                            username: String(item.Username || item.username || ''),
+                            employeeNumber: employeeNumber.toString(),
+                            fullname: String(item.Fullname || item.fullname || ''),
+                            gender: convertGender(item.Gender || item.gender || ''),
+                            bankLoan: String(item.Bankloan || item.bankLoan || ''),
+                            companyLoan: String(item.Companyloan || item.companyLoan || ''),
+                            bankLoanDate: convertDateFormat(item.Bankloandate || item.bankLoanDate || ''),
+                            companyLoanDate: convertDateFormat(item.Companyloandate || item.companyLoanDate || ''),
+                            priority: convertPriority(item.Priority || item.priority || ''),
+                            description: String(item.Description || item.description || ''),
+                            loanRequest: String(item.Loanrequest || item.loanRequest || item['Loanrequest'] || 'false').toLowerCase() === 'true'
+                        };
+                        
+                        sampleData.push(processedItem);
+                    }
+                });
+                
+                console.log(`✅ پردازش کامل شد: ${sampleData.length} رکورد معتبر`);
+                
+                if (sampleData.length > 0) {
+                    renderTable(sampleData);
+                    saveToLocalStorage();
+                    showNotification(`داده‌ها با موفقیت بارگذاری شدند (${sampleData.length} رکورد)`, 'success');
                 } else {
-                    showNotification('خطا در بارگذاری داده‌ها. لطفا اتصال اینترنت را بررسی کنید.', 'error');
+                    console.log('❌ هیچ داده معتبری پس از پردازش باقی نماند');
+                    showNotification('هیچ داده معتبری در Google Sheets وجود ندارد', 'info');
                     showEmptyState();
                 }
-            } finally {
-                showLoading(false);
-                updateDebugInfo();
+            } else {
+                console.log('❌ داده‌ها آرایه نیستند:', result.data);
+                throw new Error('ساختار داده‌ها نامعتبر است');
             }
+        } else {
+            console.log('❌ درخواست loadData ناموفق بود:', result);
+            throw new Error(result ? result.error : 'خطا در بارگذاری داده‌ها');
         }
+    } catch (error) {
+        console.error('❌ خطا در بارگذاری از گوگل شیت:', error);
+        
+        // تلاش برای بارگذاری از حافظه محلی
+        console.log('🔄 تلاش برای بارگذاری از حافظه محلی...');
+        const loaded = loadFromLocalStorage();
+        if (loaded) {
+            showNotification('داده‌ها از حافظه محلی بارگذاری شدند', 'warning');
+        } else {
+            showNotification('خطا در بارگذاری داده‌ها. لطفا اتصال اینترنت را بررسی کنید.', 'error');
+            showEmptyState();
+        }
+    } finally {
+        showLoading(false);
+        updateDebugInfo();
+    }
+}
 
         // ذخیره در Google Sheets - نسخه ایمن
         async function saveToGoogleSheets() {
@@ -1795,3 +1806,4 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
     </script>
 </body>
 </html>
+
