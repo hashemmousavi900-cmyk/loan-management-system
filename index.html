@@ -629,7 +629,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-modal="passwordModal">لغو</button>
-                    <button type="submit" class="btn btn-success">ت‌أیید</button>
+                    <button type="submit" class="btn btn-success">تأیید</button>
                 </div>
             </form>
         </div>
@@ -644,6 +644,10 @@
         let pendingEmployeeId = null;
         let isEditing = false;
         let requestLogs = [];
+        
+        // متغیرهای کنترل درخواست همزمان
+        let isSaving = false;
+        let pendingSaveQueue = [];
         
         // آدرس جدید Google Apps Script
         const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzZon3TD82iK3kssiUQPYDqaH5_coLKH2crpzJnjEoCaqgJBRAe1oJNc8nn0a3T53ih/exec';
@@ -907,6 +911,56 @@
             return false;
         }
 
+        // ==================== سیستم مدیریت درخواست‌های همزمان ====================
+
+        // تابع ذخیره‌سازی با مدیریت صف
+        async function saveToGoogleSheetsWithQueue() {
+            return new Promise((resolve, reject) => {
+                // اضافه کردن به صف
+                pendingSaveQueue.push({ resolve, reject });
+                console.log(`📋 درخواست جدید به صف اضافه شد. تعداد در صف: ${pendingSaveQueue.length}`);
+                
+                // اگر در حال ذخیره نیستیم، شروع کن
+                if (!isSaving) {
+                    processSaveQueue();
+                }
+            });
+        }
+
+        // پردازش صف ذخیره‌سازی
+        async function processSaveQueue() {
+            if (isSaving || pendingSaveQueue.length === 0) {
+                return;
+            }
+            
+            isSaving = true;
+            console.log(`🔄 شروع پردازش صف ذخیره‌سازی: ${pendingSaveQueue.length} درخواست در صف`);
+            
+            const { resolve, reject } = pendingSaveQueue.shift();
+            
+            try {
+                const result = await saveToGoogleSheets();
+                console.log('✅ درخواست ذخیره‌سازی با موفقیت انجام شد');
+                resolve(result);
+            } catch (error) {
+                console.error('❌ خطا در درخواست ذخیره‌سازی:', error);
+                reject(error);
+            } finally {
+                isSaving = false;
+                
+                // پردازش درخواست بعدی در صف
+                if (pendingSaveQueue.length > 0) {
+                    console.log(`⏭️ پردازش درخواست بعدی در صف: ${pendingSaveQueue.length} درخواست باقی مانده`);
+                    setTimeout(() => processSaveQueue(), 100);
+                } else {
+                    console.log('✅ صف ذخیره‌سازی خالی شد');
+                updateDebugInfo();
+                showNotification('همه تغییرات ذخیره شدند', 'success');
+                showLoading(false);
+                document.getElementById('addEmployeeModal').style.display = 'none';
+            }
+        }
+
         // ==================== توابع دیباگ ====================
 
         // تابع برای لاگ کردن درخواست‌ها
@@ -941,7 +995,9 @@
 وضعیت احراز هویت: ${isAuthenticated ? '✅ فعال' : '❌ غیرفعال'}
 آدرس اسکریپت: ${GOOGLE_APPS_SCRIPT_URL}
 حافظه محلی: ${localStorage.getItem('loanData') ? '✅ دارای داده' : '❌ خالی'}
-نسخه: پایدار - JSONP
+وضعیت ذخیره‌سازی: ${isSaving ? '🔄 در حال ذخیره' : '✅ آماده'}
+صف ذخیره‌سازی: ${pendingSaveQueue.length} درخواست
+نسخه: پایدار - مدیریت صف
                 `.trim();
             }
             
@@ -1106,86 +1162,87 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
             };
         }
 
-       // بارگذاری از Google Sheets - نسخه اصلاح شده
-async function loadFromGoogleSheets() {
-    showLoading(true, 'در حال بارگذاری از Google Sheets...');
-    
-    try {
-        console.log('🔄 شروع بارگذاری از Google Sheets...');
-        
-        const result = await googleAppsScriptRequest('loadData');
-        console.log('📊 پاسخ کامل loadData:', result);
-        
-        if (result.success && result.data && Array.isArray(result.data)) {
-            console.log(`📥 دریافت ${result.data.length} رکورد از سرور`);
+        // بارگذاری از Google Sheets
+        async function loadFromGoogleSheets() {
+            showLoading(true, 'در حال بارگذاری از Google Sheets...');
             
-            if (result.data.length === 0) {
-                console.log('📭 هیچ داده‌ای در Google Sheets وجود ندارد');
-                showNotification('هیچ داده‌ای در Google Sheets وجود ندارد', 'info');
-                showEmptyState();
-                return;
-            }
-            
-            // پردازش داده‌ها - نسخه ساده‌تر
-            sampleData = [];
-            
-            result.data.forEach((item, index) => {
-                console.log(`📝 پردازش رکورد ${index + 1}:`, item);
+            try {
+                console.log('🔄 شروع بارگذاری از Google Sheets...');
                 
-                // بررسی وجود شماره پرسنلی
-                const employeeNumber = item.Employeenumber || item.employeeNumber || item['Employeenumber'] || '';
+                const result = await googleAppsScriptRequest('loadData');
+                console.log('📊 پاسخ کامل loadData:', result);
                 
-                if (employeeNumber && employeeNumber.toString().trim() !== '') {
-                    const processedItem = {
-                        username: String(item.Username || item.username || ''),
-                        employeeNumber: employeeNumber.toString(),
-                        fullname: String(item.Fullname || item.fullname || ''),
-                        gender: convertGender(item.Gender || item.gender || ''),
-                        bankLoan: String(item.Bankloan || item.bankLoan || ''),
-                        companyLoan: String(item.Companyloan || item.companyLoan || ''),
-                        bankLoanDate: convertDateFormat(item.Bankloandate || item.bankLoanDate || ''),
-                        companyLoanDate: convertDateFormat(item.Companyloandate || item.companyLoanDate || ''),
-                        priority: convertPriority(item.Priority || item.priority || ''),
-                        description: String(item.Description || item.description || ''),
-                        loanRequest: String(item.Loanrequest || item.loanRequest || item['Loanrequest'] || 'false').toLowerCase() === 'true'
-                    };
+                if (result.success && result.data && Array.isArray(result.data)) {
+                    console.log(`📥 دریافت ${result.data.length} رکورد از سرور`);
                     
-                    sampleData.push(processedItem);
+                    if (result.data.length === 0) {
+                        console.log('📭 هیچ داده‌ای در Google Sheets وجود ندارد');
+                        showNotification('هیچ داده‌ای در Google Sheets وجود ندارد', 'info');
+                        showEmptyState();
+                        return;
+                    }
+                    
+                    // پردازش داده‌ها - نسخه ساده‌تر
+                    sampleData = [];
+                    
+                    result.data.forEach((item, index) => {
+                        console.log(`📝 پردازش رکورد ${index + 1}:`, item);
+                        
+                        // بررسی وجود شماره پرسنلی
+                        const employeeNumber = item.Employeenumber || item.employeeNumber || item['Employeenumber'] || '';
+                        
+                        if (employeeNumber && employeeNumber.toString().trim() !== '') {
+                            const processedItem = {
+                                username: String(item.Username || item.username || ''),
+                                employeeNumber: employeeNumber.toString(),
+                                fullname: String(item.Fullname || item.fullname || ''),
+                                gender: convertGender(item.Gender || item.gender || ''),
+                                bankLoan: String(item.Bankloan || item.bankLoan || ''),
+                                companyLoan: String(item.Companyloan || item.companyLoan || ''),
+                                bankLoanDate: convertDateFormat(item.Bankloandate || item.bankLoanDate || ''),
+                                companyLoanDate: convertDateFormat(item.Companyloandate || item.companyLoanDate || ''),
+                                priority: convertPriority(item.Priority || item.priority || ''),
+                                description: String(item.Description || item.description || ''),
+                                loanRequest: String(item.Loanrequest || item.loanRequest || item['Loanrequest'] || 'false').toLowerCase() === 'true'
+                            };
+                            
+                            sampleData.push(processedItem);
+                        }
+                    });
+                    
+                    console.log(`✅ پردازش کامل شد: ${sampleData.length} رکورد معتبر`);
+                    
+                    if (sampleData.length > 0) {
+                        renderTable(sampleData);
+                        saveToLocalStorage();
+                        showNotification(`داده‌ها با موفقیت بارگذاری شدند (${sampleData.length} رکورد)`, 'success');
+                    } else {
+                        console.log('❌ هیچ داده معتبری پس از پردازش باقی نماند');
+                        showNotification('هیچ داده معتبری در Google Sheets وجود ندارد', 'info');
+                        showEmptyState();
+                    }
+                } else {
+                    console.log('❌ ساختار پاسخ نامعتبر:', result);
+                    throw new Error(result.error || 'خطا در بارگذاری داده‌ها از سرور');
                 }
-            });
-            
-            console.log(`✅ پردازش کامل شد: ${sampleData.length} رکورد معتبر`);
-            
-            if (sampleData.length > 0) {
-                renderTable(sampleData);
-                saveToLocalStorage();
-                showNotification(`داده‌ها با موفقیت بارگذاری شدند (${sampleData.length} رکورد)`, 'success');
-            } else {
-                console.log('❌ هیچ داده معتبری پس از پردازش باقی نماند');
-                showNotification('هیچ داده معتبری در Google Sheets وجود ندارد', 'info');
-                showEmptyState();
+            } catch (error) {
+                console.error('❌ خطا در بارگذاری از گوگل شیت:', error);
+                
+                // تلاش برای بارگذاری از حافظه محلی
+                const loaded = loadFromLocalStorage();
+                if (loaded) {
+                    showNotification('داده‌ها از حافظه محلی بارگذاری شدند', 'warning');
+                } else {
+                    showNotification('خطا در بارگذاری داده‌ها. لطفا اتصال اینترنت را بررسی کنید.', 'error');
+                    showEmptyState();
+                }
+            } finally {
+                showLoading(false);
+                updateDebugInfo();
             }
-        } else {
-            console.log('❌ ساختار پاسخ نامعتبر:', result);
-            throw new Error(result.error || 'خطا در بارگذاری داده‌ها از سرور');
         }
-    } catch (error) {
-        console.error('❌ خطا در بارگذاری از گوگل شیت:', error);
-        
-        // تلاش برای بارگذاری از حافظه محلی
-        const loaded = loadFromLocalStorage();
-        if (loaded) {
-            showNotification('داده‌ها از حافظه محلی بارگذاری شدند', 'warning');
-        } else {
-            showNotification('خطا در بارگذاری داده‌ها. لطفا اتصال اینترنت را بررسی کنید.', 'error');
-            showEmptyState();
-        }
-    } finally {
-        showLoading(false);
-        updateDebugInfo();
-    }
-}
-        // ذخیره در Google Sheets - نسخه اصلاح شده
+
+        // ذخیره در Google Sheets - نسخه ایمن
         async function saveToGoogleSheets() {
             if (sampleData.length === 0) {
                 console.log('⚠️ داده‌ای برای ذخیره‌سازی وجود ندارد');
@@ -1199,12 +1256,15 @@ async function loadFromGoogleSheets() {
             showLoading(true, 'در حال ذخیره در Google Sheets...');
             
             try {
+                // کپی از داده‌ها برای جلوگیری از تغییرات همزمان
+                const dataToSave = JSON.parse(JSON.stringify(sampleData));
+                
                 // اول شیت رو پاک کن
                 await googleAppsScriptRequest('clearSheet');
                 console.log('✅ شیت پاک شد');
                 
                 // حالا تمام داده‌ها رو ذخیره کن
-                const dataForSheets = sampleData.map(item => ({
+                const dataForSheets = dataToSave.map(item => ({
                     Username: item.username || '',
                     Employeenumber: item.employeeNumber,
                     Fullname: item.fullname,
@@ -1330,7 +1390,7 @@ async function loadFromGoogleSheets() {
             const saveToCloud = document.getElementById('save-to-cloud');
             if (saveToCloud) {
                 saveToCloud.addEventListener('click', function() {
-                    saveToGoogleSheets();
+                    saveToGoogleSheetsWithQueue();
                 });
             }
 
@@ -1424,7 +1484,7 @@ async function loadFromGoogleSheets() {
             const testSaveBtn = document.getElementById('test-save-btn');
             if (testSaveBtn) {
                 testSaveBtn.addEventListener('click', function() {
-                    saveToGoogleSheets();
+                    saveToGoogleSheetsWithQueue();
                 });
             }
 
@@ -1505,7 +1565,7 @@ async function loadFromGoogleSheets() {
             const forceSaveBtn = document.getElementById('force-save-btn');
             if (forceSaveBtn) {
                 forceSaveBtn.addEventListener('click', function() {
-                    saveToGoogleSheets();
+                    saveToGoogleSheetsWithQueue();
                 });
             }
 
@@ -1633,11 +1693,12 @@ async function loadFromGoogleSheets() {
             
             renderTable(sampleData);
             
-            // ذخیره‌سازی در Google Sheets - کل داده‌ها
-            const success = await saveToGoogleSheets();
-            
-            if (success) {
-                document.getElementById('addEmployeeModal').style.display = 'none';
+            // استفاده از سیستم صف برای ذخیره‌سازی
+            try {
+                await saveToGoogleSheetsWithQueue();
+            } catch (error) {
+                console.error('خطا در ذخیره‌سازی:', error);
+                showNotification('خطا در ذخیره‌سازی', 'error');
             }
         }
 
@@ -1668,10 +1729,14 @@ async function loadFromGoogleSheets() {
                 sampleData = sampleData.filter(item => item.employeeNumber !== employeeNumber);
                 renderTable(sampleData);
                 
-                // ذخیره‌سازی در Google Sheets
-                await saveToGoogleSheets();
-                
-                showNotification('وام با موفقیت حذف شد', 'success');
+                // استفاده از سیستم صف برای ذخیره‌سازی
+                try {
+                    await saveToGoogleSheetsWithQueue();
+                    showNotification('وام با موفقیت حذف شد', 'success');
+                } catch (error) {
+                    console.error('خطا در ذخیره‌سازی:', error);
+                    showNotification('خطا در ذخیره‌سازی', 'error');
+                }
             }
         }
 
@@ -1681,13 +1746,17 @@ async function loadFromGoogleSheets() {
                 employee.loanRequest = !employee.loanRequest;
                 renderTable(sampleData);
                 
-                // ذخیره‌سازی در Google Sheets
-                await saveToGoogleSheets();
-                
-                showNotification(
-                    employee.loanRequest ? 'درخواست وام ثبت شد' : 'درخواست وام لغو شد', 
-                    'success'
-                );
+                // استفاده از سیستم صف برای ذخیره‌سازی
+                try {
+                    await saveToGoogleSheetsWithQueue();
+                    showNotification(
+                        employee.loanRequest ? 'درخواست وام ثبت شد' : 'درخواست وام لغو شد', 
+                        'success'
+                    );
+                } catch (error) {
+                    console.error('خطا در ذخیره‌سازی:', error);
+                    showNotification('خطا در ذخیره‌سازی', 'error');
+                }
             }
         }
 
@@ -1726,4 +1795,3 @@ async function loadFromGoogleSheets() {
     </script>
 </body>
 </html>
-
