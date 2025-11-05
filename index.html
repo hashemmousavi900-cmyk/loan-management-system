@@ -108,14 +108,16 @@
                         script.onerror = reject;
                         document.head.appendChild(script);
                     });
+                    showStatus('🧹 شیت پاک شد، شروع ذخیره‌سازی...', 'blue');
                 } catch (error) {
-                    console.log('⚠️ خطا در پاک کردن شیت');
+                    console.log('⚠️ خطا در پاک کردن شیت:', error);
+                    showStatus('⚠️ خطا در پاک کردن شیت، ادامه عملیات...', 'orange');
                 }
                 
                 // ارسال chunks با appendData
                 for (let i = 0; i < chunks.length; i++) {
                     try {
-                        showStatus(`📤 ارسال بخش ${i + 1} از ${chunks.length}...`, 'blue');
+                        showStatus(`📤 ارسال بخش ${i + 1} از ${chunks.length}... (${chunks[i].length} رکورد)`, 'blue');
                         
                         const result = await new Promise((resolve, reject) => {
                             const callbackName = 'chunkCallback_' + Date.now();
@@ -132,7 +134,7 @@
                         if (result.success) {
                             totalSaved += chunks[i].length;
                             successCount++;
-                            showStatus(`✅ بخش ${i + 1} از ${chunks.length} ذخیره شد`, 'green');
+                            showStatus(`✅ بخش ${i + 1} از ${chunks.length} ذخیره شد (${chunks[i].length} رکورد)`, 'green');
                         } else {
                             showStatus(`⚠️ خطا در بخش ${i + 1}: ${result.error}`, 'orange');
                         }
