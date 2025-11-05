@@ -73,37 +73,88 @@
             }
         }
 
-        // ذخیره در Google Sheets
-        async function saveToSheets() {
-            if (allData.length === 0) {
-                showStatus('⚠️ داده‌ای برای ذخیره وجود ندارد', 'orange');
-                return;
-            }
+     // ذخیره در Google Sheets - با chunking
+async function saveToSheets() {
+    if (allData.length === 0) {
+        showStatus('⚠️ داده‌ای برای ذخیره وجود ندارد', 'orange');
+        return;
+    }
 
-            showStatus('🔄 در حال ذخیره‌سازی در سرور...', 'blue');
-            
+    showStatus('🔄 در حال ذخیره‌سازی در سرور...', 'blue');
+    
+    try {
+        // تقسیم داده‌ها به chunks کوچک
+        const CHUNK_SIZE = 10; // هر 10 رکورد یک chunk
+        const chunks = [];
+        
+        for (let i = 0; i < allData.length; i += CHUNK_SIZE) {
+            chunks.push(allData.slice(i, i + CHUNK_SIZE));
+        }
+        
+        showStatus(`📦 تقسیم داده‌ها به ${chunks.length} بخش...`, 'blue');
+        
+        let totalSaved = 0;
+        let successCount = 0;
+        
+        // اول شیت رو پاک کن
+        try {
+            await new Promise((resolve, reject) => {
+                const callbackName = 'clearCallback_' + Date.now();
+                window[callbackName] = resolve;
+                const script = document.createElement('script');
+                script.src = `${SCRIPT_URL}?action=clearSheet&callback=${callbackName}`;
+                script.onerror = reject;
+                document.head.appendChild(script);
+            });
+        } catch (error) {
+            console.log('⚠️ خطا در پاک کردن شیت');
+        }
+        
+        // ارسال chunks
+        for (let i = 0; i < chunks.length; i++) {
             try {
+                showStatus(`📤 ارسال بخش ${i + 1} از ${chunks.length}...`, 'blue');
+                
                 const result = await new Promise((resolve, reject) => {
-                    const callbackName = 'saveCallback_' + Date.now();
+                    const callbackName = 'chunkCallback_' + Date.now();
                     window[callbackName] = resolve;
                     
                     const script = document.createElement('script');
-                    script.src = `${SCRIPT_URL}?action=saveData&callback=${callbackName}&data=${encodeURIComponent(JSON.stringify(allData))}`;
-                    script.onerror = () => reject(new Error('خطا در ارسال داده'));
+                    script.src = `${SCRIPT_URL}?action=saveData&callback=${callbackName}&data=${encodeURIComponent(JSON.stringify(chunks[i]))}`;
+                    script.onerror = () => reject(new Error('خطا در ارسال بخش ' + (i + 1)));
                     document.head.appendChild(script);
                     
-                    setTimeout(() => reject(new Error('تایم‌اوت در ذخیره‌سازی')), 30000);
+                    setTimeout(() => reject(new Error('تایم‌اوت در بخش ' + (i + 1))), 30000);
                 });
 
                 if (result.success) {
-                    showStatus(`✅ ذخیره‌سازی موفق: ${result.savedCount || allData.length} رکورد`, 'green');
+                    totalSaved += chunks[i].length;
+                    successCount++;
+                    showStatus(`✅ بخش ${i + 1} از ${chunks.length} ذخیره شد`, 'green');
                 } else {
-                    showStatus('❌ خطا در ذخیره: ' + result.error, 'red');
+                    showStatus(`⚠️ خطا در بخش ${i + 1}: ${result.error}`, 'orange');
                 }
+                
+                // وقفه بین chunks
+                if (i < chunks.length - 1) {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+                
             } catch (error) {
-                showStatus('❌ خطا در ذخیره‌سازی: ' + error.message, 'red');
+                showStatus(`❌ خطا در بخش ${i + 1}: ${error.message}`, 'red');
             }
         }
+        
+        if (successCount === chunks.length) {
+            showStatus(`✅ همه ${totalSaved} رکورد ذخیره شدند`, 'green');
+        } else {
+            showStatus(`⚠️ ${totalSaved} از ${allData.length} رکورد ذخیره شد`, 'orange');
+        }
+        
+    } catch (error) {
+        showStatus('❌ خطا در ذخیره‌سازی: ' + error.message, 'red');
+    }
+}
 
         // اضافه کردن ۵۰ رکورد تستی
         function add50TestData() {
@@ -188,3 +239,4 @@
     </script>
 </body>
 </html>
+
