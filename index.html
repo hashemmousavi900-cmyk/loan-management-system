@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>سیستم وام - نسخه بهبود یافته</title>
+    <title>سیستم وام - نسخه نهایی</title>
     <style>
         body { font-family: Tahoma; padding: 20px; background: #f5f5f5; }
         .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; }
@@ -11,6 +11,8 @@
         .btn:hover { background: #219653; }
         .btn-warning { background: #f39c12; }
         .btn-warning:hover { background: #e67e22; }
+        .btn-danger { background: #e74c3c; }
+        .btn-danger:hover { background: #c0392b; }
         table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
         th { background: #f0f0f0; }
@@ -18,13 +20,13 @@
 </head>
 <body>
     <div class="container">
-        <h1>سیستم مدیریت وام - تست داده‌های زیاد</h1>
+        <h1>سیستم مدیریت وام - نسخه نهایی</h1>
         
         <div>
-            <button class="btn" onclick="loadFromSheets()">🔄 بارگذاری مجدد از Sheets</button>
+            <button class="btn" onclick="loadFromSheets()">🔄 بارگذاری از Sheets</button>
             <button class="btn btn-warning" onclick="add50TestData()">➕ اضافه کردن ۵۰ رکورد تست</button>
             <button class="btn" onclick="saveToSheets()">💾 ذخیره در Sheets</button>
-            <button class="btn" onclick="clearLocalData()">🗑️ پاک کردن داده‌های محلی</button>
+            <button class="btn btn-danger" onclick="clearLocalData()">🗑️ پاک کردن داده‌های محلی</button>
         </div>
 
         <div id="status" style="margin: 10px 0; padding: 10px; border-radius: 5px;"></div>
@@ -73,88 +75,88 @@
             }
         }
 
-     // ذخیره در Google Sheets - با chunking
-async function saveToSheets() {
-    if (allData.length === 0) {
-        showStatus('⚠️ داده‌ای برای ذخیره وجود ندارد', 'orange');
-        return;
-    }
+        // ذخیره در Google Sheets - با chunking
+        async function saveToSheets() {
+            if (allData.length === 0) {
+                showStatus('⚠️ داده‌ای برای ذخیره وجود ندارد', 'orange');
+                return;
+            }
 
-    showStatus('🔄 در حال ذخیره‌سازی در سرور...', 'blue');
-    
-    try {
-        // تقسیم داده‌ها به chunks کوچک
-        const CHUNK_SIZE = 10; // هر 10 رکورد یک chunk
-        const chunks = [];
-        
-        for (let i = 0; i < allData.length; i += CHUNK_SIZE) {
-            chunks.push(allData.slice(i, i + CHUNK_SIZE));
-        }
-        
-        showStatus(`📦 تقسیم داده‌ها به ${chunks.length} بخش...`, 'blue');
-        
-        let totalSaved = 0;
-        let successCount = 0;
-        
-        // اول شیت رو پاک کن
-        try {
-            await new Promise((resolve, reject) => {
-                const callbackName = 'clearCallback_' + Date.now();
-                window[callbackName] = resolve;
-                const script = document.createElement('script');
-                script.src = `${SCRIPT_URL}?action=clearSheet&callback=${callbackName}`;
-                script.onerror = reject;
-                document.head.appendChild(script);
-            });
-        } catch (error) {
-            console.log('⚠️ خطا در پاک کردن شیت');
-        }
-        
-        // ارسال chunks
-        for (let i = 0; i < chunks.length; i++) {
+            showStatus('🔄 در حال ذخیره‌سازی در سرور...', 'blue');
+            
             try {
-                showStatus(`📤 ارسال بخش ${i + 1} از ${chunks.length}...`, 'blue');
+                // تقسیم داده‌ها به chunks کوچک
+                const CHUNK_SIZE = 10;
+                const chunks = [];
                 
-                const result = await new Promise((resolve, reject) => {
-                    const callbackName = 'chunkCallback_' + Date.now();
-                    window[callbackName] = resolve;
-                    
-                    const script = document.createElement('script');
-                    script.src = `${SCRIPT_URL}?action=saveData&callback=${callbackName}&data=${encodeURIComponent(JSON.stringify(chunks[i]))}`;
-                    script.onerror = () => reject(new Error('خطا در ارسال بخش ' + (i + 1)));
-                    document.head.appendChild(script);
-                    
-                    setTimeout(() => reject(new Error('تایم‌اوت در بخش ' + (i + 1))), 30000);
-                });
-
-                if (result.success) {
-                    totalSaved += chunks[i].length;
-                    successCount++;
-                    showStatus(`✅ بخش ${i + 1} از ${chunks.length} ذخیره شد`, 'green');
-                } else {
-                    showStatus(`⚠️ خطا در بخش ${i + 1}: ${result.error}`, 'orange');
+                for (let i = 0; i < allData.length; i += CHUNK_SIZE) {
+                    chunks.push(allData.slice(i, i + CHUNK_SIZE));
                 }
                 
-                // وقفه بین chunks
-                if (i < chunks.length - 1) {
-                    await new Promise(resolve => setTimeout(resolve, 1000));
+                showStatus(`📦 تقسیم داده‌ها به ${chunks.length} بخش...`, 'blue');
+                
+                let totalSaved = 0;
+                let successCount = 0;
+                
+                // اول شیت رو پاک کن
+                try {
+                    await new Promise((resolve, reject) => {
+                        const callbackName = 'clearCallback_' + Date.now();
+                        window[callbackName] = resolve;
+                        const script = document.createElement('script');
+                        script.src = `${SCRIPT_URL}?action=clearSheet&callback=${callbackName}`;
+                        script.onerror = reject;
+                        document.head.appendChild(script);
+                    });
+                } catch (error) {
+                    console.log('⚠️ خطا در پاک کردن شیت');
+                }
+                
+                // ارسال chunks با appendData
+                for (let i = 0; i < chunks.length; i++) {
+                    try {
+                        showStatus(`📤 ارسال بخش ${i + 1} از ${chunks.length}...`, 'blue');
+                        
+                        const result = await new Promise((resolve, reject) => {
+                            const callbackName = 'chunkCallback_' + Date.now();
+                            window[callbackName] = resolve;
+                            
+                            const script = document.createElement('script');
+                            script.src = `${SCRIPT_URL}?action=appendData&callback=${callbackName}&data=${encodeURIComponent(JSON.stringify(chunks[i]))}`;
+                            script.onerror = () => reject(new Error('خطا در ارسال بخش ' + (i + 1)));
+                            document.head.appendChild(script);
+                            
+                            setTimeout(() => reject(new Error('تایم‌اوت در بخش ' + (i + 1))), 30000);
+                        });
+
+                        if (result.success) {
+                            totalSaved += chunks[i].length;
+                            successCount++;
+                            showStatus(`✅ بخش ${i + 1} از ${chunks.length} ذخیره شد`, 'green');
+                        } else {
+                            showStatus(`⚠️ خطا در بخش ${i + 1}: ${result.error}`, 'orange');
+                        }
+                        
+                        // وقفه بین chunks
+                        if (i < chunks.length - 1) {
+                            await new Promise(resolve => setTimeout(resolve, 1000));
+                        }
+                        
+                    } catch (error) {
+                        showStatus(`❌ خطا در بخش ${i + 1}: ${error.message}`, 'red');
+                    }
+                }
+                
+                if (successCount === chunks.length) {
+                    showStatus(`✅ همه ${totalSaved} رکورد ذخیره شدند`, 'green');
+                } else {
+                    showStatus(`⚠️ ${totalSaved} از ${allData.length} رکورد ذخیره شد`, 'orange');
                 }
                 
             } catch (error) {
-                showStatus(`❌ خطا در بخش ${i + 1}: ${error.message}`, 'red');
+                showStatus('❌ خطا در ذخیره‌سازی: ' + error.message, 'red');
             }
         }
-        
-        if (successCount === chunks.length) {
-            showStatus(`✅ همه ${totalSaved} رکورد ذخیره شدند`, 'green');
-        } else {
-            showStatus(`⚠️ ${totalSaved} از ${allData.length} رکورد ذخیره شد`, 'orange');
-        }
-        
-    } catch (error) {
-        showStatus('❌ خطا در ذخیره‌سازی: ' + error.message, 'red');
-    }
-}
 
         // اضافه کردن ۵۰ رکورد تستی
         function add50TestData() {
@@ -201,7 +203,7 @@ async function saveToSheets() {
                     <td>${item.Fullname}</td>
                     <td>${item.Bankloan}</td>
                     <td>
-                        <button class="btn" style="background: #e74c3c; padding: 5px 10px;" onclick="deleteItem(${index})">🗑️</button>
+                        <button class="btn btn-danger" style="padding: 5px 10px;" onclick="deleteItem(${index})">🗑️</button>
                     </td>
                 `;
                 tbody.appendChild(row);
@@ -239,4 +241,3 @@ async function saveToSheets() {
     </script>
 </body>
 </html>
-
