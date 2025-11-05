@@ -1159,10 +1159,9 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
             }
         }
 
-     // ذخیره در Google Sheets - نسخه نهایی برای داده‌های زیاد
+   // ذخیره در Google Sheets - نسخه واقعی
 async function saveToGoogleSheets() {
     if (sampleData.length === 0) {
-        console.log('⚠️ داده‌ای برای ذخیره‌سازی وجود ندارد');
         showNotification('داده‌ای برای ذخیره‌سازی وجود ندارد', 'warning');
         return true;
     }
@@ -1188,28 +1187,17 @@ async function saveToGoogleSheets() {
             Loanrequest: item.loanRequest ? 'true' : 'false'
         }));
         
-        console.log(`📤 ارسال ${dataForSheets.length} رکورد به Google Sheets...`);
+        console.log(`📤 ارسال ${dataForSheets.length} رکورد...`);
         
-        // روش هوشمند: اگر داده کم هست مستقیم ذخیره کن، اگر زیاد هست از append استفاده کن
-        let result;
-        if (dataForSheets.length <= 50) {
-            // برای داده‌های کم: پاک کن و دوباره بنویس
-            result = await googleAppsScriptRequest('saveData', dataForSheets);
-        } else {
-            // برای داده‌های زیاد: به انتها اضافه کن
-            // اول شیت رو پاک کن
-            await googleAppsScriptRequest('clearSheet');
-            // سپس همه رو اضافه کن
-            result = await googleAppsScriptRequest('appendData', dataForSheets);
-        }
-        
+        // از debugSaveData استفاده می‌کنیم که مشکل حجم نداره
+        const result = await googleAppsScriptRequest('debugSaveData', dataForSheets);
         console.log('✅ پاسخ ذخیره‌سازی:', result);
         
         showLoading(false);
         
         if (result && result.success) {
             saveToLocalStorage();
-            showNotification(`تغییرات با موفقیت در Google Sheets ذخیره شدند (${dataForSheets.length} رکورد)`, 'success');
+            showNotification(`همه ${dataForSheets.length} رکورد ذخیره شدند`, 'success');
             return true;
         } else {
             throw new Error(result.error || 'خطا در ذخیره‌سازی');
@@ -1218,7 +1206,7 @@ async function saveToGoogleSheets() {
         console.error('❌ خطا در ذخیره‌سازی:', error);
         showLoading(false);
         saveToLocalStorage();
-        showNotification('خطا در ذخیره‌سازی داده‌ها. داده‌ها در حافظه محلی ذخیره شدند.', 'warning');
+        showNotification('خطا در ذخیره‌سازی. داده‌ها در حافظه محلی ذخیره شدند.', 'warning');
         return false;
     }
 }
@@ -1686,5 +1674,6 @@ async function saveToGoogleSheets() {
     </script>
 </body>
 </html>
+
 
 
