@@ -8,7 +8,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
     <style>
-        /* استایل‌ها دقیقاً مانند قبل */
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: Vazirmatn, Tahoma, sans-serif; }
         
         body {
@@ -647,37 +646,36 @@
         let requestLogs = [];
         
         // سیستم lock برای جلوگیری از درخواست‌های همزمان
-        let isSaveInProgress = false;
-        let saveQueue = [];
-        let isLoadInProgress = false;
+        let isRequestInProgress = false;
+        let requestQueue = [];
         
         // آدرس جدید Google Apps Script
         const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzZon3TD82iK3kssiUQPYDqaH5_coLKH2crpzJnjEoCaqgJBRAe1oJNc8nn0a3T53ih/exec';
 
         // ==================== سیستم مدیریت درخواست‌های همزمان ====================
 
-        // تابع برای مدیریت صف ذخیره‌سازی
-        async function executeSaveRequest() {
-            // اگر ذخیره‌سازی دیگری در حال اجراست، در صف قرار بده
-            if (isSaveInProgress) {
-                console.log('⏳ درخواست ذخیره‌سازی در صف قرار گرفت');
+        // تابع برای مدیریت صف درخواست‌ها
+        async function executeRequest(action, data = null) {
+            // اگر درخواست دیگری در حال اجراست، در صف قرار بده
+            if (isRequestInProgress) {
+                console.log(`⏳ درخواست ${action} در صف قرار گرفت`);
                 return new Promise((resolve, reject) => {
-                    saveQueue.push({ resolve, reject });
+                    requestQueue.push({ action, data, resolve, reject });
                 });
             }
             
             // در غیر این صورت اجرا کن
-            isSaveInProgress = true;
+            isRequestInProgress = true;
             try {
-                const result = await performSaveToGoogleSheets();
+                const result = await googleAppsScriptRequest(action, data);
                 return result;
             } finally {
-                isSaveInProgress = false;
+                isRequestInProgress = false;
                 // درخواست بعدی در صف را اجرا کن
-                if (saveQueue.length > 0) {
-                    const nextRequest = saveQueue.shift();
-                    console.log('🔄 اجرای درخواست ذخیره‌سازی بعدی از صف');
-                    executeSaveRequest()
+                if (requestQueue.length > 0) {
+                    const nextRequest = requestQueue.shift();
+                    console.log(`🔄 اجرای درخواست بعدی از صف: ${nextRequest.action}`);
+                    executeRequest(nextRequest.action, nextRequest.data)
                         .then(nextRequest.resolve)
                         .catch(nextRequest.reject);
                 }
@@ -977,10 +975,9 @@
 وضعیت احراز هویت: ${isAuthenticated ? '✅ فعال' : '❌ غیرفعال'}
 آدرس اسکریپت: ${GOOGLE_APPS_SCRIPT_URL}
 حافظه محلی: ${localStorage.getItem('loanData') ? '✅ دارای داده' : '❌ خالی'}
-ذخیره‌سازی در حال اجرا: ${isSaveInProgress ? '⏳ بله' : '✅ خیر'}
-بارگذاری در حال اجرا: ${isLoadInProgress ? '⏳ بله' : '✅ خیر'}
-صف ذخیره‌سازی: ${saveQueue.length} درخواست
-نسخه: پایدار - با سیستم lock پیشرفته
+درخواست در حال اجرا: ${isRequestInProgress ? '⏳ بله' : '✅ خیر'}
+صف درخواست: ${requestQueue.length} درخواست
+نسخه: پایدار - با سیستم lock
                 `.trim();
             }
             
@@ -1105,7 +1102,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
             
             // اول شیت رو پاک کن
             try {
-                await googleAppsScriptRequest('clearSheet');
+                await executeRequest('clearSheet');
                 console.log('✅ شیت پاک شد برای شروع جدید');
             } catch (error) {
                 console.warn('⚠️ خطا در پاک کردن شیت:', error);
@@ -1116,7 +1113,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                 try {
                     console.log(`📤 ارسال chunk ${i + 1}/${chunks.length} (${chunks[i].length} رکورد)...`);
                     
-                    const result = await googleAppsScriptRequest(action, chunks[i]);
+                    const result = await executeRequest(action, chunks[i]);
                     if (result && result.success) {
                         totalSaved += chunks[i].length;
                         successCount++;
@@ -1147,18 +1144,12 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
 
         // بارگذاری از Google Sheets - نسخه اصلاح شده
         async function loadFromGoogleSheets() {
-            if (isLoadInProgress) {
-                console.log('⏳ بارگذاری دیگری در حال اجراست، این درخواست نادیده گرفته شد');
-                return;
-            }
-            
-            isLoadInProgress = true;
             showLoading(true, 'در حال بارگذاری از Google Sheets...');
             
             try {
                 console.log('🔄 شروع بارگذاری از Google Sheets...');
                 
-                const result = await googleAppsScriptRequest('loadData');
+                const result = await executeRequest('loadData');
                 console.log('📊 پاسخ کامل loadData:', result);
                 
                 if (result.success && result.data && Array.isArray(result.data)) {
@@ -1227,68 +1218,71 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                 }
             } finally {
                 showLoading(false);
-                isLoadInProgress = false;
                 updateDebugInfo();
             }
         }
 
-      // تابع اصلی ذخیره‌سازی - نسخه اصلاح شده
-async function performSaveToGoogleSheets() {
-    if (sampleData.length === 0) {
-        console.log('⚠️ داده‌ای برای ذخیره‌سازی وجود ندارد');
-        showNotification('داده‌ای برای ذخیره‌سازی وجود ندارد', 'warning');
-        return true;
-    }
-    
-    console.log('💾 شروع ذخیره‌سازی...');
-    console.log('📊 تعداد داده‌ها:', sampleData.length);
-    
-    showLoading(true, 'در حال ذخیره در Google Sheets...');
-    
-    try {
-        // آماده کردن داده‌ها برای ذخیره‌سازی
-        const dataForSheets = sampleData.map(item => ({
-            Username: item.username || '',
-            Employeenumber: item.employeeNumber,
-            Fullname: item.fullname,
-            Gender: item.gender,
-            Bankloan: item.bankLoan || '',
-            Companyloan: item.companyLoan || '',
-            Bankloandate: item.bankLoanDate || '',
-            Companyloandate: item.companyLoanDate || '',
-            Priority: item.priority,
-            Description: item.description || '',
-            Loanrequest: item.loanRequest ? 'true' : 'false'
-        }));
-        
-        console.log(`📤 ارسال ${dataForSheets.length} رکورد به Google Sheets...`);
-        
-        // استفاده از executeRequest که سیستم lock دارد
-        // و استفاده از replaceAllData به جای clearSheet + appendData
-        const result = await executeRequest('replaceAllData', dataForSheets);
-        
-        console.log('✅ پاسخ ذخیره‌سازی:', result);
-        
-        showLoading(false);
-        
-        if (result && result.success) {
-            saveToLocalStorage();
-            showNotification(`تمامی ${dataForSheets.length} رکورد با موفقیت ذخیره شدند`, 'success');
-            return true;
-        } else {
-            throw new Error(result.error || 'خطا در ذخیره‌سازی');
-        }
-    } catch (error) {
-        console.error('❌ خطا در ذخیره‌سازی:', error);
-        showLoading(false);
-        saveToLocalStorage();
-        showNotification('خطا در ذخیره‌سازی. داده‌ها در حافظه محلی ذخیره شدند.', 'warning');
-        return false;
-    }
-}
-        // تابع wrapper برای ذخیره‌سازی با سیستم صف
+        // ذخیره در Google Sheets - نسخه اصلاح شده
         async function saveToGoogleSheets() {
-            return await executeSaveRequest();
+            if (sampleData.length === 0) {
+                console.log('⚠️ داده‌ای برای ذخیره‌سازی وجود ندارد');
+                showNotification('داده‌ای برای ذخیره‌سازی وجود ندارد', 'warning');
+                return true;
+            }
+            
+            console.log('💾 شروع ذخیره‌سازی...');
+            console.log('📊 تعداد داده‌ها:', sampleData.length);
+            
+            showLoading(true, 'در حال ذخیره در Google Sheets...');
+            
+            try {
+                // اول شیت رو پاک کن
+                await executeRequest('clearSheet');
+                console.log('✅ شیت پاک شد');
+                
+                // حالا تمام داده‌ها رو ذخیره کن
+                const dataForSheets = sampleData.map(item => ({
+                    Username: item.username || '',
+                    Employeenumber: item.employeeNumber,
+                    Fullname: item.fullname,
+                    Gender: item.gender,
+                    Bankloan: item.bankLoan || '',
+                    Companyloan: item.companyLoan || '',
+                    Bankloandate: item.bankLoanDate || '',
+                    Companyloandate: item.companyLoanDate || '',
+                    Priority: item.priority,
+                    Description: item.description || '',
+                    Loanrequest: item.loanRequest ? 'true' : 'false'
+                }));
+                
+                console.log(`📤 ارسال ${dataForSheets.length} رکورد به Google Sheets...`);
+                
+                // اگر داده‌ها زیاد هستند، به chunks تقسیم کن
+                let result;
+                if (dataForSheets.length > 20) {
+                    result = await sendLargeDataInChunks('appendData', dataForSheets);
+                } else {
+                    result = await executeRequest('appendData', dataForSheets);
+                }
+                
+                console.log('✅ پاسخ ذخیره‌سازی:', result);
+                
+                showLoading(false);
+                
+                if (result && result.success) {
+                    saveToLocalStorage();
+                    showNotification(`تمامی ${dataForSheets.length} رکورد با موفقیت ذخیره شدند`, 'success');
+                    return true;
+                } else {
+                    throw new Error(result.error || 'خطا در ذخیره‌سازی');
+                }
+            } catch (error) {
+                console.error('❌ خطا در ذخیره‌سازی:', error);
+                showLoading(false);
+                saveToLocalStorage();
+                showNotification('خطا در ذخیره‌سازی. داده‌ها در حافظه محلی ذخیره شدند.', 'warning');
+                return false;
+            }
         }
 
         // تست ذخیره‌سازی ساده
@@ -1312,7 +1306,7 @@ async function performSaveToGoogleSheets() {
             ];
             
             try {
-                const result = await googleAppsScriptRequest('appendData', testData);
+                const result = await executeRequest('appendData', testData);
                 console.log('✅ نتیجه تست ساده:', result);
                 
                 if (result.success) {
@@ -1400,7 +1394,7 @@ async function performSaveToGoogleSheets() {
             const testConnectionBtn = document.getElementById('test-connection-btn');
             if (testConnectionBtn) {
                 testConnectionBtn.addEventListener('click', function() {
-                    googleAppsScriptRequest('test').then(result => {
+                    executeRequest('test').then(result => {
                         if (result.success) {
                             showNotification('اتصال با سرور برقرار است', 'success');
                         } else {
