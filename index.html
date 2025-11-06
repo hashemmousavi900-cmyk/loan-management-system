@@ -649,38 +649,41 @@
         let isRequestInProgress = false;
         let requestQueue = [];
         
-        // آدرس جدید Google Apps Script
-        const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzZon3TD82iK3kssiUQPYDqaH5_coLKH2crpzJnjEoCaqgJBRAe1oJNc8nn0a3T53ih/exec';
+      <script>
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/YOUR_DEPLOYED_URL/exec';
 
-        // ==================== سیستم مدیریت درخواست‌های همزمان ====================
+async function sendRequest(action, payload = {}) {
+  const params = new URLSearchParams();
+  params.append('action', action);
+  if (action === 'deleteData') {
+    params.append('employeeNumber', payload.employeeNumber);
+  } else {
+    params.append('data', JSON.stringify(payload));
+  }
 
-        // تابع برای مدیریت صف درخواست‌ها
-        async function executeRequest(action, data = null) {
-            // اگر درخواست دیگری در حال اجراست، در صف قرار بده
-            if (isRequestInProgress) {
-                console.log(`⏳ درخواست ${action} در صف قرار گرفت`);
-                return new Promise((resolve, reject) => {
-                    requestQueue.push({ action, data, resolve, reject });
-                });
-            }
-            
-            // در غیر این صورت اجرا کن
-            isRequestInProgress = true;
-            try {
-                const result = await googleAppsScriptRequest(action, data);
-                return result;
-            } finally {
-                isRequestInProgress = false;
-                // درخواست بعدی در صف را اجرا کن
-                if (requestQueue.length > 0) {
-                    const nextRequest = requestQueue.shift();
-                    console.log(`🔄 اجرای درخواست بعدی از صف: ${nextRequest.action}`);
-                    executeRequest(nextRequest.action, nextRequest.data)
-                        .then(nextRequest.resolve)
-                        .catch(nextRequest.reject);
-                }
-            }
-        }
+  const res = await fetch(`${GOOGLE_SCRIPT_URL}?${params.toString()}`);
+  return await res.json();
+}
+
+// افزودن
+async function addLoan(data) {
+  const result = await sendRequest('appendData', data);
+  console.log('افزودن:', result);
+}
+
+// ویرایش
+async function editLoan(data) {
+  const result = await sendRequest('updateData', data);
+  console.log('ویرایش:', result);
+}
+
+// حذف
+async function deleteLoan(employeeNumber) {
+  const result = await sendRequest('deleteData', { employeeNumber });
+  console.log('حذف:', result);
+}
+</script>
+
 
         // ==================== توابع اصلی سیستم ====================
 
@@ -1763,3 +1766,4 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
     </script>
 </body>
 </html>
+
