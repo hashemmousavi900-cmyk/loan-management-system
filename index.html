@@ -8,6 +8,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
     <style>
+        /* استایل‌ها بدون تغییر باقی می‌مانند */
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: Vazirmatn, Tahoma, sans-serif; }
         
         body {
@@ -729,7 +730,7 @@
 
         // بارگذاری اولیه
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 سیستم مدیریت وام بارگذاری شد - نسخه پایدار با مدیریت درخواست‌های پیشرفته');
+            console.log('🚀 سیستم مدیریت وام بارگذاری شد - نسخه سازگار با Google Script');
             setupEventListeners();
             initializeSystem();
         });
@@ -1021,7 +1022,7 @@
 درخواست در حال اجرا: ${isRequestInProgress ? '⏳ بله' : '✅ خیر'}
 صف درخواست: ${requestQueue.length} درخواست
 شمارنده درخواست: ${requestCounter}
-نسخه: پایدار - با سیستم مدیریت درخواست‌های پیشرفته
+نسخه: سازگار با Google Script
                 `.trim();
             }
             
@@ -1046,7 +1047,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
             }
         }
 
-        // ==================== توابع ارتباط با گوگل - نسخه پایدار ====================
+        // ==================== توابع ارتباط با گوگل - نسخه سازگار ====================
 
         // درخواست به Google Apps Script - نسخه JSONP
         async function googleAppsScriptRequest(action, data = null) {
@@ -1062,16 +1063,6 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                 if (data) {
                     const dataString = JSON.stringify(data);
                     console.log(`📦 حجم داده: ${dataString.length} کاراکتر`);
-                    
-                    // اگر داده‌ها خیلی بزرگ هستند، آنها را به chunks تقسیم می‌کنیم
-                    if (dataString.length > 15000) {
-                        console.log('🔄 داده‌های بزرگ - تقسیم به chunks');
-                        sendLargeDataInChunks(action, data)
-                            .then(resolve)
-                            .catch(reject);
-                        return;
-                    }
-                    
                     url += `&data=${encodeURIComponent(dataString)}`;
                 }
                 
@@ -1127,66 +1118,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
             });
         }
 
-        // ارسال داده‌های بزرگ به صورت chunk
-        async function sendLargeDataInChunks(action, data) {
-            console.log(`🔄 ارسال ${data.length} رکورد در chunks...`);
-            
-            const CHUNK_SIZE = 10;
-            const chunks = [];
-            
-            // تقسیم داده‌ها به chunks
-            for (let i = 0; i < data.length; i += CHUNK_SIZE) {
-                chunks.push(data.slice(i, i + CHUNK_SIZE));
-            }
-            
-            console.log(`📦 ایجاد ${chunks.length} chunk از داده‌ها`);
-            
-            let totalSaved = 0;
-            let successCount = 0;
-            
-            // اول شیت رو پاک کن
-            try {
-                await executeRequest('clearSheet', null, 'high');
-                console.log('✅ شیت پاک شد برای شروع جدید');
-            } catch (error) {
-                console.warn('⚠️ خطا در پاک کردن شیت:', error);
-            }
-            
-            // ارسال chunks
-            for (let i = 0; i < chunks.length; i++) {
-                try {
-                    console.log(`📤 ارسال chunk ${i + 1}/${chunks.length} (${chunks[i].length} رکورد)...`);
-                    
-                    const result = await executeRequest(action, chunks[i], 'high');
-                    if (result && result.success) {
-                        totalSaved += chunks[i].length;
-                        successCount++;
-                        console.log(`✅ chunk ${i + 1}/${chunks.length} ذخیره شد`);
-                    } else {
-                        console.warn(`⚠️ خطا در chunk ${i + 1}:`, result?.error);
-                    }
-                    
-                    // وقفه کوتاه بین chunks
-                    if (i < chunks.length - 1) {
-                        await new Promise(resolve => setTimeout(resolve, 500));
-                    }
-                } catch (error) {
-                    console.error(`❌ خطا در ارسال chunk ${i + 1}:`, error);
-                }
-            }
-            
-            return {
-                success: successCount === chunks.length,
-                message: successCount === chunks.length ? 
-                    `تمامی ${totalSaved} رکورد در ${chunks.length} chunk ذخیره شدند` :
-                    `${totalSaved} از ${data.length} رکورد ذخیره شدند`,
-                savedCount: totalSaved,
-                totalChunks: chunks.length,
-                successfulChunks: successCount
-            };
-        }
-
-        // بارگذاری از Google Sheets - نسخه اصلاح شده
+        // بارگذاری از Google Sheets - نسخه سازگار
         async function loadFromGoogleSheets() {
             showLoading(true, 'در حال بارگذاری از Google Sheets...');
             
@@ -1206,7 +1138,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                         return;
                     }
                     
-                    // پردازش داده‌ها - نسخه ساده‌تر
+                    // پردازش داده‌ها
                     sampleData = [];
                     
                     result.data.forEach((item, index) => {
@@ -1266,7 +1198,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
             }
         }
 
-        // ذخیره در Google Sheets - نسخه اصلاح شده
+        // ذخیره در Google Sheets - نسخه سازگار
         async function saveToGoogleSheets() {
             if (sampleData.length === 0) {
                 console.log('⚠️ داده‌ای برای ذخیره‌سازی وجود ندارد');
@@ -1280,11 +1212,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
             showLoading(true, 'در حال ذخیره در Google Sheets...');
             
             try {
-                // اول شیت رو پاک کن
-                await executeRequest('clearSheet', null, 'high');
-                console.log('✅ شیت پاک شد');
-                
-                // حالا تمام داده‌ها رو ذخیره کن
+                // تبدیل داده‌ها به فرمت مناسب برای Google Sheets
                 const dataForSheets = sampleData.map(item => ({
                     Username: item.username || '',
                     Employeenumber: item.employeeNumber,
@@ -1301,13 +1229,8 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                 
                 console.log(`📤 ارسال ${dataForSheets.length} رکورد به Google Sheets...`);
                 
-                // اگر داده‌ها زیاد هستند، به chunks تقسیم کن
-                let result;
-                if (dataForSheets.length > 20) {
-                    result = await sendLargeDataInChunks('appendData', dataForSheets);
-                } else {
-                    result = await executeRequest('appendData', dataForSheets, 'high');
-                }
+                // استفاده از replaceAllData برای جایگزینی کامل داده‌ها
+                const result = await executeRequest('replaceAllData', dataForSheets, 'high');
                 
                 console.log('✅ پاسخ ذخیره‌سازی:', result);
                 
@@ -1350,7 +1273,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
             ];
             
             try {
-                const result = await executeRequest('appendData', testData, 'high');
+                const result = await executeRequest('replaceAllData', testData, 'high');
                 console.log('✅ نتیجه تست ساده:', result);
                 
                 if (result.success) {
