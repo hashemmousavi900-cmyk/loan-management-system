@@ -645,39 +645,82 @@
         let isEditing = false;
         let requestLogs = [];
         
-        // سیستم lock برای جلوگیری از درخواست‌های همزمان
+        // سیستم پیشرفته مدیریت درخواست‌های همزمان
         let isRequestInProgress = false;
         let requestQueue = [];
+        let requestCounter = 0;
+        let lastRequestTime = 0;
+        const REQUEST_DELAY = 500; // تاخیر 500ms بین درخواست‌ها
         
-        // آدرس جدید Google Apps Script
-        const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzZon3TD82iK3kssiUQPYDqaH5_coLKH2crpzJnjEoCaqgJBRAe1oJNc8nn0a3T53ih/exec';
+        // آدرس Google Apps Script
+        const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxyFKuY2dMdDJT7tTA99ZbqelmYylb_XyCelv3G9LOd-ynvrD4wJdwgG3FQKmFsV7Qj/exec';
 
         // ==================== سیستم مدیریت درخواست‌های همزمان ====================
 
-        // تابع برای مدیریت صف درخواست‌ها
-        async function executeRequest(action, data = null) {
-            // اگر درخواست دیگری در حال اجراست، در صف قرار بده
-            if (isRequestInProgress) {
-                console.log(`⏳ درخواست ${action} در صف قرار گرفت`);
-                return new Promise((resolve, reject) => {
-                    requestQueue.push({ action, data, resolve, reject });
-                });
+        // تابع پیشرفته برای مدیریت صف درخواست‌ها
+        async function executeRequest(action, data = null, priority = 'normal') {
+            const requestId = ++requestCounter;
+            console.log(`📡 [${requestId}] درخواست ${action} با اولویت ${priority} ثبت شد`);
+            
+            return new Promise((resolve, reject) => {
+                const requestItem = {
+                    id: requestId,
+                    action,
+                    data,
+                    resolve,
+                    reject,
+                    priority: priority === 'high' ? 1 : 2,
+                    timestamp: Date.now()
+                };
+                
+                // اگر درخواست دیگری در حال اجراست، در صف قرار بده
+                if (isRequestInProgress) {
+                    console.log(`⏳ [${requestId}] درخواست در صف قرار گرفت (${requestQueue.length + 1} در صف)`);
+                    
+                    // درخواست‌های با اولویت بالا را به ابتدای صف اضافه کن
+                    if (priority === 'high') {
+                        requestQueue.unshift(requestItem);
+                    } else {
+                        requestQueue.push(requestItem);
+                    }
+                    
+                    return;
+                }
+                
+                // در غیر این صورت اجرا کن
+                processRequest(requestItem);
+            });
+        }
+
+        // پردازش درخواست
+        async function processRequest(requestItem) {
+            isRequestInProgress = true;
+            
+            // تاخیر بین درخواست‌ها برای جلوگیری از تداخل
+            const timeSinceLastRequest = Date.now() - lastRequestTime;
+            if (timeSinceLastRequest < REQUEST_DELAY) {
+                await new Promise(resolve => setTimeout(resolve, REQUEST_DELAY - timeSinceLastRequest));
             }
             
-            // در غیر این صورت اجرا کن
-            isRequestInProgress = true;
+            console.log(`🚀 [${requestItem.id}] اجرای درخواست ${requestItem.action}...`);
+            
             try {
-                const result = await googleAppsScriptRequest(action, data);
-                return result;
+                const result = await googleAppsScriptRequest(requestItem.action, requestItem.data);
+                lastRequestTime = Date.now();
+                console.log(`✅ [${requestItem.id}] درخواست ${requestItem.action} موفق`);
+                requestItem.resolve(result);
+            } catch (error) {
+                console.error(`❌ [${requestItem.id}] خطا در درخواست ${requestItem.action}:`, error);
+                lastRequestTime = Date.now();
+                requestItem.reject(error);
             } finally {
                 isRequestInProgress = false;
+                
                 // درخواست بعدی در صف را اجرا کن
                 if (requestQueue.length > 0) {
                     const nextRequest = requestQueue.shift();
-                    console.log(`🔄 اجرای درخواست بعدی از صف: ${nextRequest.action}`);
-                    executeRequest(nextRequest.action, nextRequest.data)
-                        .then(nextRequest.resolve)
-                        .catch(nextRequest.reject);
+                    console.log(`🔄 [${nextRequest.id}] اجرای درخواست بعدی از صف: ${nextRequest.action}`);
+                    setTimeout(() => processRequest(nextRequest), 100);
                 }
             }
         }
@@ -686,7 +729,7 @@
 
         // بارگذاری اولیه
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 سیستم مدیریت وام بارگذاری شد - نسخه پایدار');
+            console.log('🚀 سیستم مدیریت وام بارگذاری شد - نسخه پایدار با مدیریت درخواست‌های پیشرفته');
             setupEventListeners();
             initializeSystem();
         });
@@ -701,7 +744,7 @@
             // سپس از گوگل شیت بارگذاری می‌کنیم
             setTimeout(() => {
                 loadFromGoogleSheets();
-            }, 500);
+            }, 1000);
         }
 
         // نمایش loading
@@ -977,7 +1020,8 @@
 حافظه محلی: ${localStorage.getItem('loanData') ? '✅ دارای داده' : '❌ خالی'}
 درخواست در حال اجرا: ${isRequestInProgress ? '⏳ بله' : '✅ خیر'}
 صف درخواست: ${requestQueue.length} درخواست
-نسخه: پایدار - با سیستم lock
+شمارنده درخواست: ${requestCounter}
+نسخه: پایدار - با سیستم مدیریت درخواست‌های پیشرفته
                 `.trim();
             }
             
@@ -1102,7 +1146,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
             
             // اول شیت رو پاک کن
             try {
-                await executeRequest('clearSheet');
+                await executeRequest('clearSheet', null, 'high');
                 console.log('✅ شیت پاک شد برای شروع جدید');
             } catch (error) {
                 console.warn('⚠️ خطا در پاک کردن شیت:', error);
@@ -1113,7 +1157,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                 try {
                     console.log(`📤 ارسال chunk ${i + 1}/${chunks.length} (${chunks[i].length} رکورد)...`);
                     
-                    const result = await executeRequest(action, chunks[i]);
+                    const result = await executeRequest(action, chunks[i], 'high');
                     if (result && result.success) {
                         totalSaved += chunks[i].length;
                         successCount++;
@@ -1124,7 +1168,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                     
                     // وقفه کوتاه بین chunks
                     if (i < chunks.length - 1) {
-                        await new Promise(resolve => setTimeout(resolve, 1000));
+                        await new Promise(resolve => setTimeout(resolve, 500));
                     }
                 } catch (error) {
                     console.error(`❌ خطا در ارسال chunk ${i + 1}:`, error);
@@ -1149,7 +1193,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
             try {
                 console.log('🔄 شروع بارگذاری از Google Sheets...');
                 
-                const result = await executeRequest('loadData');
+                const result = await executeRequest('loadData', null, 'high');
                 console.log('📊 پاسخ کامل loadData:', result);
                 
                 if (result.success && result.data && Array.isArray(result.data)) {
@@ -1237,7 +1281,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
             
             try {
                 // اول شیت رو پاک کن
-                await executeRequest('clearSheet');
+                await executeRequest('clearSheet', null, 'high');
                 console.log('✅ شیت پاک شد');
                 
                 // حالا تمام داده‌ها رو ذخیره کن
@@ -1262,7 +1306,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                 if (dataForSheets.length > 20) {
                     result = await sendLargeDataInChunks('appendData', dataForSheets);
                 } else {
-                    result = await executeRequest('appendData', dataForSheets);
+                    result = await executeRequest('appendData', dataForSheets, 'high');
                 }
                 
                 console.log('✅ پاسخ ذخیره‌سازی:', result);
@@ -1306,7 +1350,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
             ];
             
             try {
-                const result = await executeRequest('appendData', testData);
+                const result = await executeRequest('appendData', testData, 'high');
                 console.log('✅ نتیجه تست ساده:', result);
                 
                 if (result.success) {
@@ -1394,7 +1438,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
             const testConnectionBtn = document.getElementById('test-connection-btn');
             if (testConnectionBtn) {
                 testConnectionBtn.addEventListener('click', function() {
-                    executeRequest('test').then(result => {
+                    executeRequest('test', null, 'high').then(result => {
                         if (result.success) {
                             showNotification('اتصال با سرور برقرار است', 'success');
                         } else {
