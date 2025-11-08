@@ -1279,56 +1279,39 @@
             return priority; // اگر از قبل متن است، همان را برگردان
         }
 
-        // تابع جدید برای نمایش وام‌ها
-        function createLoanDisplay(item) {
-            const bankLoans = item.bankLoan && item.bankLoan !== '-' && item.bankLoan.trim() !== '' ? 
-                             item.bankLoan.split(',').filter(loan => loan.trim() !== '') : [];
-            
-            const companyLoans = item.companyLoan && item.companyLoan !== '-' && item.companyLoan.trim() !== '' ? 
-                               item.companyLoan.split(',').filter(loan => loan.trim() !== '') : [];
-            
-            const bankCount = bankLoans.length;
-            const companyCount = companyLoans.length;
-            
-            // متن اصلی
-            let displayText = '';
-            if (companyCount > 0) {
-                displayText += `تعداد وام‌های شرکتی: ${companyCount} وام`;
-            }
-            if (bankCount > 0) {
-                if (displayText) displayText += '<br>';
-                displayText += `تعداد وام‌های بانکی: ${bankCount} وام`;
-            }
-            if (!displayText) {
-                displayText = '-';
-            }
-            
-            // متن tooltip
-            let tooltipHTML = `
-                <div class="tooltip-title">جزئیات وام‌ها</div>
-            `;
-            
-            if (companyCount > 0) {
-                tooltipHTML += '<div class="tooltip-section">';
-                companyLoans.forEach((loan, index) => {
-                    tooltipHTML += `<div class="loan-type company-loan">وام شرکتی: ${loan.trim()} میلیون تومان</div>`;
-                });
-                tooltipHTML += '</div>';
-            }
-            
-            if (bankCount > 0) {
-                tooltipHTML += '<div class="tooltip-section">';
-                bankLoans.forEach((loan, index) => {
-                    tooltipHTML += `<div class="loan-type bank-loan">وام بانکی: ${loan.trim()} میلیون تومان</div>`;
-                });
-                tooltipHTML += '</div>';
-            }
-            
-            return {
-                display: displayText,
-                tooltip: tooltipHTML
-            };
-        }
+      // تابع جدید برای نمایش وام‌ها
+function createLoanDisplay(item) {
+    const bankLoans = item.bankLoan && item.bankLoan !== '-' && item.bankLoan.trim() !== '' ? 
+                     item.bankLoan.split(',').filter(loan => loan.trim() !== '') : [];
+    
+    const companyLoans = item.companyLoan && item.companyLoan !== '-' && item.companyLoan.trim() !== '' ? 
+                       item.companyLoan.split(',').filter(loan => loan.trim() !== '') : [];
+    
+    // متن tooltip
+    let tooltipHTML = `
+        <div class="tooltip-title">جزئیات وام‌ها</div>
+    `;
+    
+    if (companyLoans.length > 0) {
+        tooltipHTML += '<div style="margin-bottom: 8px;">';
+        companyLoans.forEach((loan, index) => {
+            tooltipHTML += `<div class="loan-type company-loan">وام شرکتی: ${loan.trim()} میلیون تومان</div>`;
+        });
+        tooltipHTML += '</div>';
+    }
+    
+    if (bankLoans.length > 0) {
+        tooltipHTML += '<div>';
+        bankLoans.forEach((loan, index) => {
+            tooltipHTML += `<div class="loan-type bank-loan">وام بانکی: ${loan.trim()} میلیون تومان</div>`;
+        });
+        tooltipHTML += '</div>';
+    }
+    
+    return {
+        tooltip: tooltipHTML
+    };
+}
 
 // رندر جدول
 function renderTable(data) {
@@ -1363,33 +1346,35 @@ function renderTable(data) {
         else if (priorityText === 'کم') row.classList.add('priority-low');
         
         // محاسبه تعداد وام‌های دریافتی
-        const bankLoanCount = (item.bankLoan && item.bankLoan !== 'درخواست داده شده' && item.bankLoan !== '-' && item.bankLoan.trim() !== '') ? 1 : 0;
-        const companyLoanCount = (item.companyLoan && item.companyLoan !== 'درخواست داده شده' && item.companyLoan !== '-' && item.companyLoan.trim() !== '') ? 1 : 0;
+        const bankLoans = item.bankLoan && item.bankLoan !== '-' && item.bankLoan.trim() !== '' ? 
+                         item.bankLoan.split(',').filter(loan => loan.trim() !== '') : [];
+        const companyLoans = item.companyLoan && item.companyLoan !== '-' && item.companyLoan.trim() !== '' ? 
+                           item.companyLoan.split(',').filter(loan => loan.trim() !== '') : [];
+        
+        const bankLoanCount = bankLoans.length;
+        const companyLoanCount = companyLoans.length;
         const loanCount = bankLoanCount + companyLoanCount;
         
-        // نمایش وام‌ها - حالت قبلی در ستون + پاپ‌آپ
+        // نمایش وام‌ها - تعداد وام‌ها + پاپ‌آپ
         let loanSummaryHTML = '';
 
         if (bankLoanCount > 0 || companyLoanCount > 0) {
-            loanSummaryHTML = '<div style="display: flex; flex-direction: column; gap: 2px; font-size: 11px;">';
-            
+            // حذف div بیرونی که پس‌زمینه ایجاد می‌کرد
             if (companyLoanCount > 0) {
                 loanSummaryHTML += `
-                    <div style="background: #f3e5f5; padding: 2px 6px; border-radius: 4px; border: 1px solid #e1bee7;">
-                        وام شرکتی: ${item.companyLoan}
+                    <div style="background: #f3e5f5; padding: 2px 6px; border-radius: 4px; border: 1px solid #e1bee7; margin-bottom: 2px;">
+                        وام شرکتی: ${companyLoanCount} وام
                     </div>
                 `;
             }
             
             if (bankLoanCount > 0) {
                 loanSummaryHTML += `
-                    <div style="background: #e3f2fd; padding: 2px 6px; border-radius: 4px; border: 1px solid #bbdefb;">
-                        وام بانکی: ${item.bankLoan}
+                    <div style="background: #e3f2fd; padding: 2px 6px; border-radius: 4px; border: 1px solid #bbdefb; margin-bottom: 2px;">
+                        وام بانکی: ${bankLoanCount} وام
                     </div>
                 `;
             }
-            
-            loanSummaryHTML += '</div>';
         } else {
             loanSummaryHTML = '-';
         }
@@ -1397,7 +1382,7 @@ function renderTable(data) {
         // ایجاد پاپ‌آپ برای نمایش جزئیات
         const loanDisplay = createLoanDisplay(item);
         const loanCellHTML = `
-            <div class="loan-display" style="position: relative; cursor: help;">
+            <div class="loan-display" style="background: transparent !important;">
                 ${loanSummaryHTML}
                 <div class="loan-tooltip">
                     ${loanDisplay.tooltip}
@@ -2345,5 +2330,6 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
     </script>
 </body>
 </html>
+
 
 
