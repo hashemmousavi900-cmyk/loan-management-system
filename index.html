@@ -270,6 +270,104 @@
             opacity: 0;
         }
         
+        /* استایل جدید برای نمایش وام‌ها */
+        .loan-display {
+            cursor: help;
+            padding: 8px 10px;
+            border-radius: 6px;
+            background: linear-gradient(135deg, #f0f7ff 0%, #e1f0ff 100%);
+            border: 1px solid #c5e1ff;
+            font-weight: 500;
+            color: #1a73e8;
+            text-align: center;
+            transition: all 0.2s ease;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .loan-display:hover {
+            background: linear-gradient(135deg, #e1f0ff 0%, #c5e1ff 100%);
+            border-color: #8ab4f8;
+        }
+
+        .loan-tooltip {
+            visibility: hidden;
+            width: 240px;
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            color: #2d3748;
+            text-align: right;
+            border-radius: 10px;
+            padding: 14px;
+            position: absolute;
+            z-index: 1000;
+            opacity: 0;
+            transition: all 0.2s ease;
+            font-size: 12px;
+            line-height: 1.5;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-top: 2px solid #8ab4f8;
+        }
+
+        .loan-tooltip::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            right: 50%;
+            transform: translateX(50%);
+            border-width: 6px;
+            border-style: solid;
+            border-color: rgba(255, 255, 255, 0.98) transparent transparent transparent;
+        }
+
+        .loan-display:hover .loan-tooltip {
+            visibility: visible;
+            opacity: 1;
+            transform: translateY(-3px);
+        }
+
+        .loan-type {
+            display: block;
+            padding: 5px 8px;
+            border-radius: 14px;
+            font-size: 11px;
+            margin-bottom: 4px;
+            text-align: center;
+            font-weight: 500;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+
+        .company-loan {
+            background: linear-gradient(135deg, #f0f7ff 0%, #e1f0ff 100%);
+            color: #1a73e8;
+            border: 1px solid #c5e1ff;
+        }
+
+        .bank-loan {
+            background: linear-gradient(135deg, #f0f9f0 0%, #e1f7e1 100%);
+            color: #188038;
+            border: 1px solid #a8dab5;
+        }
+
+        .tooltip-title {
+            color: #1a73e8;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 13px;
+            padding-bottom: 3px;
+            border-bottom: 1px solid #f0f7ff;
+        }
+
+        .tooltip-section {
+            margin-bottom: 8px;
+        }
+
+        .tooltip-section:last-child {
+            margin-bottom: 0;
+        }
+        
         .empty-state {
             text-align: center;
             padding: 40px 20px;
@@ -1173,6 +1271,65 @@
             return '';
         }
 
+        // تابع تبدیل اولویت از عدد به متن
+        function convertPriority(priority) {
+            if (priority === '1' || priority === 1) return 'زیاد';
+            if (priority === '2' || priority === 2) return 'متوسط';
+            if (priority === '3' || priority === 3) return 'کم';
+            return priority; // اگر از قبل متن است، همان را برگردان
+        }
+
+        // تابع جدید برای نمایش وام‌ها
+        function createLoanDisplay(item) {
+            const bankLoans = item.bankLoan && item.bankLoan !== '-' && item.bankLoan.trim() !== '' ? 
+                             item.bankLoan.split(',').filter(loan => loan.trim() !== '') : [];
+            
+            const companyLoans = item.companyLoan && item.companyLoan !== '-' && item.companyLoan.trim() !== '' ? 
+                               item.companyLoan.split(',').filter(loan => loan.trim() !== '') : [];
+            
+            const bankCount = bankLoans.length;
+            const companyCount = companyLoans.length;
+            
+            // متن اصلی
+            let displayText = '';
+            if (companyCount > 0) {
+                displayText += `تعداد وام‌های شرکتی: ${companyCount} وام`;
+            }
+            if (bankCount > 0) {
+                if (displayText) displayText += '<br>';
+                displayText += `تعداد وام‌های بانکی: ${bankCount} وام`;
+            }
+            if (!displayText) {
+                displayText = '-';
+            }
+            
+            // متن tooltip
+            let tooltipHTML = `
+                <div class="tooltip-title">جزئیات وام‌ها</div>
+            `;
+            
+            if (companyCount > 0) {
+                tooltipHTML += '<div class="tooltip-section">';
+                companyLoans.forEach((loan, index) => {
+                    tooltipHTML += `<div class="loan-type company-loan">وام شرکتی: ${loan.trim()} میلیون تومان</div>`;
+                });
+                tooltipHTML += '</div>';
+            }
+            
+            if (bankCount > 0) {
+                tooltipHTML += '<div class="tooltip-section">';
+                bankLoans.forEach((loan, index) => {
+                    tooltipHTML += `<div class="loan-type bank-loan">وام بانکی: ${loan.trim()} میلیون تومان</div>`;
+                });
+                tooltipHTML += '</div>';
+            }
+            
+            return {
+                display: displayText,
+                tooltip: tooltipHTML
+            };
+        }
+
         // رندر جدول
         function renderTable(data) {
             const tableBody = document.getElementById('loan-table-body');
@@ -1210,32 +1367,16 @@
                 const companyLoanCount = (item.companyLoan && item.companyLoan !== 'درخواست داده شده' && item.companyLoan !== '-' && item.companyLoan.trim() !== '') ? 1 : 0;
                 const loanCount = bankLoanCount + companyLoanCount;
                 
-                // نمایش وام‌ها
-                let loanSummaryHTML = '';
-                
-                if (bankLoanCount > 0 || companyLoanCount > 0) {
-                    loanSummaryHTML = '<div style="display: flex; flex-direction: column; gap: 2px; font-size: 11px;">';
-                    
-                    if (companyLoanCount > 0) {
-                        loanSummaryHTML += `
-                            <div style="background: #f3e5f5; padding: 2px 6px; border-radius: 4px; border: 1px solid #e1bee7;">
-                                وام شرکتی: ${item.companyLoan}
-                            </div>
-                        `;
-                    }
-                    
-                    if (bankLoanCount > 0) {
-                        loanSummaryHTML += `
-                            <div style="background: #e3f2fd; padding: 2px 6px; border-radius: 4px; border: 1px solid #bbdefb;">
-                                وام بانکی: ${item.bankLoan}
-                            </div>
-                        `;
-                    }
-                    
-                    loanSummaryHTML += '</div>';
-                } else {
-                    loanSummaryHTML = '-';
-                }
+                // نمایش وام‌ها با پاپ‌آپ جدید
+                const loanDisplay = createLoanDisplay(item);
+                const loanSummaryHTML = `
+                    <div class="loan-display" style="position: relative;">
+                        ${loanDisplay.display}
+                        <div class="loan-tooltip">
+                            ${loanDisplay.tooltip}
+                        </div>
+                    </div>
+                `;
                 
                 row.innerHTML = `
                     <td>${index + 1}</td>
@@ -1594,7 +1735,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                                 companyLoan: String(item.Companyloan || item.companyLoan || ''),
                                 bankLoanDate: convertDateFormat(item.Bankloandate || item.bankLoanDate || ''),
                                 companyLoanDate: convertDateFormat(item.Companyloandate || item.companyLoanDate || ''),
-                                priority: String(item.Priority || item.priority || 'متوسط'),
+                                priority: convertPriority(String(item.Priority || item.priority || 'متوسط')),
                                 description: String(item.Description || item.description || ''),
                                 loanRequest: String(item.Loanrequest || item.loanRequest || item['Loanrequest'] || 'false').toLowerCase() === 'true'
                             };
@@ -2066,7 +2207,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                 companyLoan: document.getElementById('company-loan').value,
                 bankLoanDate: document.getElementById('bank-loan-date').value,
                 companyLoanDate: document.getElementById('company-loan-date').value,
-                priority: document.getElementById('priority').value,
+                priority: convertPriority(document.getElementById('priority').value),
                 description: document.getElementById('description').value,
                 loanRequest: false
             };
