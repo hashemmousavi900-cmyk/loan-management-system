@@ -193,24 +193,71 @@
         .priority-medium-badge { background: #ffc107; color: black; }
         .priority-low-badge { background: #6c757d; color: white; }
         
-        .ribbon-btn {
-            background-color: #f8f9fa;
-            color: #888;
-            padding: 5px 10px;
-            border-radius: 15px;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 11px;
-            transition: all 0.3s ease;
-            border: 1px solid #ddd;
-            margin: 0 2px;
-            font-weight: 500;
+        /* استایل جدید برای دکمه سوییچ */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 30px;
         }
         
-        .ribbon-btn:hover { background-color: #e9ecef; }
-        .ribbon-btn.active { background-color: #27ae60; color: white; border-color: #27ae60; }
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: #2196F3;
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(30px);
+        }
+        
+        .slider-text {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 10px;
+            font-weight: bold;
+            color: white;
+            width: 100%;
+            text-align: center;
+            pointer-events: none;
+        }
+        
+        .slider-text.on {
+            right: 8px;
+        }
+        
+        .slider-text.off {
+            left: 8px;
+        }
         
         .empty-state {
             text-align: center;
@@ -457,6 +504,39 @@
             transition: width 0.3s ease;
         }
         
+        /* استایل جدید برای نوار پیشرفت لود داده‌ها */
+        .data-loading-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: #e9ecef;
+            z-index: 9998;
+            display: none;
+        }
+        
+        .data-loading-progress {
+            height: 100%;
+            background: linear-gradient(90deg, #ff9800, #ff5722);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .data-loading-text {
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            z-index: 9999;
+            display: none;
+        }
+        
         @media (max-width: 768px) {
             .table-title .btn-group { flex-direction: column; }
             .table-wrapper { overflow-x: auto; }
@@ -472,6 +552,12 @@
     <div class="initial-loader">
         <div class="initial-progress" id="initialProgress"></div>
     </div>
+    
+    <!-- نوار پیشرفت لود داده‌ها از گوگل شیت -->
+    <div class="data-loading-bar" id="dataLoadingBar">
+        <div class="data-loading-progress" id="dataLoadingProgress"></div>
+    </div>
+    <div class="data-loading-text" id="dataLoadingText">در حال بارگذاری داده‌ها از گوگل شیت...</div>
 
     <div class="container">
         <div class="table-responsive">
@@ -688,9 +774,9 @@
                             <div class="form-group">
                                 <label for="priority">اولویت</label>
                                 <select id="priority" class="form-control" required>
-                                    <option value="1">بالا</option>
-                                    <option value="2">متوسط</option>
-                                    <option value="3">پایین</option>
+                                    <option value="بالا">بالا</option>
+                                    <option value="متوسط">متوسط</option>
+                                    <option value="پایین">پایین</option>
                                 </select>
                             </div>
                             <div class="form-group" style="grid-column: 1 / -1;">
@@ -973,6 +1059,22 @@
             }, 200);
         }
 
+        // نمایش نوار پیشرفت لود داده‌ها از گوگل شیت
+        function showDataLoadingProgress(show, progress = 0) {
+            const loadingBar = document.getElementById('dataLoadingBar');
+            const loadingProgress = document.getElementById('dataLoadingProgress');
+            const loadingText = document.getElementById('dataLoadingText');
+            
+            if (show) {
+                loadingBar.style.display = 'block';
+                loadingText.style.display = 'block';
+                loadingProgress.style.width = progress + '%';
+            } else {
+                loadingBar.style.display = 'none';
+                loadingText.style.display = 'none';
+            }
+        }
+
         // مقداردهی اولیه سیستم
         async function initializeSystem() {
             // ابتدا از localStorage بارگذاری می‌کنیم
@@ -1047,22 +1149,27 @@
 
         // تابع برای نمایش اولویت
         function getPriorityText(priority) {
-            switch(priority) {
-                case '1': return 'بالا';
-                case '2': return 'متوسط';
-                case '3': return 'پایین';
-                default: return priority;
-            }
+            // اگر اولویت عددی است، به متن تبدیل می‌شود
+            if (priority === '1' || priority === 'بالا') return 'بالا';
+            if (priority === '2' || priority === 'متوسط') return 'متوسط';
+            if (priority === '3' || priority === 'پایین') return 'پایین';
+            return priority;
         }
 
         // تابع برای دریافت کلاس اولویت
         function getPriorityClass(priority) {
-            switch(priority) {
-                case '1': return 'priority-high-badge';
-                case '2': return 'priority-medium-badge';
-                case '3': return 'priority-low-badge';
-                default: return '';
-            }
+            if (priority === '1' || priority === 'بالا') return 'priority-high-badge';
+            if (priority === '2' || priority === 'متوسط') return 'priority-medium-badge';
+            if (priority === '3' || priority === 'پایین') return 'priority-low-badge';
+            return '';
+        }
+
+        // تابع برای تبدیل اولویت به فرمت عددی برای ذخیره‌سازی
+        function convertPriorityToNumber(priority) {
+            if (priority === 'بالا') return '1';
+            if (priority === 'متوسط') return '2';
+            if (priority === 'پایین') return '3';
+            return priority;
         }
 
         // رندر جدول
@@ -1092,9 +1199,10 @@
                 const row = document.createElement('tr');
                 
                 // کلاس اولویت - با رنگ‌بندی جدید
-                if (item.priority === '1') row.classList.add('priority-high');
-                else if (item.priority === '2') row.classList.add('priority-medium');
-                else if (item.priority === '3') row.classList.add('priority-low');
+                const priorityText = getPriorityText(item.priority);
+                if (priorityText === 'بالا') row.classList.add('priority-high');
+                else if (priorityText === 'متوسط') row.classList.add('priority-medium');
+                else if (priorityText === 'پایین') row.classList.add('priority-low');
                 
                 // محاسبه تعداد وام‌های دریافتی
                 const bankLoanCount = (item.bankLoan && item.bankLoan !== 'درخواست داده شده' && item.bankLoan !== '-' && item.bankLoan.trim() !== '') ? 1 : 0;
@@ -1145,10 +1253,13 @@
                     <td>${item.description || '-'}</td>
                     <td>${loanCount}</td>
                     <td>
-                        <span class="ribbon-btn ${item.loanRequest ? 'active' : ''}" 
-                              onclick="requestPassword('${item.employeeNumber}', 'request')">
-                            ${item.loanRequest ? 'درخواست داده شده' : 'درخواست مجدد'}
-                        </span>
+                        <label class="switch">
+                            <input type="checkbox" ${item.loanRequest ? 'checked' : ''} onchange="toggleLoanRequest('${item.employeeNumber}')">
+                            <span class="slider">
+                                <span class="slider-text on">بله</span>
+                                <span class="slider-text off">خیر</span>
+                            </span>
+                        </label>
                     </td>
                     <td>
                         <a href="#" class="details" onclick="showLoanDetails('${item.employeeNumber}')">
@@ -1189,9 +1300,9 @@
         }
 
         function convertPriority(priority) {
-            if (priority === 'بالا' || priority === 'high' || priority === 'High') return '1';
-            if (priority === 'پایین' || priority === 'low' || priority === 'Low') return '3';
-            return priority || '2';
+            if (priority === 'بالا' || priority === 'high' || priority === 'High') return 'بالا';
+            if (priority === 'پایین' || priority === 'low' || priority === 'Low') return 'پایین';
+            return priority || 'متوسط';
         }
 
         // توابع localStorage
@@ -1437,12 +1548,27 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
         // بارگذاری از Google Sheets - نسخه اصلاح شده
         async function loadFromGoogleSheets() {
             showLoading(true, 'در حال بارگذاری از Google Sheets...');
+            showDataLoadingProgress(true, 0);
             
             try {
                 console.log('🔄 شروع بارگذاری از Google Sheets...');
                 
+                // شبیه‌سازی پیشرفت بارگذاری
+                let progress = 0;
+                const progressInterval = setInterval(() => {
+                    progress += Math.random() * 15;
+                    if (progress >= 90) {
+                        progress = 90;
+                        clearInterval(progressInterval);
+                    }
+                    showDataLoadingProgress(true, progress);
+                }, 300);
+                
                 const result = await executeRequest('loadData');
                 console.log('📊 پاسخ کامل loadData:', result);
+                
+                clearInterval(progressInterval);
+                showDataLoadingProgress(true, 100);
                 
                 if (result.success && result.data && Array.isArray(result.data)) {
                     console.log(`📥 دریافت ${result.data.length} رکورد از سرور`);
@@ -1510,6 +1636,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                 }
             } finally {
                 showLoading(false);
+                showDataLoadingProgress(false);
                 updateDebugInfo();
             }
         }
@@ -1543,7 +1670,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                     Companyloan: item.companyLoan || '',
                     Bankloandate: item.bankLoanDate || '',
                     Companyloandate: item.companyLoanDate || '',
-                    Priority: item.priority,
+                    Priority: convertPriorityToNumber(item.priority),
                     Description: item.description || '',
                     Loanrequest: item.loanRequest ? 'true' : 'false'
                 }));
@@ -1779,7 +1906,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                         companyLoan: '5,000,000',
                         bankLoanDate: '2024-01-01',
                         companyLoanDate: '2024-01-01',
-                        priority: '2',
+                        priority: 'متوسط',
                         description: 'این یک رکورد تست دیباگ است',
                         loanRequest: false
                     };
@@ -1807,7 +1934,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                             companyLoan: `${i}00,000`,
                             bankLoanDate: '2024-01-01',
                             companyLoanDate: '2024-01-01',
-                            priority: ((i % 3) + 1).toString(),
+                            priority: i % 3 === 0 ? 'بالا' : i % 3 === 1 ? 'متوسط' : 'پایین',
                             description: `توضیحات تست ${i}`,
                             loanRequest: i % 2 === 0
                         });
@@ -1924,7 +2051,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                     deleteEmployee(employeeNumber);
                     break;
                 case 'request':
-                    toggleLoanRequest(employeeNumber);
+                    // این حالت دیگر استفاده نمی‌شود چون از سوییچ استفاده می‌کنیم
                     break;
             }
         }
@@ -1986,7 +2113,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                 document.getElementById('company-loan').value = employee.companyLoan || '';
                 document.getElementById('bank-loan-date').value = employee.bankLoanDate || '';
                 document.getElementById('company-loan-date').value = employee.companyLoanDate || '';
-                document.getElementById('priority').value = employee.priority;
+                document.getElementById('priority').value = getPriorityText(employee.priority);
                 document.getElementById('description').value = employee.description || '';
                 document.getElementById('addEmployeeModal').style.display = 'block';
                 
