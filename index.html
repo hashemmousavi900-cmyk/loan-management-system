@@ -176,9 +176,10 @@
         table.table td a.delete { color: #F44336; }
         table.table td a.details { color: #17a2b8; }
         
-        .priority-high { background-color: #ffeaa7 !important; }
-        .priority-medium { background-color: #fab1a0 !important; }
-        .priority-low { background-color: #ff7675 !important; color: white; }
+        /* اصلاح رنگ‌بندی اولویت‌ها */
+        .priority-high { background-color: #d4edda !important; } /* سبز */
+        .priority-medium { background-color: #fff3cd !important; } /* زرد */
+        .priority-low { background-color: #e9ecef !important; } /* خاکستری */
         
         .priority-badge {
             display: inline-block;
@@ -188,9 +189,9 @@
             font-weight: 600;
         }
         
-        .priority-high-badge { background: #e74c3c; color: white; }
-        .priority-medium-badge { background: #f39c12; color: white; }
-        .priority-low-badge { background: #27ae60; color: white; }
+        .priority-high-badge { background: #28a745; color: white; }
+        .priority-medium-badge { background: #ffc107; color: black; }
+        .priority-low-badge { background: #6c757d; color: white; }
         
         .ribbon-btn {
             background-color: #f8f9fa;
@@ -437,6 +438,24 @@
             height: 100%;
             transition: width 0.3s ease;
         }
+
+        /* استایل نوار پیشرفت لود اولیه */
+        .initial-loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: #e9ecef;
+            z-index: 9999;
+        }
+        
+        .initial-progress {
+            height: 100%;
+            background: linear-gradient(90deg, #3498db, #2ecc71);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
         
         @media (max-width: 768px) {
             .table-title .btn-group { flex-direction: column; }
@@ -449,6 +468,11 @@
     </style>
 </head>
 <body>
+    <!-- نوار پیشرفت لود اولیه -->
+    <div class="initial-loader">
+        <div class="initial-progress" id="initialProgress"></div>
+    </div>
+
     <div class="container">
         <div class="table-responsive">
             <div class="table-wrapper">
@@ -918,12 +942,36 @@
 
         // ==================== توابع اصلی سیستم ====================
 
-        // بارگذاری اولیه
+        // بارگذاری اولیه با نوار پیشرفت
         document.addEventListener('DOMContentLoaded', function() {
             console.log('🚀 سیستم مدیریت وام بارگذاری شد - نسخه پایدار با مدیریت درخواست همزمان');
+            
+            // نمایش نوار پیشرفت لود اولیه
+            showInitialProgress();
+            
             setupEventListeners();
             initializeSystem();
         });
+
+        // نمایش نوار پیشرفت لود اولیه
+        function showInitialProgress() {
+            const progressBar = document.getElementById('initialProgress');
+            let progress = 0;
+            
+            const interval = setInterval(() => {
+                progress += Math.random() * 10;
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(interval);
+                    
+                    // مخفی کردن نوار پیشرفت بعد از تکمیل
+                    setTimeout(() => {
+                        document.querySelector('.initial-loader').style.display = 'none';
+                    }, 500);
+                }
+                progressBar.style.width = progress + '%';
+            }, 200);
+        }
 
         // مقداردهی اولیه سیستم
         async function initializeSystem() {
@@ -1043,7 +1091,7 @@
             data.forEach((item, index) => {
                 const row = document.createElement('tr');
                 
-                // کلاس اولویت
+                // کلاس اولویت - با رنگ‌بندی جدید
                 if (item.priority === '1') row.classList.add('priority-high');
                 else if (item.priority === '2') row.classList.add('priority-medium');
                 else if (item.priority === '3') row.classList.add('priority-low');
