@@ -8,7 +8,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
     <style>
-        /* استایل‌ها بدون تغییر */
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: Vazirmatn, Tahoma, sans-serif; }
         
         body {
@@ -362,6 +361,82 @@
             background: #e9ecef;
             border-radius: 5px;
         }
+
+        /* استایل پاپ آپ جدید برای مدیریت درخواست‌های همزمان */
+        .popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .popup-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            max-width: 400px;
+            width: 90%;
+        }
+        
+        .popup-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        
+        .popup-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .popup-message {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        
+        .popup-loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 2s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        .popup-queue {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .popup-progress {
+            background: #e9ecef;
+            border-radius: 10px;
+            height: 10px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+        
+        .popup-progress-bar {
+            background: #28a745;
+            height: 100%;
+            transition: width 0.3s ease;
+        }
         
         @media (max-width: 768px) {
             .table-title .btn-group { flex-direction: column; }
@@ -378,7 +453,7 @@
         <div class="table-responsive">
             <div class="table-wrapper">
                 <div class="table-title">
-                    <h2>سیستم مدیریت وام‌ها - CR(Mashhad) - نسخه پایدار</h2>
+                    <h2>سیستم مدیریت وام‌ها - CR(Mashhad) - نسخه پایدار با مدیریت درخواست همزمان</h2>
                     <div class="btn-group">
                         <button class="btn btn-success" id="add-loan-btn">
                             <i class="fas fa-plus"></i> 
@@ -472,7 +547,7 @@
                 
                 <!-- پنل دیباگ -->
                 <div id="debug-panel" class="debug-panel" style="display: none;">
-                    <h3>🔧 پنل دیباگ و تست سیستم - نسخه پایدار</h3>
+                    <h3>🔧 پنل دیباگ و تست سیستم - نسخه پایدار با مدیریت درخواست همزمان</h3>
                     
                     <div class="debug-section">
                         <h4>📊 وضعیت سیستم</h4>
@@ -524,7 +599,7 @@
     </div>
 
     <div class="footer">
-        Designed by SeyedHashem Mousavi - 2025 - نسخه پایدار
+        Designed by SeyedHashem Mousavi - 2025 - نسخه پایدار با مدیریت درخواست همزمان
     </div>
     
     <!-- مودال افزودن/ویرایش وام -->
@@ -636,6 +711,28 @@
         </div>
     </div>
 
+    <!-- پاپ آپ درخواست در حال پردازش -->
+    <div id="processingPopup" class="popup-overlay">
+        <div class="popup-content">
+            <div class="popup-icon">⏳</div>
+            <div class="popup-title" id="popupTitle">درخواست در حال پردازش</div>
+            <div class="popup-message" id="popupMessage">
+                لطفاً منتظر بمانید...<br>
+                درخواست شما در صف قرار گرفته و به زودی پردازش می‌شود.
+            </div>
+            <div class="popup-loader"></div>
+            <div class="popup-progress">
+                <div class="popup-progress-bar" id="progressBar" style="width: 0%"></div>
+            </div>
+            <div class="popup-queue" id="queueInfo">
+                وضعیت صف: محاسبه...
+            </div>
+            <div style="font-size: 11px; color: #999; margin-top: 10px;">
+                این پنجره به طور خودکار بسته می‌شود
+            </div>
+        </div>
+    </div>
+
     <script>
         // داده‌ها
         let sampleData = [];
@@ -646,39 +743,184 @@
         let isEditing = false;
         let requestLogs = [];
         
-        // سیستم ساده‌تر مدیریت درخواست‌ها
-        let isRequestInProgress = false;
+        // سیستم مدیریت درخواست‌های همزمان - بهبود یافته
         let requestQueue = [];
+        let isProcessing = false;
+        let activeRequests = 0;
+        const MAX_CONCURRENT_REQUESTS = 2;
+        let isDataLocked = false;
+        let popupTimer = null;
+        let currentOperation = null;
+        let totalChunks = 0;
+        let completedChunks = 0;
         
-        // آدرس Google Apps Script
-        const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxyFKuY2dMdDJT7tTA99ZbqelmYylb_XyCelv3G9LOd-ynvrD4wJdwgG3FQKmFsV7Qj/exec';
+        // آدرس جدید Google Apps Script
+        const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzZon3TD82iK3kssiUQPYDqaH5_coLKH2crpzJnjEoCaqgJBRAe1oJNc8nn0a3T53ih/exec';
 
-        // ==================== سیستم ساده مدیریت درخواست‌ها ====================
+        // ==================== سیستم مدیریت درخواست‌های همزمان - بهبود یافته ====================
 
-        // تابع ساده برای مدیریت درخواست‌ها
-        async function executeRequest(action, data = null) {
-            // اگر درخواست دیگری در حال اجراست، منتظر بمان
-            while (isRequestInProgress) {
-                console.log(`⏳ منتظر اتمام درخواست قبلی...`);
-                await new Promise(resolve => setTimeout(resolve, 100));
+        // تابع برای مدیریت صف درخواست‌ها
+        async function executeRequest(action, data = null, isChunk = false) {
+            return new Promise((resolve, reject) => {
+                const request = {
+                    action,
+                    data,
+                    resolve,
+                    reject,
+                    timestamp: Date.now(),
+                    isChunk
+                };
+
+                requestQueue.push(request);
+                
+                // نمایش پاپ آپ اگر اولین درخواست در صف باشه
+                if (requestQueue.length === 1 && activeRequests < MAX_CONCURRENT_REQUESTS && !isChunk) {
+                    showProcessingPopup(action, 'single');
+                }
+                
+                processQueue();
+            });
+        }
+
+        async function processQueue() {
+            if (isProcessing || activeRequests >= MAX_CONCURRENT_REQUESTS || requestQueue.length === 0) {
+                return;
+            }
+
+            isProcessing = true;
+
+            while (requestQueue.length > 0 && activeRequests < MAX_CONCURRENT_REQUESTS) {
+                const request = requestQueue.shift();
+                activeRequests++;
+
+                try {
+                    logRequest(`🚀 اجرای درخواست ${request.action} (${activeRequests} درخواست فعال)`, request.data);
+                    
+                    const result = await googleAppsScriptRequest(request.action, request.data);
+                    request.resolve(result);
+                } catch (error) {
+                    logRequest(`❌ خطا در درخواست ${request.action}: ${error.message}`, request.data, null, error);
+                    request.reject(error);
+                } finally {
+                    activeRequests--;
+                }
+
+                if (requestQueue.length > 0) {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                }
+            }
+
+            isProcessing = false;
+            
+            // اگر صف خالی شد، پاپ آپ رو مخفی کن
+            if (requestQueue.length === 0 && activeRequests === 0 && currentOperation !== 'chunked') {
+                hideProcessingPopup();
             }
             
-            isRequestInProgress = true;
-            try {
-                console.log(`🚀 اجرای درخواست ${action}...`);
-                const result = await googleAppsScriptRequest(action, data);
-                console.log(`✅ درخواست ${action} موفق`);
-                return result;
-            } finally {
-                isRequestInProgress = false;
+            if (requestQueue.length > 0) {
+                setTimeout(processQueue, 500);
             }
+        }
+
+        // نمایش پاپ آپ
+        function showProcessingPopup(action = 'درخواست', operationType = 'single') {
+            const popup = document.getElementById('processingPopup');
+            const queueInfo = document.getElementById('queueInfo');
+            const popupTitle = document.getElementById('popupTitle');
+            const popupMessage = document.getElementById('popupMessage');
+            const progressBar = document.getElementById('progressBar');
+            
+            currentOperation = operationType;
+            
+            // تنظیم عنوان و پیام بر اساس نوع عملیات
+            if (operationType === 'chunked') {
+                popupTitle.textContent = 'ذخیره‌سازی داده‌ها';
+                popupMessage.innerHTML = 'در حال ذخیره‌سازی داده‌ها در سرور...<br>لطفاً منتظر بمانید';
+            } else {
+                popupTitle.textContent = 'درخواست در حال پردازش';
+                popupMessage.innerHTML = 'لطفاً منتظر بمانید...<br>درخواست شما در صف قرار گرفته و به زودی پردازش می‌شود.';
+            }
+            
+            // ریست کردن progress bar
+            progressBar.style.width = '0%';
+            completedChunks = 0;
+            totalChunks = 0;
+            
+            popup.style.display = 'flex';
+            
+            // بررسی خودکار وضعیت هر 2 ثانیه
+            if (popupTimer) clearInterval(popupTimer);
+            popupTimer = setInterval(updatePopupInfo, 2000);
+            
+            // اولین به‌روزرسانی
+            updatePopupInfo();
+        }
+
+        // به‌روزرسانی اطلاعات پاپ آپ
+        function updatePopupInfo() {
+            const queueInfo = document.getElementById('queueInfo');
+            const progressBar = document.getElementById('progressBar');
+            
+            const queuePosition = requestQueue.length;
+            const activeCount = activeRequests;
+            
+            if (currentOperation === 'chunked' && totalChunks > 0) {
+                // نمایش پیشرفت chunk بندی
+                const progress = Math.round((completedChunks / totalChunks) * 100);
+                progressBar.style.width = progress + '%';
+                queueInfo.innerHTML = `
+                    در حال پردازش: ${completedChunks} از ${totalChunks} بخش<br>
+                    پیشرفت: ${progress}%
+                `;
+            } else {
+                // نمایش وضعیت عادی صف
+                queueInfo.innerHTML = `
+                    درخواست‌های فعال: ${activeCount} از ${MAX_CONCURRENT_REQUESTS}<br>
+                    درخواست‌های در صف: ${queuePosition}
+                `;
+            }
+            
+            // اگر صف خالی شد و هیچ درخواست فعالی نیست، پاپ آپ رو مخفی کن
+            if (requestQueue.length === 0 && activeRequests === 0 && currentOperation !== 'chunked') {
+                hideProcessingPopup();
+            }
+        }
+
+        // به‌روزرسانی پیشرفت chunk بندی
+        function updateChunkProgress(current, total) {
+            completedChunks = current;
+            totalChunks = total;
+            updatePopupInfo();
+        }
+
+        // مخفی کردن پاپ آپ
+        function hideProcessingPopup() {
+            const popup = document.getElementById('processingPopup');
+            popup.style.display = 'none';
+            if (popupTimer) {
+                clearInterval(popupTimer);
+                popupTimer = null;
+            }
+            currentOperation = null;
+        }
+
+        function setDataLock(locked) {
+            isDataLocked = locked;
+            const buttons = document.querySelectorAll('.btn');
+            buttons.forEach(btn => {
+                if (locked && !btn.classList.contains('btn-primary')) {
+                    btn.classList.add('locked');
+                } else {
+                    btn.classList.remove('locked');
+                }
+            });
         }
 
         // ==================== توابع اصلی سیستم ====================
 
         // بارگذاری اولیه
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 سیستم مدیریت وام بارگذاری شد - نسخه ساده و پایدار');
+            console.log('🚀 سیستم مدیریت وام بارگذاری شد - نسخه پایدار با مدیریت درخواست همزمان');
             setupEventListeners();
             initializeSystem();
         });
@@ -784,26 +1026,34 @@
                 return;
             }
             
+            console.log('🎯 شروع رندر جدول با داده:', data);
+            
             if (!data || data.length === 0) {
+                console.log('📭 داده‌ای برای نمایش وجود ندارد');
                 showEmptyState();
                 return;
             }
             
+            console.log(`📊 نمایش ${data.length} رکورد در جدول`);
             hideEmptyState();
             
+            // استفاده از DocumentFragment برای رندر سریع‌تر
             const fragment = document.createDocumentFragment();
             
             data.forEach((item, index) => {
                 const row = document.createElement('tr');
                 
+                // کلاس اولویت
                 if (item.priority === '1') row.classList.add('priority-high');
                 else if (item.priority === '2') row.classList.add('priority-medium');
                 else if (item.priority === '3') row.classList.add('priority-low');
                 
+                // محاسبه تعداد وام‌های دریافتی
                 const bankLoanCount = (item.bankLoan && item.bankLoan !== 'درخواست داده شده' && item.bankLoan !== '-' && item.bankLoan.trim() !== '') ? 1 : 0;
                 const companyLoanCount = (item.companyLoan && item.companyLoan !== 'درخواست داده شده' && item.companyLoan !== '-' && item.companyLoan.trim() !== '') ? 1 : 0;
                 const loanCount = bankLoanCount + companyLoanCount;
                 
+                // نمایش وام‌ها
                 let loanSummaryHTML = '';
                 
                 if (bankLoanCount > 0 || companyLoanCount > 0) {
@@ -870,6 +1120,8 @@
             
             tableBody.innerHTML = '';
             tableBody.appendChild(fragment);
+            
+            console.log('✅ جدول با موفقیت رندر شد');
         }
 
         // توابع تبدیل
@@ -898,6 +1150,7 @@
         function saveToLocalStorage() {
             try {
                 localStorage.setItem('loanData', JSON.stringify(sampleData));
+                console.log('✅ داده‌ها در localStorage ذخیره شدند');
                 return true;
             } catch (error) {
                 console.error('❌ خطا در ذخیره localStorage:', error);
@@ -912,6 +1165,7 @@
                     sampleData = JSON.parse(savedData);
                     if (sampleData.length > 0) {
                         renderTable(sampleData);
+                        console.log('✅ داده‌ها از localStorage بارگذاری شدند');
                         return true;
                     }
                 }
@@ -923,6 +1177,7 @@
 
         // ==================== توابع دیباگ ====================
 
+        // تابع برای لاگ کردن درخواست‌ها
         function logRequest(action, data, response, error = null, duration = 0) {
             const log = {
                 timestamp: new Date().toLocaleString('fa-IR'),
@@ -941,6 +1196,7 @@
             updateDebugInfo();
         }
 
+        // به‌روزرسانی اطلاعات دیباگ
         function updateDebugInfo() {
             const systemStatus = document.getElementById('system-status');
             const requestLogsElement = document.getElementById('request-logs');
@@ -953,9 +1209,9 @@
 وضعیت احراز هویت: ${isAuthenticated ? '✅ فعال' : '❌ غیرفعال'}
 آدرس اسکریپت: ${GOOGLE_APPS_SCRIPT_URL}
 حافظه محلی: ${localStorage.getItem('loanData') ? '✅ دارای داده' : '❌ خالی'}
-درخواست در حال اجرا: ${isRequestInProgress ? '⏳ بله' : '✅ خیر'}
+درخواست‌های فعال: ${activeRequests} از ${MAX_CONCURRENT_REQUESTS}
 صف درخواست: ${requestQueue.length} درخواست
-نسخه: ساده و پایدار
+نسخه: پایدار - با سیستم مدیریت درخواست همزمان
                 `.trim();
             }
             
@@ -980,9 +1236,12 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
             }
         }
 
-        // ==================== توابع ارتباط با گوگل ====================
+        // ==================== توابع ارتباط با گوگل - نسخه بهبود یافته ====================
 
+        // درخواست به Google Apps Script - نسخه JSONP
         async function googleAppsScriptRequest(action, data = null) {
+            console.log(`📡 ارسال درخواست ${action}...`);
+            
             return new Promise((resolve, reject) => {
                 const requestId = Date.now();
                 const callbackName = 'cb_' + requestId;
@@ -992,26 +1251,35 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                 
                 if (data) {
                     const dataString = JSON.stringify(data);
+                    console.log(`📦 حجم داده: ${dataString.length} کاراکتر`);
+                    
+                    // اگر داده‌ها خیلی بزرگ هستند، آنها را به chunks تقسیم می‌کنیم
+                    if (dataString.length > 15000) {
+                        console.log('🔄 داده‌های بزرگ - تقسیم به chunks');
+                        sendLargeDataInChunks(action, data)
+                            .then(resolve)
+                            .catch(reject);
+                        return;
+                    }
+                    
                     url += `&data=${encodeURIComponent(dataString)}`;
                 }
                 
                 url += `&t=${requestId}`;
                 
+                console.log('🔗 URL درخواست:', url.length < 500 ? url : url.substring(0, 500) + '...');
+                
                 window[callbackName] = function(response) {
                     const duration = Date.now() - startTime;
                     
+                    console.log(`📥 پاسخ دریافت شد (${duration}ms):`, response);
                     logRequest(action, data, response, null, duration);
                     
                     delete window[callbackName];
                     if (script.parentNode) {
                         document.body.removeChild(script);
                     }
-                    
-                    if (response && response.success) {
-                        resolve(response);
-                    } else {
-                        reject(new Error(response?.error || 'خطای ناشناخته از سرور'));
-                    }
+                    resolve(response);
                 };
                 
                 const script = document.createElement('script');
@@ -1021,6 +1289,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                     const duration = Date.now() - startTime;
                     const error = new Error('خطا در بارگذاری اسکریپت');
                     
+                    console.error(`❌ خطا در بارگذاری اسکریپت (${duration}ms)`);
                     logRequest(action, data, null, error.message, duration);
                     
                     delete window[callbackName];
@@ -1035,6 +1304,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                 setTimeout(() => {
                     if (window[callbackName]) {
                         const error = new Error('تایم‌اوت درخواست');
+                        console.error(`⏰ تایم‌اوت درخواست ${action} (30000ms)`);
                         logRequest(action, data, null, error.message, 30000);
                         
                         delete window[callbackName];
@@ -1047,17 +1317,102 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
             });
         }
 
-        // بارگذاری از Google Sheets
+        // ارسال داده‌های بزرگ به صورت chunk
+        async function sendLargeDataInChunks(action, data) {
+            console.log(`🔄 ارسال ${data.length} رکورد در chunks...`);
+            
+            const CHUNK_SIZE = 5;
+            const chunks = [];
+            
+            // تقسیم داده‌ها به chunks
+            for (let i = 0; i < data.length; i += CHUNK_SIZE) {
+                chunks.push(data.slice(i, i + CHUNK_SIZE));
+            }
+            
+            console.log(`📦 ایجاد ${chunks.length} chunk از داده‌ها`);
+            
+            // نمایش پاپ آپ برای کل عملیات chunk بندی
+            showProcessingPopup('ذخیره‌سازی', 'chunked');
+            updateChunkProgress(0, chunks.length);
+            
+            let totalSaved = 0;
+            let successCount = 0;
+            
+            // اول شیت رو پاک کن
+            try {
+                await executeRequest('clearSheet', null, true);
+                console.log('✅ شیت پاک شد برای شروع جدید');
+            } catch (error) {
+                console.warn('⚠️ خطا در پاک کردن شیت:', error);
+            }
+            
+            // ارسال chunks
+            for (let i = 0; i < chunks.length; i++) {
+                try {
+                    console.log(`📤 ارسال chunk ${i + 1}/${chunks.length} (${chunks[i].length} رکورد)...`);
+                    
+                    const result = await executeRequest(action, chunks[i], true);
+                    if (result && result.success) {
+                        totalSaved += chunks[i].length;
+                        successCount++;
+                        console.log(`✅ chunk ${i + 1}/${chunks.length} ذخیره شد`);
+                    } else {
+                        console.warn(`⚠️ خطا در chunk ${i + 1}:`, result?.error);
+                    }
+                    
+                    // به‌روزرسانی پیشرفت
+                    updateChunkProgress(i + 1, chunks.length);
+                    
+                    // وقفه بیشتر بین chunks
+                    if (i < chunks.length - 1) {
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                    }
+                } catch (error) {
+                    console.error(`❌ خطا در ارسال chunk ${i + 1}:`, error);
+                }
+            }
+            
+            // مخفی کردن پاپ آپ بعد از اتمام
+            setTimeout(hideProcessingPopup, 1000);
+            
+            return {
+                success: successCount === chunks.length,
+                message: successCount === chunks.length ? 
+                    `تمامی ${totalSaved} رکورد در ${chunks.length} chunk ذخیره شدند` :
+                    `${totalSaved} از ${data.length} رکورد ذخیره شدند`,
+                savedCount: totalSaved,
+                totalChunks: chunks.length,
+                successfulChunks: successCount
+            };
+        }
+
+        // بارگذاری از Google Sheets - نسخه اصلاح شده
         async function loadFromGoogleSheets() {
             showLoading(true, 'در حال بارگذاری از Google Sheets...');
             
             try {
+                console.log('🔄 شروع بارگذاری از Google Sheets...');
+                
                 const result = await executeRequest('loadData');
+                console.log('📊 پاسخ کامل loadData:', result);
                 
                 if (result.success && result.data && Array.isArray(result.data)) {
+                    console.log(`📥 دریافت ${result.data.length} رکورد از سرور`);
+                    
+                    if (result.data.length === 0) {
+                        console.log('📭 هیچ داده‌ای در Google Sheets وجود ندارد');
+                        showNotification('هیچ داده‌ای در Google Sheets وجود ندارد', 'info');
+                        showEmptyState();
+                        return;
+                    }
+                    
+                    // پردازش داده‌ها - نسخه ساده‌تر
                     sampleData = [];
                     
-                    result.data.forEach((item) => {
+                    result.data.forEach((item, index) => {
+                        console.log(`📝 پردازش رکورد ${index + 1}:`, item);
+                        
+                        // بررسی وجود شماره پرسنلی
                         const employeeNumber = item.Employeenumber || item.employeeNumber || item['Employeenumber'] || '';
                         
                         if (employeeNumber && employeeNumber.toString().trim() !== '') {
@@ -1079,20 +1434,25 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                         }
                     });
                     
+                    console.log(`✅ پردازش کامل شد: ${sampleData.length} رکورد معتبر`);
+                    
                     if (sampleData.length > 0) {
                         renderTable(sampleData);
                         saveToLocalStorage();
                         showNotification(`داده‌ها با موفقیت بارگذاری شدند (${sampleData.length} رکورد)`, 'success');
                     } else {
+                        console.log('❌ هیچ داده معتبری پس از پردازش باقی نماند');
                         showNotification('هیچ داده معتبری در Google Sheets وجود ندارد', 'info');
                         showEmptyState();
                     }
                 } else {
+                    console.log('❌ ساختار پاسخ نامعتبر:', result);
                     throw new Error(result.error || 'خطا در بارگذاری داده‌ها از سرور');
                 }
             } catch (error) {
                 console.error('❌ خطا در بارگذاری از گوگل شیت:', error);
                 
+                // تلاش برای بارگذاری از حافظه محلی
                 const loaded = loadFromLocalStorage();
                 if (loaded) {
                     showNotification('داده‌ها از حافظه محلی بارگذاری شدند', 'warning');
@@ -1106,16 +1466,26 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
             }
         }
 
-        // ذخیره در Google Sheets
+        // ذخیره در Google Sheets - نسخه بهبود یافته با مدیریت درخواست همزمان
         async function saveToGoogleSheets() {
             if (sampleData.length === 0) {
+                console.log('⚠️ داده‌ای برای ذخیره‌سازی وجود ندارد');
                 showNotification('داده‌ای برای ذخیره‌سازی وجود ندارد', 'warning');
                 return true;
             }
             
+            console.log('💾 شروع ذخیره‌سازی...');
+            console.log('📊 تعداد داده‌ها:', sampleData.length);
+            
             showLoading(true, 'در حال ذخیره در Google Sheets...');
+            setDataLock(true);
             
             try {
+                // اول شیت رو پاک کن
+                await executeRequest('clearSheet');
+                console.log('✅ شیت پاک شد');
+                
+                // حالا تمام داده‌ها رو ذخیره کن
                 const dataForSheets = sampleData.map(item => ({
                     Username: item.username || '',
                     Employeenumber: item.employeeNumber,
@@ -1130,9 +1500,20 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                     Loanrequest: item.loanRequest ? 'true' : 'false'
                 }));
                 
-                const result = await executeRequest('replaceAllData', dataForSheets);
+                console.log(`📤 ارسال ${dataForSheets.length} رکورد به Google Sheets...`);
+                
+                // اگر داده‌ها زیاد هستند، به chunks تقسیم کن
+                let result;
+                if (dataForSheets.length > 10) {
+                    result = await sendLargeDataInChunks('appendData', dataForSheets);
+                } else {
+                    result = await executeRequest('appendData', dataForSheets);
+                }
+                
+                console.log('✅ پاسخ ذخیره‌سازی:', result);
                 
                 showLoading(false);
+                setDataLock(false);
                 
                 if (result && result.success) {
                     saveToLocalStorage();
@@ -1144,6 +1525,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
             } catch (error) {
                 console.error('❌ خطا در ذخیره‌سازی:', error);
                 showLoading(false);
+                setDataLock(false);
                 saveToLocalStorage();
                 showNotification('خطا در ذخیره‌سازی. داده‌ها در حافظه محلی ذخیره شدند.', 'warning');
                 return false;
@@ -1152,6 +1534,8 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
 
         // تست ذخیره‌سازی ساده
         async function testSimpleSave() {
+            console.log('🧪 تست ذخیره‌سازی ساده...');
+            
             const testData = [
                 {
                     Username: 'test_simple',
@@ -1169,7 +1553,8 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
             ];
             
             try {
-                const result = await executeRequest('replaceAllData', testData);
+                const result = await executeRequest('appendData', testData);
+                console.log('✅ نتیجه تست ساده:', result);
                 
                 if (result.success) {
                     showNotification('تست ذخیره‌سازی ساده موفق بود', 'success');
@@ -1182,12 +1567,243 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
             }
         }
 
-        // ==================== رویدادها و توابع عملیاتی ====================
+        // ==================== رویدادها ====================
 
         function setupEventListeners() {
-            // ... (همان event listeners قبلی بدون تغییر)
-            // فقط مطمئن شو که همه event listeners تنظیم شده‌اند
+            console.log('🔧 در حال تنظیم event listeners...');
+            
+            // رویدادهای اصلی
+            const addLoanBtn = document.getElementById('add-loan-btn');
+            if (addLoanBtn) {
+                addLoanBtn.addEventListener('click', function() {
+                    isEditing = false;
+                    document.getElementById('modal-title').textContent = 'افزودن وام جدید';
+                    document.getElementById('loan-form').reset();
+                    document.getElementById('employee-number').readOnly = false;
+                    document.getElementById('addEmployeeModal').style.display = 'block';
+                });
+            }
+
+            const addFirstLoan = document.getElementById('add-first-loan');
+            if (addFirstLoan) {
+                addFirstLoan.addEventListener('click', function() {
+                    isEditing = false;
+                    document.getElementById('modal-title').textContent = 'افزودن وام جدید';
+                    document.getElementById('loan-form').reset();
+                    document.getElementById('employee-number').readOnly = false;
+                    document.getElementById('addEmployeeModal').style.display = 'block';
+                });
+            }
+
+            const loanForm = document.getElementById('loan-form');
+            if (loanForm) {
+                loanForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    saveLoan();
+                });
+            }
+
+            const passwordForm = document.getElementById('password-form');
+            if (passwordForm) {
+                passwordForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    authenticate();
+                });
+            }
+
+            const saveToCloud = document.getElementById('save-to-cloud');
+            if (saveToCloud) {
+                saveToCloud.addEventListener('click', function() {
+                    saveToGoogleSheets();
+                });
+            }
+
+            const loadFromCloud = document.getElementById('load-from-cloud');
+            if (loadFromCloud) {
+                loadFromCloud.addEventListener('click', function() {
+                    if (sampleData.length > 0) {
+                        if (confirm('⚠️ اگر ادامه دهید، داده‌های فعلی با داده‌های جدید جایگزین می‌شوند.\n\nآیا مطمئن هستید؟')) {
+                            loadFromGoogleSheets();
+                        }
+                    } else {
+                        loadFromGoogleSheets();
+                    }
+                });
+            }
+
+            const exportExcel = document.getElementById('export-excel');
+            if (exportExcel) {
+                exportExcel.addEventListener('click', function() {
+                    exportToExcel();
+                });
+            }
+
+            const testConnectionBtn = document.getElementById('test-connection-btn');
+            if (testConnectionBtn) {
+                testConnectionBtn.addEventListener('click', function() {
+                    executeRequest('test').then(result => {
+                        if (result.success) {
+                            showNotification('اتصال با سرور برقرار است', 'success');
+                        } else {
+                            showNotification('خطا در اتصال به سرور', 'error');
+                        }
+                    });
+                });
+            }
+
+            const searchInput = document.getElementById('search-input');
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    filterTable();
+                });
+            }
+
+            const loanTypeFilter = document.getElementById('loan-type-filter');
+            if (loanTypeFilter) {
+                loanTypeFilter.addEventListener('change', function() {
+                    filterTable();
+                });
+            }
+
+            const loanRequestFilter = document.getElementById('loan-request-filter');
+            if (loanRequestFilter) {
+                loanRequestFilter.addEventListener('change', function() {
+                    filterTable();
+                });
+            }
+
+            document.querySelectorAll('.close, .btn-secondary').forEach(button => {
+                button.addEventListener('click', function() {
+                    const modalId = this.getAttribute('data-modal');
+                    const modal = document.getElementById(modalId);
+                    if (modal) {
+                        modal.style.display = 'none';
+                        // فعال کردن فیلد شماره پرسنلی وقتی مودال بسته میشه
+                        document.getElementById('employee-number').readOnly = false;
+                    }
+                });
+            });
+
+            window.addEventListener('click', function(event) {
+                if (event.target.classList.contains('modal')) {
+                    event.target.style.display = 'none';
+                    // فعال کردن فیلد شماره پرسنلی وقتی مودال بسته میشه
+                    document.getElementById('employee-number').readOnly = false;
+                }
+            });
+
+            // رویدادهای دیباگ
+            const debugBtn = document.getElementById('debug-btn');
+            if (debugBtn) {
+                debugBtn.addEventListener('click', function() {
+                    console.log('🔧 دکمه دیباگ کلیک شد');
+                    const debugPanel = document.getElementById('debug-panel');
+                    if (debugPanel) {
+                        debugPanel.style.display = debugPanel.style.display === 'none' ? 'block' : 'none';
+                        updateDebugInfo();
+                    }
+                });
+            }
+
+            const testSaveBtn = document.getElementById('test-save-btn');
+            if (testSaveBtn) {
+                testSaveBtn.addEventListener('click', function() {
+                    saveToGoogleSheets();
+                });
+            }
+
+            const testLoadBtn = document.getElementById('test-load-btn');
+            if (testLoadBtn) {
+                testLoadBtn.addEventListener('click', function() {
+                    loadFromGoogleSheets();
+                });
+            }
+
+            const addTestDataBtn = document.getElementById('add-test-data-btn');
+            if (addTestDataBtn) {
+                addTestDataBtn.addEventListener('click', function() {
+                    const testData = {
+                        username: 'debug_user_' + Date.now(),
+                        employeeNumber: 'DEBUG' + Date.now(),
+                        fullname: 'کاربر تست دیباگ',
+                        gender: 'مرد',
+                        bankLoan: '10,000,000',
+                        companyLoan: '5,000,000',
+                        bankLoanDate: '2024-01-01',
+                        companyLoanDate: '2024-01-01',
+                        priority: '2',
+                        description: 'این یک رکورد تست دیباگ است',
+                        loanRequest: false
+                    };
+                    
+                    sampleData.push(testData);
+                    renderTable(sampleData);
+                    saveToLocalStorage();
+                    showNotification('داده تست اضافه شد', 'success');
+                    updateDebugInfo();
+                });
+            }
+
+            const testLargeDataBtn = document.getElementById('test-large-data-btn');
+            if (testLargeDataBtn) {
+                testLargeDataBtn.addEventListener('click', function() {
+                    // ایجاد 20 رکورد تستی
+                    const testData = [];
+                    for (let i = 1; i <= 20; i++) {
+                        testData.push({
+                            username: `testuser${i}`,
+                            employeeNumber: `TEST${i}`,
+                            fullname: `کاربر تست ${i}`,
+                            gender: i % 2 === 0 ? 'زن' : 'مرد',
+                            bankLoan: `${i},000,000`,
+                            companyLoan: `${i}00,000`,
+                            bankLoanDate: '2024-01-01',
+                            companyLoanDate: '2024-01-01',
+                            priority: ((i % 3) + 1).toString(),
+                            description: `توضیحات تست ${i}`,
+                            loanRequest: i % 2 === 0
+                        });
+                    }
+                    
+                    sampleData = sampleData.concat(testData);
+                    renderTable(sampleData);
+                    saveToLocalStorage();
+                    showNotification('20 رکورد تستی اضافه شد', 'success');
+                    updateDebugInfo();
+                });
+            }
+
+            const clearAllBtn = document.getElementById('clear-all-btn');
+            if (clearAllBtn) {
+                clearAllBtn.addEventListener('click', function() {
+                    if (confirm('⚠️ آیا از پاک کردن تمام داده‌ها اطمینان دارید؟')) {
+                        sampleData = [];
+                        localStorage.removeItem('loanData');
+                        renderTable(sampleData);
+                        showNotification('همه داده‌ها پاک شدند', 'success');
+                        updateDebugInfo();
+                    }
+                });
+            }
+
+            const forceSaveBtn = document.getElementById('force-save-btn');
+            if (forceSaveBtn) {
+                forceSaveBtn.addEventListener('click', function() {
+                    saveToGoogleSheets();
+                });
+            }
+
+            const testSimpleSaveBtn = document.getElementById('test-simple-save-btn');
+            if (testSimpleSaveBtn) {
+                testSimpleSaveBtn.addEventListener('click', function() {
+                    testSimpleSave();
+                });
+            }
+
+            console.log('✅ تمام event listeners تنظیم شدند');
         }
+
+        // ==================== توابع عملیاتی ====================
 
         function filterTable() {
             const searchTerm = document.getElementById('search-input').value.toLowerCase();
@@ -1289,9 +1905,11 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
             };
             
             if (existingIndex === -1) {
+                // افزودن جدید
                 sampleData.push(loanData);
                 showNotification('وام جدید با موفقیت افزوده شد', 'success');
             } else {
+                // ویرایش موجود - حفظ وضعیت loanRequest از داده قبلی
                 loanData.loanRequest = sampleData[existingIndex].loanRequest;
                 sampleData[existingIndex] = loanData;
                 showNotification('اطلاعات وام با موفقیت به‌روزرسانی شد', 'success');
@@ -1299,6 +1917,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
             
             renderTable(sampleData);
             
+            // ذخیره‌سازی در Google Sheets - کل داده‌ها
             const success = await saveToGoogleSheets();
             
             if (success) {
@@ -1323,6 +1942,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                 document.getElementById('description').value = employee.description || '';
                 document.getElementById('addEmployeeModal').style.display = 'block';
                 
+                // غیرفعال کردن فیلد شماره پرسنلی در حالت ویرایش
                 document.getElementById('employee-number').readOnly = true;
             }
         }
@@ -1332,6 +1952,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                 sampleData = sampleData.filter(item => item.employeeNumber !== employeeNumber);
                 renderTable(sampleData);
                 
+                // ذخیره‌سازی در Google Sheets
                 await saveToGoogleSheets();
                 
                 showNotification('وام با موفقیت حذف شد', 'success');
@@ -1344,6 +1965,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                 employee.loanRequest = !employee.loanRequest;
                 renderTable(sampleData);
                 
+                // ذخیره‌سازی در Google Sheets
                 await saveToGoogleSheets();
                 
                 showNotification(
