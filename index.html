@@ -1330,7 +1330,7 @@
             };
         }
 
-      // رندر جدول
+// رندر جدول
 function renderTable(data) {
     const tableBody = document.getElementById('loan-table-body');
     
@@ -1411,7 +1411,7 @@ function renderTable(data) {
             <td>${item.employeeNumber}</td>
             <td>${item.fullname}</td>
             <td>${item.gender}</td>
-            <td>${loanCellHTML}</td>
+            <td style="background: transparent !important;">${loanCellHTML}</td>
             <td>${item.bankLoanDate || '-'}</td>
             <td>${item.companyLoanDate || '-'}</td>
             <td>
@@ -2345,4 +2345,5 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
     </script>
 </body>
 </html>
+
 
