@@ -1331,87 +1331,30 @@
         }
 
         // رندر جدول
-       data.forEach((item, index) => {
-    const row = document.createElement('tr');
-    
-    // کلاس اولویت - با رنگ‌بندی جدید
-    const priorityText = getPriorityText(item.priority);
-    if (priorityText === 'زیاد') row.classList.add('priority-high');
-    else if (priorityText === 'متوسط') row.classList.add('priority-medium');
-    else if (priorityText === 'کم') row.classList.add('priority-low');
-    
-    // محاسبه تعداد وام‌های دریافتی
-    const bankLoanCount = (item.bankLoan && item.bankLoan !== 'درخواست داده شده' && item.bankLoan !== '-' && item.bankLoan.trim() !== '') ? 1 : 0;
-    const companyLoanCount = (item.companyLoan && item.companyLoan !== 'درخواست داده شده' && item.companyLoan !== '-' && item.companyLoan.trim() !== '') ? 1 : 0;
-    const loanCount = bankLoanCount + companyLoanCount;
-    
-    // نمایش وام‌ها - حالت قبلی
-    let loanSummaryHTML = '';
-
-    if (bankLoanCount > 0 || companyLoanCount > 0) {
-        loanSummaryHTML = '<div style="display: flex; flex-direction: column; gap: 2px; font-size: 11px;">';
-        
-        if (companyLoanCount > 0) {
-            loanSummaryHTML += `
-                <div style="background: #f3e5f5; padding: 2px 6px; border-radius: 4px; border: 1px solid #e1bee7;">
-                    وام شرکتی: ${item.companyLoan}
-                </div>
-            `;
-        }
-        
-        if (bankLoanCount > 0) {
-            loanSummaryHTML += `
-                <div style="background: #e3f2fd; padding: 2px 6px; border-radius: 4px; border: 1px solid #bbdefb;">
-                    وام بانکی: ${item.bankLoan}
-                </div>
-            `;
-        }
-        
-        loanSummaryHTML += '</div>';
-    } else {
-        loanSummaryHTML = '-';
-    }
-    
-    row.innerHTML = `
-        <td>${index + 1}</td>
-        <td>${item.username || '-'}</td>
-        <td>${item.employeeNumber}</td>
-        <td>${item.fullname}</td>
-        <td>${item.gender}</td>
-        <td>${loanSummaryHTML}</td>
-        <td>${item.bankLoanDate || '-'}</td>
-        <td>${item.companyLoanDate || '-'}</td>
-        <td>
-            <span class="priority-badge ${getPriorityClass(item.priority)}">
-                ${getPriorityText(item.priority)}
-            </span>
-        </td>
-        <td>${item.description || '-'}</td>
-        <td>${loanCount}</td>
-        <td>
-            <label class="switch-fa">
-                <input type="checkbox" class="input" id="switch-${item.employeeNumber}" ${item.loanRequest ? 'checked' : ''} onchange="toggleLoanRequest('${item.employeeNumber}')">
-                <span class="slider-fa">
-                    <span class="text on">بله</span>
-                    <span class="text off">خیر</span>
-                </span>
-            </label>
-        </td>
-        <td>
-            <a href="#" class="details" onclick="showLoanDetails('${item.employeeNumber}')">
-                <i class="fas fa-eye"></i>
-            </a>
-            <a href="#" class="edit" onclick="requestPassword('${item.employeeNumber}', 'edit')">
-                <i class="fas fa-edit"></i>
-            </a>
-            <a href="#" class="delete" onclick="requestPassword('${item.employeeNumber}', 'delete')">
-                <i class="fas fa-trash"></i>
-            </a>
-        </td>
-    `;
-    
-    fragment.appendChild(row);
-});
+        function renderTable(data) {
+            const tableBody = document.getElementById('loan-table-body');
+            
+            if (!tableBody) {
+                console.error('❌ المان loan-table-body یافت نشد');
+                return;
+            }
+            
+            console.log('🎯 شروع رندر جدول با داده:', data);
+            
+            if (!data || data.length === 0) {
+                console.log('📭 داده‌ای برای نمایش وجود ندارد');
+                showEmptyState();
+                return;
+            }
+            
+            console.log(`📊 نمایش ${data.length} رکورد در جدول`);
+            hideEmptyState();
+            
+            // استفاده از DocumentFragment برای رندر سریع‌تر
+            const fragment = document.createDocumentFragment();
+            
+            data.forEach((item, index) => {
+                const row = document.createElement('tr');
                 
                 // کلاس اولویت - با رنگ‌بندی جدید
                 const priorityText = getPriorityText(item.priority);
@@ -2375,4 +2318,3 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
     </script>
 </body>
 </html>
-
