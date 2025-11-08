@@ -8,6 +8,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
     <style>
+        /* استایل‌ها بدون تغییر */
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: Vazirmatn, Tahoma, sans-serif; }
         
         body {
@@ -649,7 +650,7 @@
         let isRequestInProgress = false;
         let requestQueue = [];
         
-        // آدرس Google Apps Script - استفاده از replaceAllData و loadData
+        // آدرس Google Apps Script
         const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxyFKuY2dMdDJT7tTA99ZbqelmYylb_XyCelv3G9LOd-ynvrD4wJdwgG3FQKmFsV7Qj/exec';
 
         // ==================== سیستم مدیریت درخواست‌های همزمان ====================
@@ -686,7 +687,7 @@
 
         // بارگذاری اولیه
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 سیستم مدیریت وام بارگذاری شد - نسخه پایدار');
+            console.log('🚀 سیستم مدیریت وام بارگذاری شد - نسخه دیباگ');
             setupEventListeners();
             initializeSystem();
         });
@@ -977,7 +978,7 @@
 حافظه محلی: ${localStorage.getItem('loanData') ? '✅ دارای داده' : '❌ خالی'}
 درخواست در حال اجرا: ${isRequestInProgress ? '⏳ بله' : '✅ خیر'}
 صف درخواست: ${requestQueue.length} درخواست
-نسخه: پایدار - با سیستم lock
+نسخه: دیباگ - رفع مشکل ذخیره‌سازی
                 `.trim();
             }
             
@@ -1002,9 +1003,9 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
             }
         }
 
-        // ==================== توابع ارتباط با گوگل - نسخه سازگار ====================
+        // ==================== توابع ارتباط با گوگل - نسخه دیباگ ====================
 
-        // درخواست به Google Apps Script - نسخه JSONP
+        // درخواست به Google Apps Script - نسخه JSONP با دیباگ پیشرفته
         async function googleAppsScriptRequest(action, data = null) {
             console.log(`📡 ارسال درخواست ${action}...`);
             
@@ -1018,12 +1019,13 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                 if (data) {
                     const dataString = JSON.stringify(data);
                     console.log(`📦 حجم داده: ${dataString.length} کاراکتر`);
+                    console.log(`📋 نمونه داده:`, data.slice(0, 2)); // فقط 2 رکورد اول رو نشون بده
                     url += `&data=${encodeURIComponent(dataString)}`;
                 }
                 
                 url += `&t=${requestId}`;
                 
-                console.log('🔗 URL درخواست:', url.length < 500 ? url : url.substring(0, 500) + '...');
+                console.log('🔗 URL درخواست:', url.substring(0, 200) + '...');
                 
                 window[callbackName] = function(response) {
                     const duration = Date.now() - startTime;
@@ -1035,7 +1037,12 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                     if (script.parentNode) {
                         document.body.removeChild(script);
                     }
-                    resolve(response);
+                    
+                    if (response && response.success) {
+                        resolve(response);
+                    } else {
+                        reject(new Error(response?.error || 'خطای ناشناخته از سرور'));
+                    }
                 };
                 
                 const script = document.createElement('script');
@@ -1057,11 +1064,12 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                 
                 document.body.appendChild(script);
                 
+                // تایم‌اوت کوتاه‌تر برای دیباگ
                 setTimeout(() => {
                     if (window[callbackName]) {
-                        const error = new Error('تایم‌اوت درخواست');
-                        console.error(`⏰ تایم‌اوت درخواست ${action} (30000ms)`);
-                        logRequest(action, data, null, error.message, 30000);
+                        const error = new Error('تایم‌اوت درخواست - سرور پاسخ نداده است');
+                        console.error(`⏰ تایم‌اوت درخواست ${action} (15000ms)`);
+                        logRequest(action, data, null, error.message, 15000);
                         
                         delete window[callbackName];
                         if (script.parentNode) {
@@ -1069,11 +1077,11 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                         }
                         reject(error);
                     }
-                }, 30000);
+                }, 15000);
             });
         }
 
-        // بارگذاری از Google Sheets - نسخه سازگار
+        // بارگذاری از Google Sheets
         async function loadFromGoogleSheets() {
             showLoading(true, 'در حال بارگذاری از Google Sheets...');
             
@@ -1097,8 +1105,6 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                     sampleData = [];
                     
                     result.data.forEach((item, index) => {
-                        console.log(`📝 پردازش رکورد ${index + 1}:`, item);
-                        
                         // بررسی وجود شماره پرسنلی
                         const employeeNumber = item.Employeenumber || item.employeeNumber || item['Employeenumber'] || '';
                         
@@ -1138,13 +1144,13 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                 }
             } catch (error) {
                 console.error('❌ خطا در بارگذاری از گوگل شیت:', error);
+                showNotification(`خطا در بارگذاری: ${error.message}`, 'error');
                 
                 // تلاش برای بارگذاری از حافظه محلی
                 const loaded = loadFromLocalStorage();
                 if (loaded) {
                     showNotification('داده‌ها از حافظه محلی بارگذاری شدند', 'warning');
                 } else {
-                    showNotification('خطا در بارگذاری داده‌ها. لطفا اتصال اینترنت را بررسی کنید.', 'error');
                     showEmptyState();
                 }
             } finally {
@@ -1153,7 +1159,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
             }
         }
 
-        // ذخیره در Google Sheets - نسخه سازگار
+        // ذخیره در Google Sheets - نسخه دیباگ
         async function saveToGoogleSheets() {
             if (sampleData.length === 0) {
                 console.log('⚠️ داده‌ای برای ذخیره‌سازی وجود ندارد');
@@ -1183,6 +1189,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                 }));
                 
                 console.log(`📤 ارسال ${dataForSheets.length} رکورد به Google Sheets...`);
+                console.log('🔍 نمونه داده‌های ارسالی:', dataForSheets.slice(0, 2)); // نمایش 2 رکورد اول
                 
                 // استفاده از replaceAllData برای جایگزینی کامل داده‌ها
                 const result = await executeRequest('replaceAllData', dataForSheets);
@@ -1202,7 +1209,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                 console.error('❌ خطا در ذخیره‌سازی:', error);
                 showLoading(false);
                 saveToLocalStorage();
-                showNotification('خطا در ذخیره‌سازی. داده‌ها در حافظه محلی ذخیره شدند.', 'warning');
+                showNotification(`خطا در ذخیره‌سازی: ${error.message}`, 'warning');
                 return false;
             }
         }
@@ -1234,11 +1241,11 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                 if (result.success) {
                     showNotification('تست ذخیره‌سازی ساده موفق بود', 'success');
                 } else {
-                    showNotification('خطا در تست ذخیره‌سازی', 'error');
+                    showNotification('خطا در تست ذخیره‌سازی: ' + result.error, 'error');
                 }
             } catch (error) {
                 console.error('❌ خطا در تست ساده:', error);
-                showNotification('خطا در تست ذخیره‌سازی', 'error');
+                showNotification('خطا در تست ذخیره‌سازی: ' + error.message, 'error');
             }
         }
 
@@ -1320,8 +1327,10 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                         if (result.success) {
                             showNotification('اتصال با سرور برقرار است', 'success');
                         } else {
-                            showNotification('خطا در اتصال به سرور', 'error');
+                            showNotification('خطا در اتصال به سرور: ' + result.error, 'error');
                         }
+                    }).catch(error => {
+                        showNotification('خطا در اتصال به سرور: ' + error.message, 'error');
                     });
                 });
             }
@@ -1353,7 +1362,6 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                     const modal = document.getElementById(modalId);
                     if (modal) {
                         modal.style.display = 'none';
-                        // فعال کردن فیلد شماره پرسنلی وقتی مودال بسته میشه
                         document.getElementById('employee-number').readOnly = false;
                     }
                 });
@@ -1362,7 +1370,6 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
             window.addEventListener('click', function(event) {
                 if (event.target.classList.contains('modal')) {
                     event.target.style.display = 'none';
-                    // فعال کردن فیلد شماره پرسنلی وقتی مودال بسته میشه
                     document.getElementById('employee-number').readOnly = false;
                 }
             });
@@ -1422,9 +1429,8 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
             const testLargeDataBtn = document.getElementById('test-large-data-btn');
             if (testLargeDataBtn) {
                 testLargeDataBtn.addEventListener('click', function() {
-                    // ایجاد 20 رکورد تستی
                     const testData = [];
-                    for (let i = 1; i <= 20; i++) {
+                    for (let i = 1; i <= 5; i++) {
                         testData.push({
                             username: `testuser${i}`,
                             employeeNumber: `TEST${i}`,
@@ -1443,7 +1449,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                     sampleData = sampleData.concat(testData);
                     renderTable(sampleData);
                     saveToLocalStorage();
-                    showNotification('20 رکورد تستی اضافه شد', 'success');
+                    showNotification('5 رکورد تستی اضافه شد', 'success');
                     updateDebugInfo();
                 });
             }
@@ -1580,11 +1586,9 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
             };
             
             if (existingIndex === -1) {
-                // افزودن جدید
                 sampleData.push(loanData);
                 showNotification('وام جدید با موفقیت افزوده شد', 'success');
             } else {
-                // ویرایش موجود - حفظ وضعیت loanRequest از داده قبلی
                 loanData.loanRequest = sampleData[existingIndex].loanRequest;
                 sampleData[existingIndex] = loanData;
                 showNotification('اطلاعات وام با موفقیت به‌روزرسانی شد', 'success');
@@ -1592,7 +1596,6 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
             
             renderTable(sampleData);
             
-            // ذخیره‌سازی در Google Sheets - کل داده‌ها
             const success = await saveToGoogleSheets();
             
             if (success) {
@@ -1617,7 +1620,6 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                 document.getElementById('description').value = employee.description || '';
                 document.getElementById('addEmployeeModal').style.display = 'block';
                 
-                // غیرفعال کردن فیلد شماره پرسنلی در حالت ویرایش
                 document.getElementById('employee-number').readOnly = true;
             }
         }
@@ -1627,7 +1629,6 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                 sampleData = sampleData.filter(item => item.employeeNumber !== employeeNumber);
                 renderTable(sampleData);
                 
-                // ذخیره‌سازی در Google Sheets
                 await saveToGoogleSheets();
                 
                 showNotification('وام با موفقیت حذف شد', 'success');
@@ -1640,7 +1641,6 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                 employee.loanRequest = !employee.loanRequest;
                 renderTable(sampleData);
                 
-                // ذخیره‌سازی در Google Sheets
                 await saveToGoogleSheets();
                 
                 showNotification(
