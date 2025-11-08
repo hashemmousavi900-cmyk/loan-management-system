@@ -193,70 +193,73 @@
         .priority-medium-badge { background: #ffc107; color: black; }
         .priority-low-badge { background: #6c757d; color: white; }
         
-        /* استایل جدید برای دکمه سوییچ */
-        .switch {
+        /* استایل جدید برای دکمه سوییچ مدل 13 */
+        .model-13 {
             position: relative;
             display: inline-block;
-            width: 60px;
-            height: 30px;
         }
         
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
+        .model-13 .checkbox {
+            position: relative;
         }
         
-        .slider {
+        .model-13 .checkbox:after {
+            content: 'خیر';
+            font-family: Vazirmatn, Tahoma, sans-serif;
             position: absolute;
+            color: #666;
+            top: 12px;
+            right: 15px;
+            z-index: 1;
+        }
+        
+        .model-13 .checkbox label {
+            background: none;
+            border: 3px solid #777;
+            height: 40px;
+            width: 120px;
+            border-radius: 20px;
+            display: block;
+            position: relative;
             cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 34px;
         }
         
-        .slider:before {
+        .model-13 .checkbox label:after {
+            content: 'بله';
+            font-family: Vazirmatn, Tahoma, sans-serif;
+            color: #fff;
+            line-height: 28px;
+            text-indent: 100px;
+            background: #777;
+            overflow: hidden;
+            box-shadow: none;
+            border-radius: 14px;
+            transform: translateX(-50px);
+            transition: all 0.4s 0.2s, width 0.2s linear, text-indent 0.4s linear;
             position: absolute;
-            content: "";
-            height: 22px;
-            width: 22px;
-            left: 4px;
-            bottom: 4px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-        
-        input:checked + .slider {
-            background-color: #2196F3;
-        }
-        
-        input:checked + .slider:before {
-            transform: translateX(30px);
-        }
-        
-        .slider-text {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 10px;
-            font-weight: bold;
-            color: white;
-            width: 100%;
+            top: 3px;
+            left: auto;
+            right: 2px;
+            width: 28px;
+            height: 28px;
             text-align: center;
-            pointer-events: none;
         }
         
-        .slider-text.on {
-            right: 8px;
+        .model-13 .checkbox input {
+            display: none;
         }
         
-        .slider-text.off {
-            left: 8px;
+        .model-13 .checkbox input:checked + label {
+            border-color: #27ae60;
+        }
+        
+        .model-13 .checkbox input:checked + label:after {
+            background: #27ae60;
+            left: auto;
+            transform: translateX(0px);
+            transition: all 0.4s, width 0.2s 0.4s linear, text-indent 0.3s 0.4s linear;
+            width: 80px;
+            text-indent: 0;
         }
         
         .empty-state {
@@ -372,7 +375,7 @@
         
         @keyframes spin {
             0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+           100% { transform: rotate(360deg); }
         }
         
         .debug-panel {
@@ -883,8 +886,9 @@
 
                 requestQueue.push(request);
                 
-                // نمایش پاپ آپ اگر اولین درخواست در صف باشه
-                if (requestQueue.length === 1 && activeRequests < MAX_CONCURRENT_REQUESTS && !isChunk) {
+                // نمایش پاپ آپ فقط برای عملیات حذف، ویرایش و فعال‌سازی
+                if (['delete', 'edit', 'request'].includes(action) && 
+                    requestQueue.length === 1 && activeRequests < MAX_CONCURRENT_REQUESTS && !isChunk) {
                     showProcessingPopup(action, 'single');
                 }
                 
@@ -1149,27 +1153,16 @@
 
         // تابع برای نمایش اولویت
         function getPriorityText(priority) {
-            // اگر اولویت عددی است، به متن تبدیل می‌شود
-            if (priority === '1' || priority === 'بالا') return 'بالا';
-            if (priority === '2' || priority === 'متوسط') return 'متوسط';
-            if (priority === '3' || priority === 'پایین') return 'پایین';
+            // نمایش اولویت به همان صورتی که از گوگل شیت می‌آید
             return priority;
         }
 
         // تابع برای دریافت کلاس اولویت
         function getPriorityClass(priority) {
-            if (priority === '1' || priority === 'بالا') return 'priority-high-badge';
-            if (priority === '2' || priority === 'متوسط') return 'priority-medium-badge';
-            if (priority === '3' || priority === 'پایین') return 'priority-low-badge';
+            if (priority === 'بالا') return 'priority-high-badge';
+            if (priority === 'متوسط') return 'priority-medium-badge';
+            if (priority === 'پایین') return 'priority-low-badge';
             return '';
-        }
-
-        // تابع برای تبدیل اولویت به فرمت عددی برای ذخیره‌سازی
-        function convertPriorityToNumber(priority) {
-            if (priority === 'بالا') return '1';
-            if (priority === 'متوسط') return '2';
-            if (priority === 'پایین') return '3';
-            return priority;
         }
 
         // رندر جدول
@@ -1253,13 +1246,12 @@
                     <td>${item.description || '-'}</td>
                     <td>${loanCount}</td>
                     <td>
-                        <label class="switch">
-                            <input type="checkbox" ${item.loanRequest ? 'checked' : ''} onchange="toggleLoanRequest('${item.employeeNumber}')">
-                            <span class="slider">
-                                <span class="slider-text on">بله</span>
-                                <span class="slider-text off">خیر</span>
-                            </span>
-                        </label>
+                        <div class="model-13">
+                            <div class="checkbox">
+                                <input type="checkbox" id="switch-${item.employeeNumber}" ${item.loanRequest ? 'checked' : ''}>
+                                <label for="switch-${item.employeeNumber}" onclick="toggleLoanRequest('${item.employeeNumber}')"></label>
+                            </div>
+                        </div>
                     </td>
                     <td>
                         <a href="#" class="details" onclick="showLoanDetails('${item.employeeNumber}')">
@@ -1297,12 +1289,6 @@
             if (gender === 'Female' || gender === 'female' || gender === 'F') return 'زن';
             if (gender === 'Male' || gender === 'male' || gender === 'M') return 'مرد';
             return gender || 'مرد';
-        }
-
-        function convertPriority(priority) {
-            if (priority === 'بالا' || priority === 'high' || priority === 'High') return 'بالا';
-            if (priority === 'پایین' || priority === 'low' || priority === 'Low') return 'پایین';
-            return priority || 'متوسط';
         }
 
         // توابع localStorage
@@ -1599,7 +1585,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                                 companyLoan: String(item.Companyloan || item.companyLoan || ''),
                                 bankLoanDate: convertDateFormat(item.Bankloandate || item.bankLoanDate || ''),
                                 companyLoanDate: convertDateFormat(item.Companyloandate || item.companyLoanDate || ''),
-                                priority: convertPriority(item.Priority || item.priority || ''),
+                                priority: String(item.Priority || item.priority || 'متوسط'),
                                 description: String(item.Description || item.description || ''),
                                 loanRequest: String(item.Loanrequest || item.loanRequest || item['Loanrequest'] || 'false').toLowerCase() === 'true'
                             };
@@ -1670,7 +1656,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                     Companyloan: item.companyLoan || '',
                     Bankloandate: item.bankLoanDate || '',
                     Companyloandate: item.companyLoanDate || '',
-                    Priority: convertPriorityToNumber(item.priority),
+                    Priority: item.priority,
                     Description: item.description || '',
                     Loanrequest: item.loanRequest ? 'true' : 'false'
                 }));
@@ -1721,7 +1707,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                     Companyloan: '500,000',
                     Bankloandate: '2024-01-01',
                     Companyloandate: '2024-01-01',
-                    Priority: '2',
+                    Priority: 'متوسط',
                     Description: 'این یک تست ساده است',
                     Loanrequest: 'false'
                 }
@@ -2050,9 +2036,6 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                 case 'delete':
                     deleteEmployee(employeeNumber);
                     break;
-                case 'request':
-                    // این حالت دیگر استفاده نمی‌شود چون از سوییچ استفاده می‌کنیم
-                    break;
             }
         }
 
@@ -2113,7 +2096,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                 document.getElementById('company-loan').value = employee.companyLoan || '';
                 document.getElementById('bank-loan-date').value = employee.bankLoanDate || '';
                 document.getElementById('company-loan-date').value = employee.companyLoanDate || '';
-                document.getElementById('priority').value = getPriorityText(employee.priority);
+                document.getElementById('priority').value = employee.priority;
                 document.getElementById('description').value = employee.description || '';
                 document.getElementById('addEmployeeModal').style.display = 'block';
                 
@@ -2153,7 +2136,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
         function showLoanDetails(employeeNumber) {
             const employee = sampleData.find(item => item.employeeNumber === employeeNumber);
             if (employee) {
-                alert(`جزئیات وام:\n\nنام: ${employee.fullname}\nشماره پرسنلی: ${employee.employeeNumber}\nوام بانکی: ${employee.bankLoan || 'ندارد'}\nوام شرکتی: ${employee.companyLoan || 'ندارد'}\nاولویت: ${getPriorityText(employee.priority)}`);
+                alert(`جزئیات وام:\n\nنام: ${employee.fullname}\nشماره پرسنلی: ${employee.employeeNumber}\nوام بانکی: ${employee.bankLoan || 'ندارد'}\nوام شرکتی: ${employee.companyLoan || 'ندارد'}\nاولویت: ${employee.priority}`);
             }
         }
 
