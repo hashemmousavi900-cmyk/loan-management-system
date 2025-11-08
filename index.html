@@ -193,73 +193,81 @@
         .priority-medium-badge { background: #ffc107; color: black; }
         .priority-low-badge { background: #6c757d; color: white; }
         
-        /* استایل جدید برای دکمه سوییچ مدل 13 */
-        .model-13 {
+        /* استایل جدید برای دکمه سوییچ فارسی */
+        .switch-fa {
+            font-size: 17px;
             position: relative;
             display: inline-block;
-        }
-        
-        .model-13 .checkbox {
-            position: relative;
-        }
-        
-        .model-13 .checkbox:after {
-            content: 'خیر';
-            font-family: Vazirmatn, Tahoma, sans-serif;
-            position: absolute;
-            color: #666;
-            top: 12px;
-            right: 15px;
-            z-index: 1;
-        }
-        
-        .model-13 .checkbox label {
-            background: none;
-            border: 3px solid #777;
-            height: 40px;
             width: 120px;
-            border-radius: 20px;
-            display: block;
-            position: relative;
-            cursor: pointer;
+            height: 40px;
+            margin: 10px;
         }
-        
-        .model-13 .checkbox label:after {
-            content: 'بله';
-            font-family: Vazirmatn, Tahoma, sans-serif;
-            color: #fff;
-            line-height: 28px;
-            text-indent: 100px;
-            background: #777;
-            overflow: hidden;
-            box-shadow: none;
-            border-radius: 14px;
-            transform: translateX(-50px);
-            transition: all 0.4s 0.2s, width 0.2s linear, text-indent 0.4s linear;
+
+        .switch-fa input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider-fa {
             position: absolute;
-            top: 3px;
-            left: auto;
-            right: 2px;
-            width: 28px;
-            height: 28px;
-            text-align: center;
+            cursor: pointer;
+            top: 0;
+            right: 0;
+            left: 0;
+            bottom: 0;
+            background-color: #ff6b6b;
+            transition: .4s;
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 15px;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .slider-fa:before {
+            position: absolute;
+            content: "";
+            height: 32px;
+            width: 32px;
+            border-radius: 20px;
+            right: 4px;
+            bottom: 4px;
+            z-index: 2;
+            background-color: white;
+            transition: .4s;
+        }
+
+        .switch-fa input:checked + .slider-fa {
+            background-color: #27ae60;
+        }
+
+        .switch-fa input:checked + .slider-fa:before {
+            transform: translateX(-80px);
         }
         
-        .model-13 .checkbox input {
-            display: none;
+        .switch-fa .text {
+            z-index: 1;
+            transition: opacity 0.3s;
         }
         
-        .model-13 .checkbox input:checked + label {
-            border-color: #27ae60;
+        .switch-fa .on {
+            opacity: 0;
         }
         
-        .model-13 .checkbox input:checked + label:after {
-            background: #27ae60;
-            left: auto;
-            transform: translateX(0px);
-            transition: all 0.4s, width 0.2s 0.4s linear, text-indent 0.3s 0.4s linear;
-            width: 80px;
-            text-indent: 0;
+        .switch-fa .off {
+            opacity: 1;
+        }
+        
+        .switch-fa input:checked + .slider-fa .on {
+            opacity: 1;
+        }
+        
+        .switch-fa input:checked + .slider-fa .off {
+            opacity: 0;
         }
         
         .empty-state {
@@ -777,9 +785,9 @@
                             <div class="form-group">
                                 <label for="priority">اولویت</label>
                                 <select id="priority" class="form-control" required>
-                                    <option value="بالا">بالا</option>
+                                    <option value="زیاد">زیاد</option>
                                     <option value="متوسط">متوسط</option>
-                                    <option value="پایین">پایین</option>
+                                    <option value="کم">کم</option>
                                 </select>
                             </div>
                             <div class="form-group" style="grid-column: 1 / -1;">
@@ -1151,7 +1159,7 @@
             }
         }
 
-        // تابع برای نمایش اولویت
+        // تابع برای نمایش اولویت - نمایش دقیقاً همان مقادیر از گوگل شیت
         function getPriorityText(priority) {
             // نمایش اولویت به همان صورتی که از گوگل شیت می‌آید
             return priority;
@@ -1159,9 +1167,9 @@
 
         // تابع برای دریافت کلاس اولویت
         function getPriorityClass(priority) {
-            if (priority === 'بالا') return 'priority-high-badge';
+            if (priority === 'زیاد') return 'priority-high-badge';
             if (priority === 'متوسط') return 'priority-medium-badge';
-            if (priority === 'پایین') return 'priority-low-badge';
+            if (priority === 'کم') return 'priority-low-badge';
             return '';
         }
 
@@ -1193,9 +1201,9 @@
                 
                 // کلاس اولویت - با رنگ‌بندی جدید
                 const priorityText = getPriorityText(item.priority);
-                if (priorityText === 'بالا') row.classList.add('priority-high');
+                if (priorityText === 'زیاد') row.classList.add('priority-high');
                 else if (priorityText === 'متوسط') row.classList.add('priority-medium');
-                else if (priorityText === 'پایین') row.classList.add('priority-low');
+                else if (priorityText === 'کم') row.classList.add('priority-low');
                 
                 // محاسبه تعداد وام‌های دریافتی
                 const bankLoanCount = (item.bankLoan && item.bankLoan !== 'درخواست داده شده' && item.bankLoan !== '-' && item.bankLoan.trim() !== '') ? 1 : 0;
@@ -1246,12 +1254,13 @@
                     <td>${item.description || '-'}</td>
                     <td>${loanCount}</td>
                     <td>
-                        <div class="model-13">
-                            <div class="checkbox">
-                                <input type="checkbox" id="switch-${item.employeeNumber}" ${item.loanRequest ? 'checked' : ''}>
-                                <label for="switch-${item.employeeNumber}" onclick="toggleLoanRequest('${item.employeeNumber}')"></label>
-                            </div>
-                        </div>
+                        <label class="switch-fa">
+                            <input type="checkbox" class="input" id="switch-${item.employeeNumber}" ${item.loanRequest ? 'checked' : ''} onchange="toggleLoanRequest('${item.employeeNumber}')">
+                            <span class="slider-fa">
+                                <span class="text on">بله</span>
+                                <span class="text off">خیر</span>
+                            </span>
+                        </label>
                     </td>
                     <td>
                         <a href="#" class="details" onclick="showLoanDetails('${item.employeeNumber}')">
@@ -1920,7 +1929,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                             companyLoan: `${i}00,000`,
                             bankLoanDate: '2024-01-01',
                             companyLoanDate: '2024-01-01',
-                            priority: i % 3 === 0 ? 'بالا' : i % 3 === 1 ? 'متوسط' : 'پایین',
+                            priority: i % 3 === 0 ? 'زیاد' : i % 3 === 1 ? 'متوسط' : 'کم',
                             description: `توضیحات تست ${i}`,
                             loanRequest: i % 2 === 0
                         });
