@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>سیستم مدیریت وام‌ها - CR(Mashhad)</title>
+    <title>سیستم مدیریت وام‌ها - CR(Mashhad) - نسخه Supabase</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
@@ -662,17 +662,17 @@
         <div class="initial-progress" id="initialProgress"></div>
     </div>
     
-    <!-- نوار پیشرفت لود داده‌ها از گوگل شیت -->
+    <!-- نوار پیشرفت لود داده‌ها از Supabase -->
     <div class="data-loading-bar" id="dataLoadingBar">
         <div class="data-loading-progress" id="dataLoadingProgress"></div>
     </div>
-    <div class="data-loading-text" id="dataLoadingText">در حال بارگذاری داده‌ها از گوگل شیت...</div>
+    <div class="data-loading-text" id="dataLoadingText">در حال بارگذاری داده‌ها از Supabase...</div>
 
     <div class="container">
         <div class="table-responsive">
             <div class="table-wrapper">
                 <div class="table-title">
-                    <h2>سیستم مدیریت وام‌ها - CR(Mashhad) - نسخه پایدار با مدیریت درخواست همزمان</h2>
+                    <h2>سیستم مدیریت وام‌ها - CR(Mashhad) - نسخه Supabase</h2>
                     <div class="btn-group">
                         <button class="btn btn-success" id="add-loan-btn">
                             <i class="fas fa-plus"></i> 
@@ -684,11 +684,11 @@
                         </button>
                         <button class="btn btn-info" id="save-to-cloud">
                             <i class="fas fa-cloud-upload-alt"></i>
-                            <span>ذخیره در Google Sheets</span>
+                            <span>ذخیره در Supabase</span>
                         </button>
                         <button class="btn btn-primary" id="load-from-cloud">
                             <i class="fas fa-cloud-download-alt"></i>
-                            <span>بارگذاری از Google Sheets</span>
+                            <span>بارگذاری از Supabase</span>
                         </button>
                         <button class="btn btn-secondary" id="test-connection-btn">
                             <i class="fas fa-wifi"></i>
@@ -766,7 +766,7 @@
                 
                 <!-- پنل دیباگ -->
                 <div id="debug-panel" class="debug-panel" style="display: none;">
-                    <h3>🔧 پنل دیباگ و تست سیستم - نسخه پایدار با مدیریت درخواست همزمان</h3>
+                    <h3>🔧 پنل دیباگ و تست سیستم - نسخه Supabase</h3>
                     
                     <div class="debug-section">
                         <h4>📊 وضعیت سیستم</h4>
@@ -818,7 +818,7 @@
     </div>
 
     <div class="footer">
-        Designed by SeyedHashem Mousavi - 2025 - نسخه پایدار با مدیریت درخواست همزمان
+        Designed by SeyedHashem Mousavi - 2025 - نسخه Supabase
     </div>
     
     <!-- مودال افزودن/ویرایش وام -->
@@ -973,8 +973,9 @@
         let totalChunks = 0;
         let completedChunks = 0;
         
-        // آدرس جدید Google Apps Script
-        const GOOGLE_APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzZon3TD82iK3kssiUQPYDqaH5_coLKH2crpzJnjEoCaqgJBRAe1oJNc8nn0a3T53ih/exec';
+        // تنظیمات Supabase
+        const SUPABASE_URL = "https://buowqguzsrychwoxyqby.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ1b3dxZ3V6c3J5Y2h3b3h5cWJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3MTQ1MzIsImV4cCI6MjA3ODI5MDUzMn0._2j0iRUY4L8x_59tDMEBh8qjSTHZdUOPd0nFqPZkXAk";
 
         // ==================== سیستم مدیریت درخواست‌های همزمان - بهبود یافته ====================
 
@@ -1016,7 +1017,7 @@
                 try {
                     logRequest(`🚀 اجرای درخواست ${request.action} (${activeRequests} درخواست فعال)`, request.data);
                     
-                    const result = await googleAppsScriptRequest(request.action, request.data);
+                    const result = await supabaseRequest(request.action, request.data);
                     request.resolve(result);
                 } catch (error) {
                     logRequest(`❌ خطا در درخواست ${request.action}: ${error.message}`, request.data, null, error);
@@ -1140,7 +1141,7 @@
 
         // بارگذاری اولیه با نوار پیشرفت
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 سیستم مدیریت وام بارگذاری شد - نسخه پایدار با مدیریت درخواست همزمان');
+            console.log('🚀 سیستم مدیریت وام بارگذاری شد - نسخه Supabase');
             
             // نمایش نوار پیشرفت لود اولیه
             showInitialProgress();
@@ -1169,7 +1170,7 @@
             }, 200);
         }
 
-        // نمایش نوار پیشرفت لود داده‌ها از گوگل شیت
+        // نمایش نوار پیشرفت لود داده‌ها از Supabase
         function showDataLoadingProgress(show, progress = 0) {
             const loadingBar = document.getElementById('dataLoadingBar');
             const loadingProgress = document.getElementById('dataLoadingProgress');
@@ -1192,9 +1193,9 @@
                 console.log('✅ داده‌ها از حافظه محلی بارگذاری شدند');
             }
             
-            // سپس از گوگل شیت بارگذاری می‌کنیم
+            // سپس از Supabase بارگذاری می‌کنیم
             setTimeout(() => {
-                loadFromGoogleSheets();
+                loadFromSupabase();
             }, 500);
         }
 
@@ -1257,9 +1258,9 @@
             }
         }
 
-        // تابع برای نمایش اولویت - نمایش دقیقاً همان مقادیر از گوگل شیت
+        // تابع برای نمایش اولویت - نمایش دقیقاً همان مقادیر از Supabase
         function getPriorityText(priority) {
-            // نمایش اولویت به همان صورتی که از گوگل شیت می‌آید
+            // نمایش اولویت به همان صورتی که از Supabase می‌آید
             return priority;
         }
 
@@ -1279,163 +1280,163 @@
             return priority; // اگر از قبل متن است، همان را برگردان
         }
 
-      // تابع جدید برای نمایش وام‌ها
-function createLoanDisplay(item) {
-    const bankLoans = item.bankLoan && item.bankLoan !== '-' && item.bankLoan.trim() !== '' ? 
-                     item.bankLoan.split(',').filter(loan => loan.trim() !== '') : [];
-    
-    const companyLoans = item.companyLoan && item.companyLoan !== '-' && item.companyLoan.trim() !== '' ? 
-                       item.companyLoan.split(',').filter(loan => loan.trim() !== '') : [];
-    
-    // متن tooltip
-    let tooltipHTML = `
-        <div class="tooltip-title">جزئیات وام‌ها</div>
-    `;
-    
-    if (companyLoans.length > 0) {
-        tooltipHTML += '<div style="margin-bottom: 8px;">';
-        companyLoans.forEach((loan, index) => {
-            tooltipHTML += `<div class="loan-type company-loan">وام شرکتی: ${loan.trim()} میلیون تومان</div>`;
-        });
-        tooltipHTML += '</div>';
-    }
-    
-    if (bankLoans.length > 0) {
-        tooltipHTML += '<div>';
-        bankLoans.forEach((loan, index) => {
-            tooltipHTML += `<div class="loan-type bank-loan">وام بانکی: ${loan.trim()} میلیون تومان</div>`;
-        });
-        tooltipHTML += '</div>';
-    }
-    
-    return {
-        tooltip: tooltipHTML
-    };
-}
-
-// رندر جدول
-function renderTable(data) {
-    const tableBody = document.getElementById('loan-table-body');
-    
-    if (!tableBody) {
-        console.error('❌ المان loan-table-body یافت نشد');
-        return;
-    }
-    
-    console.log('🎯 شروع رندر جدول با داده:', data);
-    
-    if (!data || data.length === 0) {
-        console.log('📭 داده‌ای برای نمایش وجود ندارد');
-        showEmptyState();
-        return;
-    }
-    
-    console.log(`📊 نمایش ${data.length} رکورد در جدول`);
-    hideEmptyState();
-    
-    // استفاده از DocumentFragment برای رندر سریع‌تر
-    const fragment = document.createDocumentFragment();
-    
-    data.forEach((item, index) => {
-        const row = document.createElement('tr');
-        
-        // کلاس اولویت - با رنگ‌بندی جدید
-        const priorityText = getPriorityText(item.priority);
-        if (priorityText === 'زیاد') row.classList.add('priority-high');
-        else if (priorityText === 'متوسط') row.classList.add('priority-medium');
-        else if (priorityText === 'کم') row.classList.add('priority-low');
-        
-        // محاسبه تعداد وام‌های دریافتی
-        const bankLoans = item.bankLoan && item.bankLoan !== '-' && item.bankLoan.trim() !== '' ? 
-                         item.bankLoan.split(',').filter(loan => loan.trim() !== '') : [];
-        const companyLoans = item.companyLoan && item.companyLoan !== '-' && item.companyLoan.trim() !== '' ? 
-                           item.companyLoan.split(',').filter(loan => loan.trim() !== '') : [];
-        
-        const bankLoanCount = bankLoans.length;
-        const companyLoanCount = companyLoans.length;
-        const loanCount = bankLoanCount + companyLoanCount;
-        
-        // نمایش وام‌ها - تعداد وام‌ها + پاپ‌آپ
-        let loanSummaryHTML = '';
-
-        if (bankLoanCount > 0 || companyLoanCount > 0) {
-            // حذف div بیرونی که پس‌زمینه ایجاد می‌کرد
-            if (companyLoanCount > 0) {
-                loanSummaryHTML += `
-                    <div style="background: #f3e5f5; padding: 2px 6px; border-radius: 4px; border: 1px solid #e1bee7; margin-bottom: 2px;">
-                        وام شرکتی: ${companyLoanCount} وام
-                    </div>
-                `;
+        // تابع جدید برای نمایش وام‌ها
+        function createLoanDisplay(item) {
+            const bankLoans = item.bankLoan && item.bankLoan !== '-' && item.bankLoan.trim() !== '' ? 
+                             item.bankLoan.split(',').filter(loan => loan.trim() !== '') : [];
+            
+            const companyLoans = item.companyLoan && item.companyLoan !== '-' && item.companyLoan.trim() !== '' ? 
+                               item.companyLoan.split(',').filter(loan => loan.trim() !== '') : [];
+            
+            // متن tooltip
+            let tooltipHTML = `
+                <div class="tooltip-title">جزئیات وام‌ها</div>
+            `;
+            
+            if (companyLoans.length > 0) {
+                tooltipHTML += '<div style="margin-bottom: 8px;">';
+                companyLoans.forEach((loan, index) => {
+                    tooltipHTML += `<div class="loan-type company-loan">وام شرکتی: ${loan.trim()} میلیون تومان</div>`;
+                });
+                tooltipHTML += '</div>';
             }
             
-            if (bankLoanCount > 0) {
-                loanSummaryHTML += `
-                    <div style="background: #e3f2fd; padding: 2px 6px; border-radius: 4px; border: 1px solid #bbdefb; margin-bottom: 2px;">
-                        وام بانکی: ${bankLoanCount} وام
-                    </div>
-                `;
+            if (bankLoans.length > 0) {
+                tooltipHTML += '<div>';
+                bankLoans.forEach((loan, index) => {
+                    tooltipHTML += `<div class="loan-type bank-loan">وام بانکی: ${loan.trim()} میلیون تومان</div>`;
+                });
+                tooltipHTML += '</div>';
             }
-        } else {
-            loanSummaryHTML = '-';
+            
+            return {
+                tooltip: tooltipHTML
+            };
         }
 
-        // ایجاد پاپ‌آپ برای نمایش جزئیات
-        const loanDisplay = createLoanDisplay(item);
-        const loanCellHTML = `
-            <div class="loan-display" style="background: transparent !important;">
-                ${loanSummaryHTML}
-                <div class="loan-tooltip">
-                    ${loanDisplay.tooltip}
-                </div>
-            </div>
-        `;
-        
-        row.innerHTML = `
-            <td>${index + 1}</td>
-            <td>${item.username || '-'}</td>
-            <td>${item.employeeNumber}</td>
-            <td>${item.fullname}</td>
-            <td>${item.gender}</td>
-            <td style="background: transparent !important;">${loanCellHTML}</td>
-            <td>${item.bankLoanDate || '-'}</td>
-            <td>${item.companyLoanDate || '-'}</td>
-            <td>
-                <span class="priority-badge ${getPriorityClass(item.priority)}">
-                    ${getPriorityText(item.priority)}
-                </span>
-            </td>
-            <td>${item.description || '-'}</td>
-            <td>${loanCount}</td>
-            <td>
-                <label class="switch-fa">
-                    <input type="checkbox" class="input" id="switch-${item.employeeNumber}" ${item.loanRequest ? 'checked' : ''} onchange="toggleLoanRequest('${item.employeeNumber}')">
-                    <span class="slider-fa">
-                        <span class="text on">بله</span>
-                        <span class="text off">خیر</span>
-                    </span>
-                </label>
-            </td>
-            <td>
-                <a href="#" class="details" onclick="showLoanDetails('${item.employeeNumber}')">
-                    <i class="fas fa-eye"></i>
-                </a>
-                <a href="#" class="edit" onclick="requestPassword('${item.employeeNumber}', 'edit')">
-                    <i class="fas fa-edit"></i>
-                </a>
-                <a href="#" class="delete" onclick="requestPassword('${item.employeeNumber}', 'delete')">
-                    <i class="fas fa-trash"></i>
-                </a>
-            </td>
-        `;
-        
-        fragment.appendChild(row);
-    });
-    
-    tableBody.innerHTML = '';
-    tableBody.appendChild(fragment);
-    
-    console.log('✅ جدول با موفقیت رندر شد');
-}
+        // رندر جدول
+        function renderTable(data) {
+            const tableBody = document.getElementById('loan-table-body');
+            
+            if (!tableBody) {
+                console.error('❌ المان loan-table-body یافت نشد');
+                return;
+            }
+            
+            console.log('🎯 شروع رندر جدول با داده:', data);
+            
+            if (!data || data.length === 0) {
+                console.log('📭 داده‌ای برای نمایش وجود ندارد');
+                showEmptyState();
+                return;
+            }
+            
+            console.log(`📊 نمایش ${data.length} رکورد در جدول`);
+            hideEmptyState();
+            
+            // استفاده از DocumentFragment برای رندر سریع‌تر
+            const fragment = document.createDocumentFragment();
+            
+            data.forEach((item, index) => {
+                const row = document.createElement('tr');
+                
+                // کلاس اولویت - با رنگ‌بندی جدید
+                const priorityText = getPriorityText(item.priority);
+                if (priorityText === 'زیاد') row.classList.add('priority-high');
+                else if (priorityText === 'متوسط') row.classList.add('priority-medium');
+                else if (priorityText === 'کم') row.classList.add('priority-low');
+                
+                // محاسبه تعداد وام‌های دریافتی
+                const bankLoans = item.bankLoan && item.bankLoan !== '-' && item.bankLoan.trim() !== '' ? 
+                                 item.bankLoan.split(',').filter(loan => loan.trim() !== '') : [];
+                const companyLoans = item.companyLoan && item.companyLoan !== '-' && item.companyLoan.trim() !== '' ? 
+                                   item.companyLoan.split(',').filter(loan => loan.trim() !== '') : [];
+                
+                const bankLoanCount = bankLoans.length;
+                const companyLoanCount = companyLoans.length;
+                const loanCount = bankLoanCount + companyLoanCount;
+                
+                // نمایش وام‌ها - تعداد وام‌ها + پاپ‌آپ
+                let loanSummaryHTML = '';
+
+                if (bankLoanCount > 0 || companyLoanCount > 0) {
+                    // حذف div بیرونی که پس‌زمینه ایجاد می‌کرد
+                    if (companyLoanCount > 0) {
+                        loanSummaryHTML += `
+                            <div style="background: #f3e5f5; padding: 2px 6px; border-radius: 4px; border: 1px solid #e1bee7; margin-bottom: 2px;">
+                                وام شرکتی: ${companyLoanCount} وام
+                            </div>
+                        `;
+                    }
+                    
+                    if (bankLoanCount > 0) {
+                        loanSummaryHTML += `
+                            <div style="background: #e3f2fd; padding: 2px 6px; border-radius: 4px; border: 1px solid #bbdefb; margin-bottom: 2px;">
+                                وام بانکی: ${bankLoanCount} وام
+                            </div>
+                        `;
+                    }
+                } else {
+                    loanSummaryHTML = '-';
+                }
+
+                // ایجاد پاپ‌آپ برای نمایش جزئیات
+                const loanDisplay = createLoanDisplay(item);
+                const loanCellHTML = `
+                    <div class="loan-display" style="background: transparent !important;">
+                        ${loanSummaryHTML}
+                        <div class="loan-tooltip">
+                            ${loanDisplay.tooltip}
+                        </div>
+                    </div>
+                `;
+                
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${item.username || '-'}</td>
+                    <td>${item.employeeNumber}</td>
+                    <td>${item.fullname}</td>
+                    <td>${item.gender}</td>
+                    <td style="background: transparent !important;">${loanCellHTML}</td>
+                    <td>${item.bankLoanDate || '-'}</td>
+                    <td>${item.companyLoanDate || '-'}</td>
+                    <td>
+                        <span class="priority-badge ${getPriorityClass(item.priority)}">
+                            ${getPriorityText(item.priority)}
+                        </span>
+                    </td>
+                    <td>${item.description || '-'}</td>
+                    <td>${loanCount}</td>
+                    <td>
+                        <label class="switch-fa">
+                            <input type="checkbox" class="input" id="switch-${item.employeeNumber}" ${item.loanRequest ? 'checked' : ''} onchange="toggleLoanRequest('${item.employeeNumber}')">
+                            <span class="slider-fa">
+                                <span class="text on">بله</span>
+                                <span class="text off">خیر</span>
+                            </span>
+                        </label>
+                    </td>
+                    <td>
+                        <a href="#" class="details" onclick="showLoanDetails('${item.employeeNumber}')">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <a href="#" class="edit" onclick="requestPassword('${item.employeeNumber}', 'edit')">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <a href="#" class="delete" onclick="requestPassword('${item.employeeNumber}', 'delete')">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    </td>
+                `;
+                
+                fragment.appendChild(row);
+            });
+            
+            tableBody.innerHTML = '';
+            tableBody.appendChild(fragment);
+            
+            console.log('✅ جدول با موفقیت رندر شد');
+        }
 
         // توابع تبدیل
         function convertDateFormat(dateString) {
@@ -1514,11 +1515,11 @@ function renderTable(data) {
 زمان: ${new Date().toLocaleString('fa-IR')}
 تعداد رکوردها: ${sampleData.length}
 وضعیت احراز هویت: ${isAuthenticated ? '✅ فعال' : '❌ غیرفعال'}
-آدرس اسکریپت: ${GOOGLE_APPS_SCRIPT_URL}
+آدرس Supabase: ${SUPABASE_URL}
 حافظه محلی: ${localStorage.getItem('loanData') ? '✅ دارای داده' : '❌ خالی'}
 درخواست‌های فعال: ${activeRequests} از ${MAX_CONCURRENT_REQUESTS}
 صف درخواست: ${requestQueue.length} درخواست
-نسخه: پایدار - با سیستم مدیریت درخواست همزمان
+نسخه: Supabase - با سیستم مدیریت درخواست همزمان
                 `.trim();
             }
             
@@ -1543,85 +1544,110 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
             }
         }
 
-        // ==================== توابع ارتباط با گوگل - نسخه بهبود یافته ====================
+        // ==================== توابع ارتباط با Supabase ====================
 
-        // درخواست به Google Apps Script - نسخه JSONP
-        async function googleAppsScriptRequest(action, data = null) {
-            console.log(`📡 ارسال درخواست ${action}...`);
+        // درخواست به Supabase
+        async function supabaseRequest(action, data = null) {
+            console.log(`📡 ارسال درخواست ${action} به Supabase...`);
+            const startTime = Date.now();
             
-            return new Promise((resolve, reject) => {
-                const requestId = Date.now();
-                const callbackName = 'cb_' + requestId;
-                const startTime = Date.now();
+            try {
+                let response;
                 
-                let url = `${GOOGLE_APPS_SCRIPT_URL}?action=${action}&callback=${callbackName}`;
-                
-                if (data) {
-                    const dataString = JSON.stringify(data);
-                    console.log(`📦 حجم داده: ${dataString.length} کاراکتر`);
-                    
-                    // اگر داده‌ها خیلی بزرگ هستند، آنها را به chunks تقسیم می‌کنیم
-                    if (dataString.length > 15000) {
-                        console.log('🔄 داده‌های بزرگ - تقسیم به chunks');
-                        sendLargeDataInChunks(action, data)
-                            .then(resolve)
-                            .catch(reject);
-                        return;
-                    }
-                    
-                    url += `&data=${encodeURIComponent(dataString)}`;
+                switch(action) {
+                    case 'loadData':
+                        response = await fetch(`${SUPABASE_URL}/rest/v1/loans?select=*&order=id.desc`, {
+                            headers: { 
+                                'apikey': SUPABASE_KEY, 
+                                'Authorization': `Bearer ${SUPABASE_KEY}` 
+                            }
+                        });
+                        break;
+                        
+                    case 'appendData':
+                        response = await fetch(`${SUPABASE_URL}/rest/v1/loans`, {
+                            method: 'POST',
+                            headers: {
+                                'apikey': SUPABASE_KEY,
+                                'Authorization': `Bearer ${SUPABASE_KEY}`,
+                                'Content-Type': 'application/json',
+                                'Prefer': 'return=minimal'
+                            },
+                            body: JSON.stringify(data)
+                        });
+                        break;
+                        
+                    case 'updateData':
+                        response = await fetch(`${SUPABASE_URL}/rest/v1/loans?id=eq.${data.id}`, {
+                            method: 'PATCH',
+                            headers: {
+                                'apikey': SUPABASE_KEY,
+                                'Authorization': `Bearer ${SUPABASE_KEY}`,
+                                'Content-Type': 'application/json',
+                                'Prefer': 'return=minimal'
+                            },
+                            body: JSON.stringify(data)
+                        });
+                        break;
+                        
+                    case 'deleteData':
+                        response = await fetch(`${SUPABASE_URL}/rest/v1/loans?id=eq.${data.id}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'apikey': SUPABASE_KEY,
+                                'Authorization': `Bearer ${SUPABASE_KEY}`,
+                                'Prefer': 'return=minimal'
+                            }
+                        });
+                        break;
+                        
+                    case 'clearSheet':
+                        response = await fetch(`${SUPABASE_URL}/rest/v1/loans`, {
+                            method: 'DELETE',
+                            headers: {
+                                'apikey': SUPABASE_KEY,
+                                'Authorization': `Bearer ${SUPABASE_KEY}`,
+                                'Prefer': 'return=minimal'
+                            }
+                        });
+                        break;
+                        
+                    case 'test':
+                        response = await fetch(`${SUPABASE_URL}/rest/v1/loans?limit=1`, {
+                            headers: { 
+                                'apikey': SUPABASE_KEY, 
+                                'Authorization': `Bearer ${SUPABASE_KEY}` 
+                            }
+                        });
+                        break;
+                        
+                    default:
+                        throw new Error(`عملیات ${action} پشتیبانی نمی‌شود`);
                 }
                 
-                url += `&t=${requestId}`;
+                const duration = Date.now() - startTime;
                 
-                console.log('🔗 URL درخواست:', url.length < 500 ? url : url.substring(0, 500) + '...');
+                if (!response.ok) {
+                    throw new Error(`خطای HTTP: ${response.status} ${response.statusText}`);
+                }
                 
-                window[callbackName] = function(response) {
-                    const duration = Date.now() - startTime;
-                    
-                    console.log(`📥 پاسخ دریافت شد (${duration}ms):`, response);
-                    logRequest(action, data, response, null, duration);
-                    
-                    delete window[callbackName];
-                    if (script.parentNode) {
-                        document.body.removeChild(script);
-                    }
-                    resolve(response);
-                };
+                let result;
+                if (action === 'loadData' || action === 'test') {
+                    result = await response.json();
+                } else {
+                    result = { success: true, message: 'عملیات با موفقیت انجام شد' };
+                }
                 
-                const script = document.createElement('script');
-                script.src = url;
+                console.log(`📥 پاسخ دریافت شد (${duration}ms):`, result);
+                logRequest(action, data, result, null, duration);
                 
-                script.onerror = function() {
-                    const duration = Date.now() - startTime;
-                    const error = new Error('خطا در بارگذاری اسکریپت');
-                    
-                    console.error(`❌ خطا در بارگذاری اسکریپت (${duration}ms)`);
-                    logRequest(action, data, null, error.message, duration);
-                    
-                    delete window[callbackName];
-                    if (script.parentNode) {
-                        document.body.removeChild(script);
-                    }
-                    reject(error);
-                };
-                
-                document.body.appendChild(script);
-                
-                setTimeout(() => {
-                    if (window[callbackName]) {
-                        const error = new Error('تایم‌اوت درخواست');
-                        console.error(`⏰ تایم‌اوت درخواست ${action} (30000ms)`);
-                        logRequest(action, data, null, error.message, 30000);
-                        
-                        delete window[callbackName];
-                        if (script.parentNode) {
-                            document.body.removeChild(script);
-                        }
-                        reject(error);
-                    }
-                }, 30000);
-            });
+                return result;
+            } catch (error) {
+                const duration = Date.now() - startTime;
+                console.error(`❌ خطا در درخواست ${action} (${duration}ms):`, error);
+                logRequest(action, data, null, error.message, duration);
+                throw error;
+            }
         }
 
         // ارسال داده‌های بزرگ به صورت chunk
@@ -1648,9 +1674,9 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
             // اول شیت رو پاک کن
             try {
                 await executeRequest('clearSheet', null, true);
-                console.log('✅ شیت پاک شد برای شروع جدید');
+                console.log('✅ داده‌های قبلی پاک شدند');
             } catch (error) {
-                console.warn('⚠️ خطا در پاک کردن شیت:', error);
+                console.warn('⚠️ خطا در پاک کردن داده‌های قبلی:', error);
             }
             
             // ارسال chunks
@@ -1658,7 +1684,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                 try {
                     console.log(`📤 ارسال chunk ${i + 1}/${chunks.length} (${chunks[i].length} رکورد)...`);
                     
-                    const result = await executeRequest(action, chunks[i], true);
+                    const result = await executeRequest('appendData', chunks[i], true);
                     if (result && result.success) {
                         totalSaved += chunks[i].length;
                         successCount++;
@@ -1693,13 +1719,13 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
             };
         }
 
-        // بارگذاری از Google Sheets - نسخه اصلاح شده
-        async function loadFromGoogleSheets() {
-            showLoading(true, 'در حال بارگذاری از Google Sheets...');
+        // بارگذاری از Supabase - نسخه اصلاح شده
+        async function loadFromSupabase() {
+            showLoading(true, 'در حال بارگذاری از Supabase...');
             showDataLoadingProgress(true, 0);
             
             try {
-                console.log('🔄 شروع بارگذاری از Google Sheets...');
+                console.log('🔄 شروع بارگذاری از Supabase...');
                 
                 // شبیه‌سازی پیشرفت بارگذاری
                 let progress = 0;
@@ -1718,12 +1744,12 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                 clearInterval(progressInterval);
                 showDataLoadingProgress(true, 100);
                 
-                if (result.success && result.data && Array.isArray(result.data)) {
-                    console.log(`📥 دریافت ${result.data.length} رکورد از سرور`);
+                if (Array.isArray(result)) {
+                    console.log(`📥 دریافت ${result.length} رکورد از سرور`);
                     
-                    if (result.data.length === 0) {
-                        console.log('📭 هیچ داده‌ای در Google Sheets وجود ندارد');
-                        showNotification('هیچ داده‌ای در Google Sheets وجود ندارد', 'info');
+                    if (result.length === 0) {
+                        console.log('📭 هیچ داده‌ای در Supabase وجود ندارد');
+                        showNotification('هیچ داده‌ای در Supabase وجود ندارد', 'info');
                         showEmptyState();
                         return;
                     }
@@ -1731,25 +1757,26 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                     // پردازش داده‌ها - نسخه ساده‌تر
                     sampleData = [];
                     
-                    result.data.forEach((item, index) => {
+                    result.forEach((item, index) => {
                         console.log(`📝 پردازش رکورد ${index + 1}:`, item);
                         
                         // بررسی وجود شماره پرسنلی
-                        const employeeNumber = item.Employeenumber || item.employeeNumber || item['Employeenumber'] || '';
+                        const employeeNumber = item.employeenumber || '';
                         
                         if (employeeNumber && employeeNumber.toString().trim() !== '') {
                             const processedItem = {
-                                username: String(item.Username || item.username || ''),
+                                id: item.id,
+                                username: String(item.username || ''),
                                 employeeNumber: employeeNumber.toString(),
-                                fullname: String(item.Fullname || item.fullname || ''),
-                                gender: convertGender(item.Gender || item.gender || ''),
-                                bankLoan: String(item.Bankloan || item.bankLoan || ''),
-                                companyLoan: String(item.Companyloan || item.companyLoan || ''),
-                                bankLoanDate: convertDateFormat(item.Bankloandate || item.bankLoanDate || ''),
-                                companyLoanDate: convertDateFormat(item.Companyloandate || item.companyLoanDate || ''),
-                                priority: convertPriority(String(item.Priority || item.priority || 'متوسط')),
-                                description: String(item.Description || item.description || ''),
-                                loanRequest: String(item.Loanrequest || item.loanRequest || item['Loanrequest'] || 'false').toLowerCase() === 'true'
+                                fullname: String(item.fullname || ''),
+                                gender: convertGender(item.gender || ''),
+                                bankLoan: String(item.bankloan || ''),
+                                companyLoan: String(item.companyloan || ''),
+                                bankLoanDate: convertDateFormat(item.bankloandate || ''),
+                                companyLoanDate: convertDateFormat(item.companyloandate || ''),
+                                priority: convertPriority(String(item.priority || 'متوسط')),
+                                description: String(item.description || ''),
+                                loanRequest: Boolean(item.loanrequest)
                             };
                             
                             sampleData.push(processedItem);
@@ -1764,15 +1791,15 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                         showNotification(`داده‌ها با موفقیت بارگذاری شدند (${sampleData.length} رکورد)`, 'success');
                     } else {
                         console.log('❌ هیچ داده معتبری پس از پردازش باقی نماند');
-                        showNotification('هیچ داده معتبری در Google Sheets وجود ندارد', 'info');
+                        showNotification('هیچ داده معتبری در Supabase وجود ندارد', 'info');
                         showEmptyState();
                     }
                 } else {
                     console.log('❌ ساختار پاسخ نامعتبر:', result);
-                    throw new Error(result.error || 'خطا در بارگذاری داده‌ها از سرور');
+                    throw new Error('خطا در بارگذاری داده‌ها از سرور');
                 }
             } catch (error) {
-                console.error('❌ خطا در بارگذاری از گوگل شیت:', error);
+                console.error('❌ خطا در بارگذاری از Supabase:', error);
                 
                 // تلاش برای بارگذاری از حافظه محلی
                 const loaded = loadFromLocalStorage();
@@ -1789,8 +1816,8 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
             }
         }
 
-        // ذخیره در Google Sheets - نسخه بهبود یافته با مدیریت درخواست همزمان
-        async function saveToGoogleSheets() {
+        // ذخیره در Supabase - نسخه بهبود یافته با مدیریت درخواست همزمان
+        async function saveToSupabase() {
             if (sampleData.length === 0) {
                 console.log('⚠️ داده‌ای برای ذخیره‌سازی وجود ندارد');
                 showNotification('داده‌ای برای ذخیره‌سازی وجود ندارد', 'warning');
@@ -1800,37 +1827,37 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
             console.log('💾 شروع ذخیره‌سازی...');
             console.log('📊 تعداد داده‌ها:', sampleData.length);
             
-            showLoading(true, 'در حال ذخیره در Google Sheets...');
+            showLoading(true, 'در حال ذخیره در Supabase...');
             setDataLock(true);
             
             try {
                 // اول شیت رو پاک کن
                 await executeRequest('clearSheet');
-                console.log('✅ شیت پاک شد');
+                console.log('✅ داده‌های قبلی پاک شدند');
                 
                 // حالا تمام داده‌ها رو ذخیره کن
-                const dataForSheets = sampleData.map(item => ({
-                    Username: item.username || '',
-                    Employeenumber: item.employeeNumber,
-                    Fullname: item.fullname,
-                    Gender: item.gender,
-                    Bankloan: item.bankLoan || '',
-                    Companyloan: item.companyLoan || '',
-                    Bankloandate: item.bankLoanDate || '',
-                    Companyloandate: item.companyLoanDate || '',
-                    Priority: item.priority,
-                    Description: item.description || '',
-                    Loanrequest: item.loanRequest ? 'true' : 'false'
+                const dataForSupabase = sampleData.map(item => ({
+                    username: item.username || '',
+                    employeenumber: item.employeeNumber,
+                    fullname: item.fullname,
+                    gender: item.gender,
+                    bankloan: item.bankLoan || '',
+                    companyloan: item.companyLoan || '',
+                    bankloandate: item.bankLoanDate || '',
+                    companyloandate: item.companyLoanDate || '',
+                    priority: item.priority,
+                    description: item.description || '',
+                    loanrequest: item.loanRequest
                 }));
                 
-                console.log(`📤 ارسال ${dataForSheets.length} رکورد به Google Sheets...`);
+                console.log(`📤 ارسال ${dataForSupabase.length} رکورد به Supabase...`);
                 
                 // اگر داده‌ها زیاد هستند، به chunks تقسیم کن
                 let result;
-                if (dataForSheets.length > 10) {
-                    result = await sendLargeDataInChunks('appendData', dataForSheets);
+                if (dataForSupabase.length > 10) {
+                    result = await sendLargeDataInChunks('appendData', dataForSupabase);
                 } else {
-                    result = await executeRequest('appendData', dataForSheets);
+                    result = await executeRequest('appendData', dataForSupabase);
                 }
                 
                 console.log('✅ پاسخ ذخیره‌سازی:', result);
@@ -1840,7 +1867,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                 
                 if (result && result.success) {
                     saveToLocalStorage();
-                    showNotification(`تمامی ${dataForSheets.length} رکورد با موفقیت ذخیره شدند`, 'success');
+                    showNotification(`تمامی ${dataForSupabase.length} رکورد با موفقیت ذخیره شدند`, 'success');
                     return true;
                 } else {
                     throw new Error(result.error || 'خطا در ذخیره‌سازی');
@@ -1861,17 +1888,17 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
             
             const testData = [
                 {
-                    Username: 'test_simple',
-                    Employeenumber: 'TESTSIMPLE001',
-                    Fullname: 'تست ساده',
-                    Gender: 'مرد',
-                    Bankloan: '1,000,000',
-                    Companyloan: '500,000',
-                    Bankloandate: '2024-01-01',
-                    Companyloandate: '2024-01-01',
-                    Priority: 'متوسط',
-                    Description: 'این یک تست ساده است',
-                    Loanrequest: 'false'
+                    username: 'test_simple',
+                    employeenumber: 'TESTSIMPLE001',
+                    fullname: 'تست ساده',
+                    gender: 'مرد',
+                    bankloan: '1,000,000',
+                    companyloan: '500,000',
+                    bankloandate: '2024-01-01',
+                    companyloandate: '2024-01-01',
+                    priority: 'متوسط',
+                    description: 'این یک تست ساده است',
+                    loanrequest: false
                 }
             ];
             
@@ -1937,7 +1964,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
             const saveToCloud = document.getElementById('save-to-cloud');
             if (saveToCloud) {
                 saveToCloud.addEventListener('click', function() {
-                    saveToGoogleSheets();
+                    saveToSupabase();
                 });
             }
 
@@ -1946,10 +1973,10 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                 loadFromCloud.addEventListener('click', function() {
                     if (sampleData.length > 0) {
                         if (confirm('⚠️ اگر ادامه دهید، داده‌های فعلی با داده‌های جدید جایگزین می‌شوند.\n\nآیا مطمئن هستید؟')) {
-                            loadFromGoogleSheets();
+                            loadFromSupabase();
                         }
                     } else {
-                        loadFromGoogleSheets();
+                        loadFromSupabase();
                     }
                 });
             }
@@ -1965,7 +1992,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
             if (testConnectionBtn) {
                 testConnectionBtn.addEventListener('click', function() {
                     executeRequest('test').then(result => {
-                        if (result.success) {
+                        if (Array.isArray(result)) {
                             showNotification('اتصال با سرور برقرار است', 'success');
                         } else {
                             showNotification('خطا در اتصال به سرور', 'error');
@@ -2031,14 +2058,14 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
             const testSaveBtn = document.getElementById('test-save-btn');
             if (testSaveBtn) {
                 testSaveBtn.addEventListener('click', function() {
-                    saveToGoogleSheets();
+                    saveToSupabase();
                 });
             }
 
             const testLoadBtn = document.getElementById('test-load-btn');
             if (testLoadBtn) {
                 testLoadBtn.addEventListener('click', function() {
-                    loadFromGoogleSheets();
+                    loadFromSupabase();
                 });
             }
 
@@ -2112,7 +2139,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
             const forceSaveBtn = document.getElementById('force-save-btn');
             if (forceSaveBtn) {
                 forceSaveBtn.addEventListener('click', function() {
-                    saveToGoogleSheets();
+                    saveToSupabase();
                 });
             }
 
@@ -2237,8 +2264,8 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
             
             renderTable(sampleData);
             
-            // ذخیره‌سازی در Google Sheets - کل داده‌ها
-            const success = await saveToGoogleSheets();
+            // ذخیره‌سازی در Supabase - کل داده‌ها
+            const success = await saveToSupabase();
             
             if (success) {
                 document.getElementById('addEmployeeModal').style.display = 'none';
@@ -2269,13 +2296,26 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
 
         async function deleteEmployee(employeeNumber) {
             if (confirm('آیا از حذف این وام اطمینان دارید؟')) {
-                sampleData = sampleData.filter(item => item.employeeNumber !== employeeNumber);
-                renderTable(sampleData);
-                
-                // ذخیره‌سازی در Google Sheets
-                await saveToGoogleSheets();
-                
-                showNotification('وام با موفقیت حذف شد', 'success');
+                const employee = sampleData.find(item => item.employeeNumber === employeeNumber);
+                if (employee && employee.id) {
+                    try {
+                        await executeRequest('deleteData', { id: employee.id });
+                        sampleData = sampleData.filter(item => item.employeeNumber !== employeeNumber);
+                        renderTable(sampleData);
+                        showNotification('وام با موفقیت حذف شد', 'success');
+                    } catch (error) {
+                        console.error('❌ خطا در حذف از Supabase:', error);
+                        sampleData = sampleData.filter(item => item.employeeNumber !== employeeNumber);
+                        renderTable(sampleData);
+                        saveToLocalStorage();
+                        showNotification('وام از حافظه محلی حذف شد', 'warning');
+                    }
+                } else {
+                    sampleData = sampleData.filter(item => item.employeeNumber !== employeeNumber);
+                    renderTable(sampleData);
+                    saveToLocalStorage();
+                    showNotification('وام از حافظه محلی حذف شد', 'warning');
+                }
             }
         }
 
@@ -2285,8 +2325,8 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                 employee.loanRequest = !employee.loanRequest;
                 renderTable(sampleData);
                 
-                // ذخیره‌سازی در Google Sheets
-                await saveToGoogleSheets();
+                // ذخیره‌سازی در Supabase
+                await saveToSupabase();
                 
                 showNotification(
                     employee.loanRequest ? 'درخواست وام ثبت شد' : 'درخواست وام لغو شد', 
@@ -2330,6 +2370,3 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
     </script>
 </body>
 </html>
-
-
-
