@@ -654,6 +654,16 @@
             .filter-row { flex-direction: column; }
             .filter-group, .search-box { min-width: 100%; }
         }
+		/* افزایش عرض ستون وام‌های دریافتی */
+table.table th:nth-child(7), 
+table.table td:nth-child(7) {
+    width: 200px !important;
+    min-width: 220px !important;
+    max-width: 300px !important;
+    white-space: normal !important;
+    line-height: 1.4 !important;
+    word-wrap: break-word !important;
+}
     </style>
 </head>
 <body>
@@ -717,10 +727,18 @@
                             <label>فیلتر بر اساس نوع وام</label>
                             <select id="loan-type-filter" class="filter-control">
                                 <option value="all">همه انواع وام</option>
-                                <option value="bank">وام معرفی به بانک</option>
+                                <option value="bank">وام بانکی</option>
                                 <option value="company">وام شرکتی</option>
                             </select>
                         </div>
+						<div class="filter-group">
+    <label>فیلتر بر اساس نوع قرارداد</label>
+    <select id="contract-type-filter" class="filter-control">
+        <option value="all">همه انواع قرارداد</option>
+        <option value="Staff">Staff</option>
+        <option value="Temp">Temp</option>
+    </select>
+</div>
                         <div class="filter-group">
                             <label>فیلتر بر اساس وضعیت درخواست</label>
                             <select id="loan-request-filter" class="filter-control">
@@ -740,6 +758,7 @@
                             <th>شماره پرسنلی</th>
                             <th>نام و نام خانوادگی</th>
                             <th>جنسیت</th>
+							 <th>نوع قرارداد</th>
                             <th>وام‌های دریافتی</th>
                             <th>تاریخ دریافت وام معرفی به بانک</th>
                             <th>تاریخ دریافت وام شرکتی</th>
@@ -852,6 +871,14 @@
                                     <option value="زن">زن</option>
                                 </select>
                             </div>
+							  <div class="form-group">
+            <label for="contract-type">نوع قرارداد</label>
+            <select id="contract-type" class="form-control" required>
+                <option value="Staff">Staff</option>
+                <option value="Temp">Temp</option>
+            </select>
+        </div>
+							
                         </div>
                     </div>
 
@@ -1383,7 +1410,7 @@
                 // ایجاد پاپ‌آپ برای نمایش جزئیات
                 const loanDisplay = createLoanDisplay(item);
                 const loanCellHTML = `
-                    <div class="loan-display" style="background: transparent !important;">
+                    <div style="background: transparent !important;">
                         ${loanSummaryHTML}
                         <div class="loan-tooltip">
                             ${loanDisplay.tooltip}
@@ -1397,6 +1424,7 @@
                     <td>${item.employeeNumber}</td>
                     <td>${item.fullname}</td>
                     <td>${item.gender}</td>
+					<td>${item.contractType || 'Staff'}</td>
                     <td style="background: transparent !important;">${loanCellHTML}</td>
                     <td>${item.bankLoanDate || '-'}</td>
                     <td>${item.companyLoanDate || '-'}</td>
@@ -1770,6 +1798,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                                 employeeNumber: employeeNumber.toString(),
                                 fullname: String(item.fullname || ''),
                                 gender: convertGender(item.gender || ''),
+								contractType: String(item.contracttype || 'Staff'),
                                 bankLoan: String(item.bankloan || ''),
                                 companyLoan: String(item.companyloan || ''),
                                 bankLoanDate: convertDateFormat(item.bankloandate || ''),
@@ -1841,6 +1870,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                     employeenumber: item.employeeNumber,
                     fullname: item.fullname,
                     gender: item.gender,
+					contracttype: item.contractType || 'Staff',
                     bankloan: item.bankLoan || '',
                     companyloan: item.companyLoan || '',
                     bankloandate: item.bankLoanDate || '',
@@ -1892,6 +1922,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                     employeenumber: loanData.employeeNumber,
                     fullname: loanData.fullname,
                     gender: loanData.gender,
+					contracttype: loanData.contractType || 'Staff',
                     bankloan: loanData.bankLoan || '',
                     companyloan: loanData.companyLoan || '',
                     bankloandate: loanData.bankLoanDate || '',
@@ -2075,7 +2106,12 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                     filterTable();
                 });
             }
-
+const contractTypeFilter = document.getElementById('contract-type-filter');
+if (contractTypeFilter) {
+    contractTypeFilter.addEventListener('change', function() {
+        filterTable();
+    });
+}
             document.querySelectorAll('.close, .btn-secondary').forEach(button => {
                 button.addEventListener('click', function() {
                     const modalId = this.getAttribute('data-modal');
@@ -2213,7 +2249,13 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
             const searchTerm = document.getElementById('search-input').value.toLowerCase();
             const loanTypeFilter = document.getElementById('loan-type-filter').value;
             const loanRequestFilter = document.getElementById('loan-request-filter').value;
-            
+             const contractTypeFilter = document.getElementById('contract-type-filter').value;
+			 console.log('🔍 فیلترها:', {
+        searchTerm,
+        loanTypeFilter,
+        loanRequestFilter,
+        contractTypeFilter
+    });
             const filteredData = sampleData.filter(item => {
                 const matchesSearch = 
                     (item.fullname && item.fullname.toLowerCase().includes(searchTerm)) ||
@@ -2226,15 +2268,27 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                     matchesLoanType = item.companyLoan && item.companyLoan.trim() !== '';
                 }
                 
-                let matchesLoanRequest = true;
-                if (loanRequestFilter === 'active') {
-                    matchesLoanRequest = item.loanRequest;
-                } else if (loanRequestFilter === 'inactive') {
-                    matchesLoanRequest = !item.loanRequest;
+                 let matchesLoanRequest = true;
+        if (loanRequestFilter === 'active') {
+            matchesLoanRequest = item.loanRequest === true;
+        } else if (loanRequestFilter === 'inactive') {
+            matchesLoanRequest = item.loanRequest === false;
                 }
-                
-                return matchesSearch && matchesLoanType && matchesLoanRequest;
-            });
+                 let matchesContractType = true;
+        if (contractTypeFilter !== 'all') {
+            matchesContractType = item.contractType === contractTypeFilter;
+        }
+         console.log(`🔍 بررسی رکورد ${item.employeeNumber}:`, {
+            matchesSearch,
+            matchesLoanType,
+            matchesLoanRequest,
+            matchesContractType,
+            contractType: item.contractType,
+            wantedContractType: contractTypeFilter
+        });
+				
+			return matchesSearch && matchesLoanType && matchesLoanRequest && matchesContractType;
+          });
             
             renderTable(filteredData);
         }
@@ -2296,6 +2350,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                 employeeNumber: employeeNumber,
                 fullname: document.getElementById('fullname').value,
                 gender: document.getElementById('gender').value,
+				contractType: document.getElementById('contract-type').value,
                 bankLoan: document.getElementById('bank-loan').value,
                 companyLoan: document.getElementById('company-loan').value,
                 bankLoanDate: document.getElementById('bank-loan-date').value,
@@ -2304,7 +2359,11 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                 description: document.getElementById('description').value,
                 loanRequest: false
             };
-            
+             // برای دیباگ
+    console.log('📝 داده‌های ذخیره شده:', loanData);
+    console.log('📝 نوع قرارداد انتخاب شده:', document.getElementById('contract-type').value);
+    
+    // بقیه کد...
             if (existingIndex === -1) {
                 // افزودن جدید
                 sampleData.push(loanData);
@@ -2337,6 +2396,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                 document.getElementById('employee-number').value = employee.employeeNumber;
                 document.getElementById('fullname').value = employee.fullname;
                 document.getElementById('gender').value = employee.gender;
+				document.getElementById('contract-type').value = employee.contractType || 'Staff';
                 document.getElementById('bank-loan').value = employee.bankLoan || '';
                 document.getElementById('company-loan').value = employee.companyLoan || '';
                 document.getElementById('bank-loan-date').value = employee.bankLoanDate || '';
