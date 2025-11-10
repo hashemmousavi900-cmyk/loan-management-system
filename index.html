@@ -1882,6 +1882,60 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
             }
         }
 
+        // ذخیره یک رکورد در Supabase - تابع جدید برای افزودن/ویرایش رکوردها
+        async function saveSingleRecordToSupabase(loanData, isNew = false) {
+            console.log(`💾 ذخیره یک رکورد در Supabase (جدید: ${isNew})...`);
+            
+            try {
+                const dataForSupabase = {
+                    username: loanData.username || '',
+                    employeenumber: loanData.employeeNumber,
+                    fullname: loanData.fullname,
+                    gender: loanData.gender,
+                    bankloan: loanData.bankLoan || '',
+                    companyloan: loanData.companyLoan || '',
+                    bankloandate: loanData.bankLoanDate || '',
+                    companyloandate: loanData.companyLoanDate || '',
+                    priority: loanData.priority,
+                    description: loanData.description || '',
+                    loanrequest: loanData.loanRequest || false
+                };
+                
+                let result;
+                
+                if (isNew) {
+                    // رکورد جدید - اضافه کردن
+                    result = await executeRequest('appendData', [dataForSupabase]);
+                } else {
+                    // رکورد موجود - پیدا کردن ID و آپدیت
+                    const existingRecord = sampleData.find(item => 
+                        item.employeeNumber === loanData.employeeNumber && item.id);
+                    
+                    if (existingRecord && existingRecord.id) {
+                        dataForSupabase.id = existingRecord.id;
+                        result = await executeRequest('updateData', dataForSupabase);
+                    } else {
+                        // اگر ID پیدا نشد، به عنوان رکورد جدید اضافه کن
+                        console.log('⚠️ ID رکورد پیدا نشد، به عنوان رکورد جدید اضافه می‌شود');
+                        result = await executeRequest('appendData', [dataForSupabase]);
+                    }
+                }
+                
+                console.log('✅ نتیجه ذخیره رکورد:', result);
+                
+                if (result && result.success) {
+                    showNotification('رکورد با موفقیت در Supabase ذخیره شد', 'success');
+                    return true;
+                } else {
+                    throw new Error(result.error || 'خطا در ذخیره رکورد');
+                }
+            } catch (error) {
+                console.error('❌ خطا در ذخیره رکورد:', error);
+                showNotification('خطا در ذخیره رکورد در Supabase. داده در حافظه محلی ذخیره شد.', 'warning');
+                return false;
+            }
+        }
+
         // تست ذخیره‌سازی ساده
         async function testSimpleSave() {
             console.log('🧪 تست ذخیره‌سازی ساده...');
@@ -2255,21 +2309,23 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                 // افزودن جدید
                 sampleData.push(loanData);
                 showNotification('وام جدید با موفقیت افزوده شد', 'success');
+                
+                // ذخیره در Supabase - فقط این رکورد
+                await saveSingleRecordToSupabase(loanData, true);
             } else {
                 // ویرایش موجود - حفظ وضعیت loanRequest از داده قبلی
                 loanData.loanRequest = sampleData[existingIndex].loanRequest;
+                loanData.id = sampleData[existingIndex].id; // حفظ ID برای آپدیت
                 sampleData[existingIndex] = loanData;
                 showNotification('اطلاعات وام با موفقیت به‌روزرسانی شد', 'success');
+                
+                // ذخیره در Supabase - فقط این رکورد
+                await saveSingleRecordToSupabase(loanData, false);
             }
             
             renderTable(sampleData);
-            
-            // ذخیره‌سازی در Supabase - کل داده‌ها
-            const success = await saveToSupabase();
-            
-            if (success) {
-                document.getElementById('addEmployeeModal').style.display = 'none';
-            }
+            saveToLocalStorage();
+            document.getElementById('addEmployeeModal').style.display = 'none';
         }
 
         function editEmployee(employeeNumber) {
@@ -2302,6 +2358,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                         await executeRequest('deleteData', { id: employee.id });
                         sampleData = sampleData.filter(item => item.employeeNumber !== employeeNumber);
                         renderTable(sampleData);
+                        saveToLocalStorage();
                         showNotification('وام با موفقیت حذف شد', 'success');
                     } catch (error) {
                         console.error('❌ خطا در حذف از Supabase:', error);
@@ -2325,8 +2382,8 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                 employee.loanRequest = !employee.loanRequest;
                 renderTable(sampleData);
                 
-                // ذخیره‌سازی در Supabase
-                await saveToSupabase();
+                // ذخیره‌سازی در Supabase - فقط این رکورد
+                await saveSingleRecordToSupabase(employee, false);
                 
                 showNotification(
                     employee.loanRequest ? 'درخواست وام ثبت شد' : 'درخواست وام لغو شد', 
