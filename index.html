@@ -290,26 +290,26 @@
             border-color: #8ab4f8;
         }
 
-        .loan-tooltip {
-            visibility: hidden;
-            width: 240px;
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            color: #2d3748;
-            text-align: right;
-            border-radius: 10px;
-            padding: 14px;
-            position: absolute;
-            z-index: 1000;
-            opacity: 0;
-            transition: all 0.2s ease;
-            font-size: 12px;
-            line-height: 1.5;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.12);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            border-top: 2px solid #8ab4f8;
-        }
+       .loan-tooltip {
+    visibility: hidden;
+    width: 280px;
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: #2d3748;
+    text-align: right;
+    border-radius: 10px;
+    padding: 16px;
+    position: absolute;
+    z-index: 1000;
+    opacity: 0;
+    transition: all 0.2s ease;
+    font-size: 12px;
+    line-height: 1.5;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-top: 2px solid #8ab4f8;
+}
 
         .loan-tooltip::after {
             content: "";
@@ -328,37 +328,38 @@
             transform: translateY(-3px);
         }
 
-        .loan-type {
-            display: block;
-            padding: 5px 8px;
-            border-radius: 14px;
-            font-size: 11px;
-            margin-bottom: 4px;
-            text-align: center;
-            font-weight: 500;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-        }
+.loan-type {
+    display: block;
+    padding: 6px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    margin-bottom: 4px;
+    text-align: right;
+    font-weight: 500;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    line-height: 1.4;
+}
 
-        .company-loan {
-            background: linear-gradient(135deg, #f0f7ff 0%, #e1f0ff 100%);
-            color: #1a73e8;
-            border: 1px solid #c5e1ff;
-        }
+.company-loan {
+    background: linear-gradient(135deg, #f0f9f0 0%, #e1f7e1 100%);
+    color: #188038;
+    border: 1px solid #a8dab5;
+}
 
-        .bank-loan {
-            background: linear-gradient(135deg, #f0f9f0 0%, #e1f7e1 100%);
-            color: #188038;
-            border: 1px solid #a8dab5;
-        }
+    .bank-loan {
+    background: linear-gradient(135deg, #f0f7ff 0%, #e1f0ff 100%);
+    color: #1a73e8;
+    border: 1px solid #c5e1ff;
+}
 
-        .tooltip-title {
-            color: #1a73e8;
-            margin-bottom: 8px;
-            font-weight: 600;
-            font-size: 13px;
-            padding-bottom: 3px;
-            border-bottom: 1px solid #f0f7ff;
-        }
+ .tooltip-title {
+    color: #1a73e8;
+    margin-bottom: 10px;
+    font-weight: 600;
+    font-size: 13px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #f0f7ff;
+}
 
         .tooltip-section {
             margin-bottom: 8px;
@@ -646,24 +647,483 @@
             display: none;
         }
         
-        @media (max-width: 768px) {
-            .table-title .btn-group { flex-direction: column; }
-            .table-wrapper { overflow-x: auto; }
-            table.table { min-width: 1200px; }
-            .modal-content { width: 95%; margin: 5% auto; }
-            .filter-row { flex-direction: column; }
-            .filter-group, .search-box { min-width: 100%; }
+        /* افزایش عرض ستون وام‌های دریافتی */
+        table.table th:nth-child(7), 
+        table.table td:nth-child(7) {
+            width: 200px !important;
+            min-width: 220px !important;
+            max-width: 300px !important;
+            white-space: normal !important;
+            line-height: 1.4 !important;
+            word-wrap: break-word !important;
         }
-		/* افزایش عرض ستون وام‌های دریافتی */
-table.table th:nth-child(7), 
-table.table td:nth-child(7) {
-    width: 200px !important;
-    min-width: 220px !important;
-    max-width: 300px !important;
-    white-space: normal !important;
-    line-height: 1.4 !important;
-    word-wrap: break-word !important;
+
+        .details-modal {
+            max-width: 600px !important;
+        }
+
+        .details-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+
+        .details-section h3 {
+            margin-bottom: 15px;
+            color: #435d7d;
+            font-size: 16px;
+            border-bottom: 2px solid #435d7d;
+            padding-bottom: 5px;
+        }
+
+        .loan-summary {
+            background: white;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            border: 1px solid #dee2e6;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .collapsible-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .collapsible-item {
+            margin-bottom: 8px;
+        }
+
+        .collapsible-header {
+            background: #e9ecef;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 500;
+            border: 1px solid #ced4da;
+            transition: all 0.3s ease;
+        }
+
+        .collapsible-header:hover {
+            background: #dee2e6;
+        }
+
+        .collapsible-header i {
+            transition: transform 0.3s ease;
+        }
+
+        .collapsible-header.active i {
+            transform: rotate(180deg);
+        }
+
+        .collapsible-content {
+            background: white;
+            padding: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            border-left: 3px solid #3498db;
+            margin-top: 5px;
+        }
+
+        .collapsible-content.active {
+            padding: 12px 15px;
+            max-height: 500px;
+        }
+
+        .loan-detail-item {
+            padding: 8px 0;
+            border-bottom: 1px solid #f1f1f1;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .loan-detail-item:last-child {
+            border-bottom: none;
+        }
+
+        .loan-amount {
+            font-weight: 600;
+            color: #27ae60;
+        }
+
+        .loan-date {
+            color: #7f8c8d;
+            font-size: 12px;
+        }
+
+        .no-loans {
+            text-align: center;
+            color: #7f8c8d;
+            font-style: italic;
+            padding: 20px;
+        }
+
+        /* استایل برای فرم افزودن وام جدید */
+        .add-loan-form {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border: 2px dashed #dee2e6;
+        }
+
+        .add-loan-form h4 {
+            color: #495057;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .loan-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .loan-list {
+            margin-top: 15px;
+        }
+
+        .loan-list-item {
+            background: white;
+            padding: 12px;
+            margin: 8px 0;
+            border-radius: 6px;
+            border: 1px solid #e9ecef;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+        }
+
+        .loan-info {
+            flex: 1;
+        }
+
+        .loan-amount {
+            font-weight: 600;
+            color: #27ae60;
+        }
+
+        .loan-bank {
+            color: #3498db;
+            font-weight: 500;
+        }
+
+        .loan-date {
+            color: #7f8c8d;
+            font-size: 12px;
+        }
+
+        .loan-type-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .bank-badge {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .company-badge {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+
+        .delete-loan-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .delete-loan-btn:hover {
+            background: #c0392b;
+        }
+
+        .loan-totals {
+            background: #e8f5e8;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border: 1px solid #c8e6c9;
+        }
+
+        .total-section {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            font-weight: 600;
+        }
+
+        .total-amount {
+            color: #27ae60;
+            font-size: 16px;
+        }
+
+/* استایل جدید برای پنل مدیریت وام‌ها - طراحی ظریف */
+.loan-management-panel {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 12px;
+    margin: 8px 0;
 }
+
+.loan-management-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    padding: 8px 12px;
+    background: #e9ecef;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    transition: all 0.3s ease;
+}
+
+.loan-management-header:hover {
+    background: #dee2e6;
+}
+
+.loan-management-header h4 {
+    margin: 0;
+    color: #495057;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.loan-management-header i {
+    transition: transform 0.3s ease;
+    font-size: 12px;
+    color: #6c757d;
+}
+
+.loan-management-header.active i {
+    transform: rotate(180deg);
+}
+
+.loan-management-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.loan-management-content.active {
+    max-height: 400px;
+}
+
+/* استایل برای نمایش جمع وام‌ها - طراحی فشرده */
+.loan-summary-compact {
+    background: linear-gradient(135deg, #e8f5e8 0%, #d4edda 100%);
+    padding: 10px 12px;
+    border-radius: 6px;
+    margin: 8px 0;
+    border: 1px solid #c8e6c9;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    margin: 2px 0;
+    padding: 2px 0;
+}
+
+.summary-total {
+    font-weight: bold;
+    border-top: 1px solid #c8e6c9;
+    padding-top: 6px;
+    margin-top: 4px;
+    font-size: 12px;
+}
+
+/* استایل برای لیست وام‌ها - طراحی فشرده */
+.loan-list-compact {
+    background: white;
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+    overflow: hidden;
+}
+
+.loan-category {
+    margin-bottom: 8px;
+}
+
+.loan-category:last-child {
+    margin-bottom: 0;
+}
+
+.loan-category-header {
+    background: #f8f9fa;
+    padding: 6px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #495057;
+    border-bottom: 1px solid #dee2e6;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.loan-category-header i {
+    font-size: 10px;
+}
+
+.bank-header {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    color: #1976d2;
+}
+
+.company-header {
+    background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
+    color: #7b1fa2;
+}
+
+.loan-items-container {
+    padding: 6px;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.loan-item-compact {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 8px;
+    margin: 3px 0;
+    background: #f8f9fa;
+    border-radius: 4px;
+    border: 1px solid #e9ecef;
+    transition: all 0.2s ease;
+}
+
+.loan-item-compact:hover {
+    background: #e9ecef;
+    border-color: #ced4da;
+}
+
+.loan-info-compact {
+    flex: 1;
+    font-size: 11px;
+    line-height: 1.3;
+}
+
+.loan-name {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 1px;
+}
+
+.loan-details {
+    color: #6c757d;
+    font-size: 10px;
+}
+
+.loan-actions-compact {
+    display: flex;
+    gap: 4px;
+}
+
+.btn-compact {
+    padding: 3px 6px;
+    font-size: 9px;
+    min-width: auto;
+    border-radius: 3px;
+}
+
+.empty-loans-message {
+    text-align: center;
+    color: #6c757d;
+    font-size: 11px;
+    padding: 20px;
+    font-style: italic;
+    background: #f8f9fa;
+    border-radius: 4px;
+    margin: 8px 0;
+}
+
+/* استایل برای فرم افزودن وام - طراحی فشرده */
+.add-loan-section {
+    background: white;
+    padding: 12px;
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+    margin-bottom: 8px;
+}
+
+.compact-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.compact-form-group {
+    margin-bottom: 0;
+}
+
+.compact-form-group label {
+    font-size: 11px;
+    margin-bottom: 2px;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.compact-form-control {
+    padding: 5px 8px;
+    font-size: 11px;
+    height: 28px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+}
+
+.compact-btn {
+    padding: 5px 10px;
+    font-size: 11px;
+    height: 28px;
+    border-radius: 4px;
+}
+
+/* استایل برای اسکرول بار */
+.loan-items-container::-webkit-scrollbar {
+    width: 4px;
+}
+
+.loan-items-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 2px;
+}
+
+.loan-items-container::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 2px;
+}
+
+.loan-items-container::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+  }
     </style>
 </head>
 <body>
@@ -731,14 +1191,14 @@ table.table td:nth-child(7) {
                                 <option value="company">وام شرکتی</option>
                             </select>
                         </div>
-						<div class="filter-group">
-    <label>فیلتر بر اساس نوع قرارداد</label>
-    <select id="contract-type-filter" class="filter-control">
-        <option value="all">همه انواع قرارداد</option>
-        <option value="Staff">Staff</option>
-        <option value="Temp">Temp</option>
-    </select>
-</div>
+                        <div class="filter-group">
+                            <label>فیلتر بر اساس نوع قرارداد</label>
+                            <select id="contract-type-filter" class="filter-control">
+                                <option value="all">همه انواع قرارداد</option>
+                                <option value="Staff">Staff</option>
+                                <option value="Temp">Temp</option>
+                            </select>
+                        </div>
                         <div class="filter-group">
                             <label>فیلتر بر اساس وضعیت درخواست</label>
                             <select id="loan-request-filter" class="filter-control">
@@ -758,7 +1218,7 @@ table.table td:nth-child(7) {
                             <th>شماره پرسنلی</th>
                             <th>نام و نام خانوادگی</th>
                             <th>جنسیت</th>
-							 <th>نوع قرارداد</th>
+                            <th>نوع قرارداد</th>
                             <th>وام‌های دریافتی</th>
                             <th>تاریخ دریافت وام معرفی به بانک</th>
                             <th>تاریخ دریافت وام شرکتی</th>
@@ -871,35 +1331,73 @@ table.table td:nth-child(7) {
                                     <option value="زن">زن</option>
                                 </select>
                             </div>
-							  <div class="form-group">
-            <label for="contract-type">نوع قرارداد</label>
-            <select id="contract-type" class="form-control" required>
-                <option value="Staff">Staff</option>
-                <option value="Temp">Temp</option>
-            </select>
-        </div>
-							
+                            <div class="form-group">
+                                <label for="contract-type">نوع قرارداد</label>
+                                <select id="contract-type" class="form-control" required>
+                                    <option value="Staff">Staff</option>
+                                    <option value="Temp">Temp</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="form-section">
-                        <div class="form-section-title">اطلاعات وام</div>
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label for="bank-loan">وام معرفی به بانک</label>
-                                <input type="text" id="bank-loan" class="form-control" placeholder="مقدار وام">
+                    <!-- بخش جدید: اطلاعات وام به سبک مدیریت وام -->
+                    <div class="loan-management-panel">
+                        <div class="loan-management-header" onclick="toggleMainLoanForm()">
+                            <h4>➕ افزودن وام</h4>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="loan-management-content" id="mainLoanFormContent">
+                            <div class="add-loan-section">
+                                <div class="compact-form-row">
+                                    <div class="compact-form-group">
+                                        <label>نوع وام</label>
+                                        <select id="main-loan-type" class="form-control compact-form-control">
+                                            <option value="bank">وام بانکی</option>
+                                            <option value="company">وام شرکتی</option>
+                                        </select>
+                                    </div>
+                                    <div class="compact-form-group">
+                                        <label>مبلغ (میلیون تومان)</label>
+                                        <input type="number" id="main-loan-amount" class="form-control compact-form-control" placeholder="مثلاً: 100">
+                                    </div>
+                                </div>
+                                <div class="compact-form-row" id="main-bank-name-field">
+                                    <div class="compact-form-group">
+                                        <label>نام بانک</label>
+                                        <input type="text" id="main-loan-bank" class="form-control compact-form-control" placeholder="مثلاً: ملت">
+                                    </div>
+                                </div>
+                                <div class="compact-form-row">
+                                    <div class="compact-form-group">
+                                        <label>توضیحات</label>
+                                        <input type="text" id="main-loan-desc" class="form-control compact-form-control" placeholder="توضیحات اختیاری">
+                                    </div>
+                                    <div class="compact-form-group">
+                                        <label>تاریخ دریافت</label>
+                                        <input type="date" id="main-loan-date" class="form-control compact-form-control">
+                                    </div>
+                                </div>
+                                <div class="compact-form-row">
+                                    <div class="compact-form-group" style="grid-column: 1 / -1; display: flex; align-items: end;">
+                                        <button type="button" class="btn btn-success compact-btn" onclick="addLoanToMainForm()" style="width: 100%;">
+                                            <i class="fas fa-plus"></i> افزودن وام
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="form-group">
-                                <label for="company-loan">وام شرکتی</label>
-                                <input type="text" id="company-loan" class="form-control" placeholder="مقدار وام">
-                            </div>
-                            <div class="form-group">
-                                <label for="bank-loan-date">تاریخ دریافت وام بانکی</label>
-                                <input type="date" id="bank-loan-date" class="form-control">
-                            </div>
-                            <div class="form-group">
-                                <label for="company-loan-date">تاریخ دریافت وام شرکتی</label>
-                                <input type="date" id="company-loan-date" class="form-control">
+                            
+                            <!-- لیست وام‌های اضافه شده -->
+                            <div class="loan-list-compact" id="main-loan-list" style="margin-top: 10px; display: none;">
+                                <div class="loan-category">
+                                    <div class="loan-category-header bank-header">
+                                        <i class="fas fa-university"></i>
+                                        وام‌های اضافه شده
+                                    </div>
+                                    <div class="loan-items-container" id="main-loan-items-container">
+                                        <!-- وام‌های اضافه شده اینجا نمایش داده می‌شوند -->
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -979,8 +1477,24 @@ table.table td:nth-child(7) {
         </div>
     </div>
 
+    <!-- مودال جزئیات وام -->
+    <div id="loanDetailsModal" class="modal">
+        <div class="modal-content details-modal">
+            <div class="modal-header">
+                <h2 id="details-modal-title">مدیریت وام‌ها</h2>
+                <span class="close" data-modal="loanDetailsModal">&times;</span>
+            </div>
+            <div class="modal-body" id="loan-details-body">
+                <!-- محتوای جزئیات اینجا نمایش داده می‌شود -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-modal="loanDetailsModal">بستن</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // داده‌ها
+        // داده‌ها - ساختار جدید
         let sampleData = [];
         let isAuthenticated = false;
         let authExpiryTime = null;
@@ -1003,6 +1517,404 @@ table.table td:nth-child(7) {
         // تنظیمات Supabase
         const SUPABASE_URL = "https://buowqguzsrychwoxyqby.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ1b3dxZ3V6c3J5Y2h3b3h5cWJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3MTQ1MzIsImV4cCI6MjA3ODI5MDUzMn0._2j0iRUY4L8x_59tDMEBh8qjSTHZdUOPd0nFqPZkXAk";
+
+        // ==================== توابع ساختار جدید وام‌ها ====================
+
+        // تابع تبدیل ساختار قدیم به جدید
+        function convertToNewStructure(employee) {
+            employee.loans = [];
+            
+            // تبدیل وام‌های بانکی
+            if (employee.bankLoan && employee.bankLoan !== '-' && employee.bankLoan.trim() !== '') {
+                const bankAmounts = employee.bankLoan.split(',');
+                bankAmounts.forEach((amount, index) => {
+                    if (amount.trim()) {
+                        employee.loans.push({
+                            type: 'bank',
+                            amount: parseFloat(amount.trim()) || 0,
+                            bankName: `بانک ${index + 1}`,
+                            date: employee.bankLoanDate || '',
+                            description: `وام بانکی ${index + 1}`
+                        });
+                    }
+                });
+            }
+            
+            // تبدیل وام‌های شرکتی
+            if (employee.companyLoan && employee.companyLoan !== '-' && employee.companyLoan.trim() !== '') {
+                const companyAmounts = employee.companyLoan.split(',');
+                companyAmounts.forEach((amount, index) => {
+                    if (amount.trim()) {
+                        employee.loans.push({
+                            type: 'company',
+                            amount: parseFloat(amount.trim()) || 0,
+                            date: employee.companyLoanDate || '',
+                            description: `وام شرکتی ${index + 1}`
+                        });
+                    }
+                });
+            }
+            
+            // حذف فیلدهای قدیمی
+            delete employee.bankLoan;
+            delete employee.companyLoan;
+            delete employee.bankLoanDate;
+            delete employee.companyLoanDate;
+            
+            console.log('✅ ساختار کاربر به جدید تبدیل شد:', employee);
+        }
+
+      // تابع showLoanDetails با طراحی جدید و ظریف
+function showLoanDetails(employeeNumber) {
+    const employee = sampleData.find(item => item.employeeNumber === employeeNumber);
+    if (!employee) return;
+
+    // اگر کاربر ساختار قدیمی دارد، به جدید تبدیل کن
+    if (!employee.loans) {
+        convertToNewStructure(employee);
+    }
+
+    document.getElementById('details-modal-title').textContent = `مدیریت وام‌های ${employee.fullname}`;
+    
+    const detailsBody = document.getElementById('loan-details-body');
+    
+    // محاسبه مجموع وام‌ها
+    const bankLoans = employee.loans.filter(loan => loan.type === 'bank');
+    const companyLoans = employee.loans.filter(loan => loan.type === 'company');
+    
+    const totalBankAmount = bankLoans.reduce((sum, loan) => sum + (parseFloat(loan.amount) || 0), 0);
+    const totalCompanyAmount = companyLoans.reduce((sum, loan) => sum + (parseFloat(loan.amount) || 0), 0);
+    const totalAmount = totalBankAmount + totalCompanyAmount;
+    
+    // تولید HTML جدید با طراحی ظریف
+    let detailsHTML = `
+        <div class="loan-summary-compact">
+            <div class="summary-row">
+                <span>مجموع وام‌های بانکی:</span>
+                <span style="color: #27ae60; font-weight: 600;">${totalBankAmount.toLocaleString()} میلیون</span>
+            </div>
+            <div class="summary-row">
+                <span>مجموع وام‌های شرکتی:</span>
+                <span style="color: #27ae60; font-weight: 600;">${totalCompanyAmount.toLocaleString()} میلیون</span>
+            </div>
+            <div class="summary-row summary-total">
+                <span>مجموع کل وام‌ها:</span>
+                <span style="color: #27ae60; font-weight: 600;">${totalAmount.toLocaleString()} میلیون</span>
+            </div>
+        </div>
+
+        <div class="loan-management-panel">
+            <div class="loan-management-header" onclick="toggleLoanManagement()">
+                <h4>📋 لیست وام‌ها (${employee.loans.length} وام)</h4>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="loan-management-content" id="loanListContent">
+                <div class="loan-list-compact">
+    `;
+
+    // نمایش وام‌های بانکی
+    if (bankLoans.length > 0) {
+        detailsHTML += `
+            <div class="loan-category">
+                <div class="loan-category-header bank-header">
+                    <i class="fas fa-university"></i>
+                    وام‌های بانکی (${bankLoans.length} وام)
+                </div>
+                <div class="loan-items-container">
+        `;
+        
+        bankLoans.forEach((loan, index) => {
+            const loanName = loan.bankName || `بانک ${index + 1}`;
+            const formattedDate = loan.date ? formatDate(loan.date) : 'تاریخ نامشخص';
+            
+            detailsHTML += `
+                <div class="loan-item-compact">
+                    <div class="loan-info-compact">
+                        <div class="loan-name">${loanName}</div>
+                        <div class="loan-details">
+                            ${loan.amount.toLocaleString()} میلیون - ${formattedDate}
+                            ${loan.description ? `<br>${loan.description}` : ''}
+                        </div>
+                    </div>
+                    <div class="loan-actions-compact">
+                        <button class="btn btn-warning btn-compact" onclick="editLoan('${employeeNumber}', ${employee.loans.indexOf(loan)})" title="ویرایش">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-danger btn-compact" onclick="deleteLoanFromDatabase('${employeeNumber}', ${employee.loans.indexOf(loan)})" title="حذف">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+        
+        detailsHTML += `</div></div>`;
+    }
+
+   // در تابع showLoanDetails - بخش نمایش وام‌های شرکتی
+if (companyLoans.length > 0) {
+    detailsHTML += `
+        <div class="loan-category">
+            <div class="loan-category-header company-header">
+                <i class="fas fa-building"></i>
+                وام‌های شرکتی (${companyLoans.length} وام)
+            </div>
+            <div class="loan-items-container">
+    `;
+    
+    companyLoans.forEach((loan, index) => {
+        const loanName = loan.description && loan.description !== `وام شرکتی ${index + 1}` 
+            ? loan.description 
+            : `شرکتی ${index + 1}`;
+        const formattedDate = loan.date ? formatDate(loan.date) : 'تاریخ نامشخص';
+        
+        detailsHTML += `
+            <div class="loan-item-compact">
+                <div class="loan-info-compact">
+                    <div class="loan-name">${loanName}</div>
+                    <div class="loan-details">
+                        ${loan.amount.toLocaleString()} میلیون - ${formattedDate}
+                        ${loan.description && loan.description !== `وام شرکتی ${index + 1}` && loan.description !== loanName 
+                            ? `<br><small style="color: #6c757d;">${loan.description}</small>` 
+                            : ''}
+                    </div>
+                </div>
+                <div class="loan-actions-compact">
+                    <button class="btn btn-warning btn-compact" onclick="editLoan('${employeeNumber}', ${employee.loans.indexOf(loan)})" title="ویرایش">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-danger btn-compact" onclick="deleteLoanFromDatabase('${employeeNumber}', ${employee.loans.indexOf(loan)})" title="حذف">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+    });
+    
+    detailsHTML += `</div></div>`;
+}
+
+    if (employee.loans.length === 0) {
+        detailsHTML += `<div class="empty-loans-message">هیچ وامی ثبت نشده است</div>`;
+    }
+
+ detailsHTML += `
+                </div>
+            </div>
+        </div>
+
+        <div class="loan-management-panel">
+            <div class="loan-management-header" onclick="toggleAddLoanForm()">
+                <h4>➕ افزودن وام جدید</h4>
+                <i class="fas fa-chevron-down"></i>
+            </div>
+            <div class="loan-management-content" id="addLoanFormContent">
+                <div class="add-loan-section">
+                    <div class="compact-form-row">
+                        <div class="compact-form-group">
+                            <label>نوع وام</label>
+                            <select id="new-loan-type" class="form-control compact-form-control">
+                                <option value="bank">وام بانکی</option>
+                                <option value="company">وام شرکتی</option>
+                            </select>
+                        </div>
+                        <div class="compact-form-group">
+                            <label>مبلغ (میلیون تومان)</label>
+                            <input type="number" id="new-loan-amount" class="form-control compact-form-control" placeholder="مثلاً: 100">
+                        </div>
+                    </div>
+                    <div class="compact-form-row" id="bank-name-field">
+                        <div class="compact-form-group">
+                            <label>نام بانک</label>
+                            <input type="text" id="new-loan-bank" class="form-control compact-form-control" placeholder="مثلاً: ملت">
+                        </div>
+                    </div>
+                    <div class="compact-form-row">
+                        <div class="compact-form-group">
+                            <label>توضیحات</label>
+                            <input type="text" id="new-loan-desc" class="form-control compact-form-control" placeholder="توضیحات اختیاری">
+                        </div>
+                        <div class="compact-form-group">
+                            <label>تاریخ دریافت</label>
+                            <input type="date" id="new-loan-date" class="form-control compact-form-control">
+                        </div>
+                    </div>
+                    <div class="compact-form-row">
+                        <div class="compact-form-group" style="grid-column: 1 / -1; display: flex; align-items: end;">
+                            <button class="btn btn-success compact-btn" onclick="addNewLoan('${employeeNumber}')" style="width: 100%;">
+                                <i class="fas fa-plus"></i> افزودن وام
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+`;
+
+    detailsBody.innerHTML = detailsHTML;
+    
+    // تنظیم تاریخ امروز به عنوان پیش‌فرض
+    document.getElementById('new-loan-date').valueAsDate = new Date();
+    
+    // نمایش/مخفی کردن فیلد نام بانک
+    document.getElementById('new-loan-type').addEventListener('change', function() {
+        document.getElementById('bank-name-field').style.display = 
+            this.value === 'bank' ? 'grid' : 'none';
+    });
+    
+    // مخفی کردن فرم‌ها در ابتدا
+    document.getElementById('loanListContent').classList.remove('active');
+    document.getElementById('addLoanFormContent').classList.remove('active');
+    
+    document.getElementById('loanDetailsModal').style.display = 'block';
+}
+
+// تابع برای فرمت تاریخ
+function formatDate(dateString) {
+    if (!dateString) return 'تاریخ نامشخص';
+    
+    try {
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) {
+            return dateString; // اگر تاریخ معتبر نیست، همان رشته اصلی برگردان
+        }
+        
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        
+        return `${year}-${month}-${day}`;
+    } catch (error) {
+        return dateString;
+    }
+}
+
+// توابع برای باز و بسته کردن پنل‌ها
+function toggleLoanManagement() {
+    const content = document.getElementById('loanListContent');
+    const header = document.querySelector('.loan-management-header:first-child');
+    content.classList.toggle('active');
+    header.classList.toggle('active');
+}
+
+function toggleAddLoanForm() {
+    const content = document.getElementById('addLoanFormContent');
+    const header = document.querySelector('.loan-management-header:last-child');
+    content.classList.toggle('active');
+    header.classList.toggle('active');
+}
+
+// تابع برای باز و بسته کردن فرم اصلی وام
+function toggleMainLoanForm() {
+    const content = document.getElementById('mainLoanFormContent');
+    const header = document.querySelector('.loan-management-header');
+    content.classList.toggle('active');
+    header.classList.toggle('active');
+}
+
+        // تابع جدید برای حذف وام از دیتابیس
+        async function deleteLoanFromDatabase(employeeNumber, loanIndex) {
+            if (!confirm('آیا از حذف این وام اطمینان دارید؟ این عمل قابل بازگشت نیست.')) return;
+            
+            const employee = sampleData.find(item => item.employeeNumber === employeeNumber);
+            if (!employee || !employee.loans) return;
+            
+            // حذف وام از آرایه
+            const deletedLoan = employee.loans.splice(loanIndex, 1)[0];
+            
+            try {
+                // آپدیت رکورد در Supabase
+                if (employee.id) {
+                    const dataForSupabase = {
+                        username: employee.username || '',
+                        employeenumber: employee.employeeNumber,
+                        fullname: employee.fullname,
+                        gender: employee.gender,
+                        contracttype: employee.contractType || 'Staff',
+                        bankloan: employee.bankLoan || '',
+                        companyloan: employee.companyLoan || '',
+                        bankloandate: employee.bankLoanDate || '',
+                        companyloandate: employee.companyLoanDate || '',
+                        priority: employee.priority,
+                        description: employee.description || '',
+                        loanrequest: employee.loanRequest
+                    };
+                    
+                    await executeRequest('updateData', { 
+                        id: employee.id,
+                        ...dataForSupabase
+                    });
+                    
+                    showNotification('وام با موفقیت از دیتابیس حذف شد', 'success');
+                } else {
+                    // اگر ID نداشت، کل رکورد رو آپدیت کن
+                    await saveSingleRecordToSupabase(employee, false);
+                    showNotification('وام با موفقیت حذف شد', 'success');
+                }
+                
+                // ذخیره در localStorage
+                saveToLocalStorage();
+                
+                // رفرش نمایش
+                showLoanDetails(employeeNumber);
+                
+            } catch (error) {
+                console.error('❌ خطا در حذف وام از دیتابیس:', error);
+                
+                // برگرداندن وام در صورت خطا
+                employee.loans.splice(loanIndex, 0, deletedLoan);
+                
+                showNotification('خطا در حذف وام از دیتابیس', 'error');
+            }
+        }
+
+// تابع برای تبدیل داده‌های Supabase به ساختار loans - نسخه اصلاح شده
+function convertSupabaseDataToLoans(employee) {
+    const loans = [];
+    
+    // پردازش وام‌های بانکی
+    if (employee.bankloan && employee.bankloan.trim() !== '' && employee.bankloan !== '-') {
+        const bankLoanEntries = employee.bankloan.split(',');
+        
+        bankLoanEntries.forEach((entry, index) => {
+            const parts = entry.split(':');
+            
+            // فرمت وام بانکی: amount:bankName:date:description
+            if (parts.length >= 1 && parts[0].trim() !== '') {
+                const loan = {
+                    type: 'bank',
+                    amount: parseFloat(parts[0]) || 0,
+                    bankName: parts[1] || `بانک ${index + 1}`,
+                    date: parts[2] || '',
+                    description: parts[3] || (parts[1] ? `وام ${parts[1]}` : `وام بانکی ${index + 1}`)
+                };
+                loans.push(loan);
+            }
+        });
+    }
+    
+    // پردازش وام‌های شرکتی
+    if (employee.companyloan && employee.companyloan.trim() !== '' && employee.companyloan !== '-') {
+        const companyLoanEntries = employee.companyloan.split(',');
+        
+        companyLoanEntries.forEach((entry, index) => {
+            const parts = entry.split(':');
+            
+            // فرمت وام شرکتی: amount::date:description
+            if (parts.length >= 1 && parts[0].trim() !== '') {
+                const loan = {
+                    type: 'company',
+                    amount: parseFloat(parts[0]) || 0,
+                    date: parts[2] || '', // قسمت دوم خالیه (::)
+                    description: parts[3] || `وام شرکتی ${index + 1}`
+                };
+                loans.push(loan);
+            }
+        });
+    }
+    
+    return loans;
+}
 
         // ==================== سیستم مدیریت درخواست‌های همزمان - بهبود یافته ====================
 
@@ -1307,39 +2219,71 @@ table.table td:nth-child(7) {
             return priority; // اگر از قبل متن است، همان را برگردان
         }
 
-        // تابع جدید برای نمایش وام‌ها
-        function createLoanDisplay(item) {
-            const bankLoans = item.bankLoan && item.bankLoan !== '-' && item.bankLoan.trim() !== '' ? 
-                             item.bankLoan.split(',').filter(loan => loan.trim() !== '') : [];
+// تابع جدید برای نمایش وام‌ها - نسخه مرتب و تمیز
+function createLoanDisplay(item) {
+    const bankLoans = item.bankLoan && item.bankLoan !== '-' && item.bankLoan.trim() !== '' ? 
+                     item.bankLoan.split(',').filter(loan => loan.trim() !== '') : [];
+    
+    const companyLoans = item.companyLoan && item.companyLoan !== '-' && item.companyLoan.trim() !== '' ? 
+                       item.companyLoan.split(',').filter(loan => loan.trim() !== '') : [];
+    
+    // متن tooltip - نسخه مرتب و تمیز
+    let tooltipHTML = `
+        <div class="tooltip-title">جزئیات وام‌ها</div>
+    `;
+    
+    // نمایش وام‌های شرکتی به صورت مرتب
+    if (companyLoans.length > 0) {
+        tooltipHTML += '<div style="margin-bottom: 8px;">';
+        companyLoans.forEach((loan, index) => {
+            // پارس کردن اطلاعات وام شرکتی
+            const parts = loan.split(':');
+            let amount = parts[0] || '0';
+            let description = parts[3] || `وام شرکتی ${index + 1}`;
             
-            const companyLoans = item.companyLoan && item.companyLoan !== '-' && item.companyLoan.trim() !== '' ? 
-                               item.companyLoan.split(',').filter(loan => loan.trim() !== '') : [];
-            
-            // متن tooltip
-            let tooltipHTML = `
-                <div class="tooltip-title">جزئیات وام‌ها</div>
+            // فرمت زیبا: "وام شرکتی: 200 میلیون، مسکن"
+            tooltipHTML += `
+                <div class="loan-type company-loan" style="margin-bottom: 4px; padding: 6px 8px; border-radius: 6px;">
+                    <strong>وام شرکتی:</strong> ${formatLoanAmount(amount)} میلیون${description ? `، ${description}` : ''}
+                </div>
             `;
+        });
+        tooltipHTML += '</div>';
+    }
+    
+    // نمایش وام‌های بانکی به صورت مرتب
+    if (bankLoans.length > 0) {
+        tooltipHTML += '<div>';
+        bankLoans.forEach((loan, index) => {
+            // پارس کردن اطلاعات وام بانکی
+            const parts = loan.split(':');
+            let amount = parts[0] || '0';
+            let bankName = parts[1] || `بانک ${index + 1}`;
+            let description = parts[3] || '';
             
-            if (companyLoans.length > 0) {
-                tooltipHTML += '<div style="margin-bottom: 8px;">';
-                companyLoans.forEach((loan, index) => {
-                    tooltipHTML += `<div class="loan-type company-loan">وام شرکتی: ${loan.trim()} میلیون تومان</div>`;
-                });
-                tooltipHTML += '</div>';
-            }
-            
-            if (bankLoans.length > 0) {
-                tooltipHTML += '<div>';
-                bankLoans.forEach((loan, index) => {
-                    tooltipHTML += `<div class="loan-type bank-loan">وام بانکی: ${loan.trim()} میلیون تومان</div>`;
-                });
-                tooltipHTML += '</div>';
-            }
-            
-            return {
-                tooltip: tooltipHTML
-            };
-        }
+            // فرمت زیبا: "وام بانکی: 100 میلیون، بانک ملت"
+            tooltipHTML += `
+                <div class="loan-type bank-loan" style="margin-bottom: 4px; padding: 6px 8px; border-radius: 6px;">
+                    <strong>وام بانکی:</strong> ${formatLoanAmount(amount)} میلیون، ${bankName}${description ? `<small>${description}</small>` : ''}
+                </div>
+            `;
+        });
+        tooltipHTML += '</div>';
+    }
+    
+    return {
+        tooltip: tooltipHTML
+    };
+}
+
+// تابع کمکی برای فرمت کردن مبلغ وام
+function formatLoanAmount(amount) {
+    // حذف فاصله و کاراکترهای غیرضروری
+    const cleanAmount = String(amount).replace(/,/g, '').trim();
+    // تبدیل به عدد و فرمت کردن
+    const numAmount = parseFloat(cleanAmount) || 0;
+    return numAmount.toLocaleString('fa-IR');
+}
 
         // رندر جدول
         function renderTable(data) {
@@ -1410,13 +2354,13 @@ table.table td:nth-child(7) {
                 // ایجاد پاپ‌آپ برای نمایش جزئیات
                 const loanDisplay = createLoanDisplay(item);
                 const loanCellHTML = `
-                    <div style="background: transparent !important;">
-                        ${loanSummaryHTML}
-                        <div class="loan-tooltip">
-                            ${loanDisplay.tooltip}
-                        </div>
-                    </div>
-                `;
+    <div class="loan-display" style="background: none !important; border: none !important; padding: 0 !important; box-shadow: none !important;">
+        ${loanSummaryHTML}
+        <div class="loan-tooltip">
+            ${loanDisplay.tooltip}
+        </div>
+    </div>
+`;
                 
                 row.innerHTML = `
                     <td>${index + 1}</td>
@@ -1424,7 +2368,7 @@ table.table td:nth-child(7) {
                     <td>${item.employeeNumber}</td>
                     <td>${item.fullname}</td>
                     <td>${item.gender}</td>
-					<td>${item.contractType || 'Staff'}</td>
+                    <td>${item.contractType || 'Staff'}</td>
                     <td style="background: transparent !important;">${loanCellHTML}</td>
                     <td>${item.bankLoanDate || '-'}</td>
                     <td>${item.companyLoanDate || '-'}</td>
@@ -1499,6 +2443,14 @@ table.table td:nth-child(7) {
                 const savedData = localStorage.getItem('loanData');
                 if (savedData) {
                     sampleData = JSON.parse(savedData);
+                    
+                    // تبدیل ساختار قدیم به جدید برای همه کاربران
+                    sampleData.forEach(employee => {
+                        if (!employee.loans) {
+                            convertToNewStructure(employee);
+                        }
+                    });
+                    
                     if (sampleData.length > 0) {
                         renderTable(sampleData);
                         console.log('✅ داده‌ها از localStorage بارگذاری شدند');
@@ -1782,35 +2734,39 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                         return;
                     }
                     
-                    // پردازش داده‌ها - نسخه ساده‌تر
-                    sampleData = [];
-                    
-                    result.forEach((item, index) => {
-                        console.log(`📝 پردازش رکورد ${index + 1}:`, item);
-                        
-                        // بررسی وجود شماره پرسنلی
-                        const employeeNumber = item.employeenumber || '';
-                        
-                        if (employeeNumber && employeeNumber.toString().trim() !== '') {
-                            const processedItem = {
-                                id: item.id,
-                                username: String(item.username || ''),
-                                employeeNumber: employeeNumber.toString(),
-                                fullname: String(item.fullname || ''),
-                                gender: convertGender(item.gender || ''),
-								contractType: String(item.contracttype || 'Staff'),
-                                bankLoan: String(item.bankloan || ''),
-                                companyLoan: String(item.companyloan || ''),
-                                bankLoanDate: convertDateFormat(item.bankloandate || ''),
-                                companyLoanDate: convertDateFormat(item.companyloandate || ''),
-                                priority: convertPriority(String(item.priority || 'متوسط')),
-                                description: String(item.description || ''),
-                                loanRequest: Boolean(item.loanrequest)
-                            };
-                            
-                            sampleData.push(processedItem);
-                        }
-                    });
+                  // پردازش داده‌ها - نسخه جدید با پشتیبانی از چندین وام
+sampleData = [];
+
+result.forEach((item, index) => {
+    console.log(`📝 پردازش رکورد ${index + 1}:`, item);
+    
+    // بررسی وجود شماره پرسنلی
+    const employeeNumber = item.employeenumber || '';
+    
+    if (employeeNumber && employeeNumber.toString().trim() !== '') {
+        // تبدیل داده‌های Supabase به ساختار loans
+        const loans = convertSupabaseDataToLoans(item);
+        
+        const processedItem = {
+            id: item.id,
+            username: String(item.username || ''),
+            employeeNumber: employeeNumber.toString(),
+            fullname: String(item.fullname || ''),
+            gender: convertGender(item.gender || ''),
+            contractType: String(item.contracttype || 'Staff'),
+            bankLoan: String(item.bankloan || ''),
+            companyLoan: String(item.companyloan || ''),
+            bankLoanDate: convertDateFormat(item.bankloandate || ''),
+            companyLoanDate: convertDateFormat(item.companyloandate || ''),
+            priority: convertPriority(String(item.priority || 'متوسط')),
+            description: String(item.description || ''),
+            loanRequest: Boolean(item.loanrequest),
+            loans: loans  // اضافه کردن آرایه loans
+        };
+        
+        sampleData.push(processedItem);
+    }
+});
                     
                     console.log(`✅ پردازش کامل شد: ${sampleData.length} رکورد معتبر`);
                     
@@ -1870,7 +2826,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                     employeenumber: item.employeeNumber,
                     fullname: item.fullname,
                     gender: item.gender,
-					contracttype: item.contractType || 'Staff',
+                    contracttype: item.contractType || 'Staff',
                     bankloan: item.bankLoan || '',
                     companyloan: item.companyLoan || '',
                     bankloandate: item.bankLoanDate || '',
@@ -1922,7 +2878,7 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                     employeenumber: loanData.employeeNumber,
                     fullname: loanData.fullname,
                     gender: loanData.gender,
-					contracttype: loanData.contractType || 'Staff',
+                    contracttype: loanData.contractType || 'Staff',
                     bankloan: loanData.bankLoan || '',
                     companyloan: loanData.companyLoan || '',
                     bankloandate: loanData.bankLoanDate || '',
@@ -2015,6 +2971,10 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                     document.getElementById('modal-title').textContent = 'افزودن وام جدید';
                     document.getElementById('loan-form').reset();
                     document.getElementById('employee-number').readOnly = false;
+                    
+                    // ریست کردن فرم وام‌ها
+                    resetMainLoanForm();
+                    
                     document.getElementById('addEmployeeModal').style.display = 'block';
                 });
             }
@@ -2026,6 +2986,10 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                     document.getElementById('modal-title').textContent = 'افزودن وام جدید';
                     document.getElementById('loan-form').reset();
                     document.getElementById('employee-number').readOnly = false;
+                    
+                    // ریست کردن فرم وام‌ها
+                    resetMainLoanForm();
+                    
                     document.getElementById('addEmployeeModal').style.display = 'block';
                 });
             }
@@ -2106,12 +3070,14 @@ ${log.duration ? `⏱️ ${log.duration}ms` : ''}
                     filterTable();
                 });
             }
-const contractTypeFilter = document.getElementById('contract-type-filter');
-if (contractTypeFilter) {
-    contractTypeFilter.addEventListener('change', function() {
-        filterTable();
-    });
-}
+
+            const contractTypeFilter = document.getElementById('contract-type-filter');
+            if (contractTypeFilter) {
+                contractTypeFilter.addEventListener('change', function() {
+                    filterTable();
+                });
+            }
+
             document.querySelectorAll('.close, .btn-secondary').forEach(button => {
                 button.addEventListener('click', function() {
                     const modalId = this.getAttribute('data-modal');
@@ -2249,13 +3215,15 @@ if (contractTypeFilter) {
             const searchTerm = document.getElementById('search-input').value.toLowerCase();
             const loanTypeFilter = document.getElementById('loan-type-filter').value;
             const loanRequestFilter = document.getElementById('loan-request-filter').value;
-             const contractTypeFilter = document.getElementById('contract-type-filter').value;
-			 console.log('🔍 فیلترها:', {
-        searchTerm,
-        loanTypeFilter,
-        loanRequestFilter,
-        contractTypeFilter
-    });
+            const contractTypeFilter = document.getElementById('contract-type-filter').value;
+            
+            console.log('🔍 فیلترها:', {
+                searchTerm,
+                loanTypeFilter,
+                loanRequestFilter,
+                contractTypeFilter
+            });
+            
             const filteredData = sampleData.filter(item => {
                 const matchesSearch = 
                     (item.fullname && item.fullname.toLowerCase().includes(searchTerm)) ||
@@ -2268,27 +3236,29 @@ if (contractTypeFilter) {
                     matchesLoanType = item.companyLoan && item.companyLoan.trim() !== '';
                 }
                 
-                 let matchesLoanRequest = true;
-        if (loanRequestFilter === 'active') {
-            matchesLoanRequest = item.loanRequest === true;
-        } else if (loanRequestFilter === 'inactive') {
-            matchesLoanRequest = item.loanRequest === false;
+                let matchesLoanRequest = true;
+                if (loanRequestFilter === 'active') {
+                    matchesLoanRequest = item.loanRequest === true;
+                } else if (loanRequestFilter === 'inactive') {
+                    matchesLoanRequest = item.loanRequest === false;
                 }
-                 let matchesContractType = true;
-        if (contractTypeFilter !== 'all') {
-            matchesContractType = item.contractType === contractTypeFilter;
-        }
-         console.log(`🔍 بررسی رکورد ${item.employeeNumber}:`, {
-            matchesSearch,
-            matchesLoanType,
-            matchesLoanRequest,
-            matchesContractType,
-            contractType: item.contractType,
-            wantedContractType: contractTypeFilter
-        });
-				
-			return matchesSearch && matchesLoanType && matchesLoanRequest && matchesContractType;
-          });
+                
+                let matchesContractType = true;
+                if (contractTypeFilter !== 'all') {
+                    matchesContractType = item.contractType === contractTypeFilter;
+                }
+                
+                console.log(`🔍 بررسی رکورد ${item.employeeNumber}:`, {
+                    matchesSearch,
+                    matchesLoanType,
+                    matchesLoanRequest,
+                    matchesContractType,
+                    contractType: item.contractType,
+                    wantedContractType: contractTypeFilter
+                });
+                
+                return matchesSearch && matchesLoanType && matchesLoanRequest && matchesContractType;
+            });
             
             renderTable(filteredData);
         }
@@ -2336,6 +3306,117 @@ if (contractTypeFilter) {
             }
         }
 
+        // تابع جدید برای افزودن وام به فرم اصلی
+        function addLoanToMainForm() {
+            const type = document.getElementById('main-loan-type').value;
+            const amount = parseFloat(document.getElementById('main-loan-amount').value);
+            const bankName = document.getElementById('main-loan-bank').value;
+            const description = document.getElementById('main-loan-desc').value;
+            const date = document.getElementById('main-loan-date').value;
+            
+            if (!amount || amount <= 0) {
+                alert('لطفاً مبلغ معتبر وارد کنید');
+                return;
+            }
+            
+            if (type === 'bank' && !bankName.trim()) {
+                alert('لطفاً نام بانک را وارد کنید');
+                return;
+            }
+            
+            // ایجاد وام جدید
+            const newLoan = {
+                type: type,
+                amount: amount,
+                date: date,
+                description: description || `وام ${type === 'bank' ? 'بانکی' : 'شرکتی'}`
+            };
+            
+            if (type === 'bank') {
+                newLoan.bankName = bankName;
+            }
+            
+            // ذخیره وام در آرایه موقت
+            if (!window.mainFormLoans) {
+                window.mainFormLoans = [];
+            }
+            window.mainFormLoans.push(newLoan);
+            
+            // نمایش وام در لیست
+            updateMainLoanList();
+            
+            // ریست کردن فرم
+            document.getElementById('main-loan-amount').value = '';
+            document.getElementById('main-loan-bank').value = '';
+            document.getElementById('main-loan-desc').value = '';
+            document.getElementById('main-loan-date').valueAsDate = new Date();
+            
+            showNotification('وام به لیست اضافه شد', 'success');
+        }
+
+        // تابع برای به‌روزرسانی لیست وام‌ها در فرم اصلی
+        function updateMainLoanList() {
+            const loanListContainer = document.getElementById('main-loan-items-container');
+            const loanList = document.getElementById('main-loan-list');
+            
+            if (!window.mainFormLoans || window.mainFormLoans.length === 0) {
+                loanList.style.display = 'none';
+                return;
+            }
+            
+            loanList.style.display = 'block';
+            
+            let loanItemsHTML = '';
+            
+            window.mainFormLoans.forEach((loan, index) => {
+                const loanName = loan.type === 'bank' ? 
+                    (loan.bankName || `بانک ${index + 1}`) : 
+                    (loan.description || `وام شرکتی ${index + 1}`);
+                
+                loanItemsHTML += `
+                    <div class="loan-item-compact">
+                        <div class="loan-info-compact">
+                            <div class="loan-name">${loanName}</div>
+                            <div class="loan-details">
+                                ${loan.amount.toLocaleString()} میلیون - ${loan.date || 'تاریخ نامشخص'}
+                                ${loan.description ? `<br>${loan.description}` : ''}
+                            </div>
+                        </div>
+                        <div class="loan-actions-compact">
+                            <button class="btn btn-danger btn-compact" onclick="removeLoanFromMainForm(${index})" title="حذف">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            loanListContainer.innerHTML = loanItemsHTML;
+        }
+
+        // تابع برای حذف وام از فرم اصلی
+        function removeLoanFromMainForm(index) {
+            if (window.mainFormLoans && window.mainFormLoans[index]) {
+                window.mainFormLoans.splice(index, 1);
+                updateMainLoanList();
+                showNotification('وام از لیست حذف شد', 'success');
+            }
+        }
+
+        // تابع برای ریست کردن فرم وام اصلی
+        function resetMainLoanForm() {
+            window.mainFormLoans = [];
+            document.getElementById('main-loan-amount').value = '';
+            document.getElementById('main-loan-bank').value = '';
+            document.getElementById('main-loan-desc').value = '';
+            document.getElementById('main-loan-date').valueAsDate = new Date();
+            document.getElementById('main-loan-type').value = 'bank';
+            document.getElementById('main-bank-name-field').style.display = 'grid';
+            
+            // مخفی کردن لیست
+            document.getElementById('main-loan-list').style.display = 'none';
+        }
+
         async function saveLoan() {
             const employeeNumber = document.getElementById('employee-number').value;
             
@@ -2345,25 +3426,52 @@ if (contractTypeFilter) {
             }
             
             const existingIndex = sampleData.findIndex(item => item.employeeNumber === employeeNumber);
+            
+            // ایجاد رشته وام‌ها از آرایه mainFormLoans
+            let bankLoanString = '';
+            let companyLoanString = '';
+            let bankLoanDate = '';
+            let companyLoanDate = '';
+            
+            if (window.mainFormLoans && window.mainFormLoans.length > 0) {
+                const bankLoans = window.mainFormLoans.filter(loan => loan.type === 'bank');
+                const companyLoans = window.mainFormLoans.filter(loan => loan.type === 'company');
+                
+                // فرمت: "amount:bankName:date:description,amount:bankName:date:description,..."
+                bankLoanString = bankLoans.map(loan => 
+                    `${loan.amount}:${loan.bankName || ''}:${loan.date || ''}:${loan.description || ''}`
+                ).join(',');
+                
+                // برای وام شرکتی: "amount::date:description,amount::date:description,..."
+                companyLoanString = companyLoans.map(loan => 
+                    `${loan.amount}::${loan.date || ''}:${loan.description || ''}`
+                ).join(',');
+                
+                // تاریخ اولین وام بانکی و شرکتی
+                bankLoanDate = bankLoans.length > 0 ? bankLoans[0].date : '';
+                companyLoanDate = companyLoans.length > 0 ? companyLoans[0].date : '';
+            }
+            
             const loanData = {
                 username: document.getElementById('username').value,
                 employeeNumber: employeeNumber,
                 fullname: document.getElementById('fullname').value,
                 gender: document.getElementById('gender').value,
-				contractType: document.getElementById('contract-type').value,
-                bankLoan: document.getElementById('bank-loan').value,
-                companyLoan: document.getElementById('company-loan').value,
-                bankLoanDate: document.getElementById('bank-loan-date').value,
-                companyLoanDate: document.getElementById('company-loan-date').value,
+                contractType: document.getElementById('contract-type').value,
+                bankLoan: bankLoanString,
+                companyLoan: companyLoanString,
+                bankLoanDate: bankLoanDate,
+                companyLoanDate: companyLoanDate,
                 priority: convertPriority(document.getElementById('priority').value),
                 description: document.getElementById('description').value,
-                loanRequest: false
+                loanRequest: false,
+                loans: window.mainFormLoans || []
             };
-             // برای دیباگ
-    console.log('📝 داده‌های ذخیره شده:', loanData);
-    console.log('📝 نوع قرارداد انتخاب شده:', document.getElementById('contract-type').value);
-    
-    // بقیه کد...
+            
+            // برای دیباگ
+            console.log('📝 داده‌های ذخیره شده:', loanData);
+            console.log('📝 نوع قرارداد انتخاب شده:', document.getElementById('contract-type').value);
+            
             if (existingIndex === -1) {
                 // افزودن جدید
                 sampleData.push(loanData);
@@ -2385,6 +3493,9 @@ if (contractTypeFilter) {
             renderTable(sampleData);
             saveToLocalStorage();
             document.getElementById('addEmployeeModal').style.display = 'none';
+            
+            // ریست کردن فرم وام‌ها
+            resetMainLoanForm();
         }
 
         function editEmployee(employeeNumber) {
@@ -2396,14 +3507,18 @@ if (contractTypeFilter) {
                 document.getElementById('employee-number').value = employee.employeeNumber;
                 document.getElementById('fullname').value = employee.fullname;
                 document.getElementById('gender').value = employee.gender;
-				document.getElementById('contract-type').value = employee.contractType || 'Staff';
-                document.getElementById('bank-loan').value = employee.bankLoan || '';
-                document.getElementById('company-loan').value = employee.companyLoan || '';
-                document.getElementById('bank-loan-date').value = employee.bankLoanDate || '';
-                document.getElementById('company-loan-date').value = employee.companyLoanDate || '';
+                document.getElementById('contract-type').value = employee.contractType || 'Staff';
                 document.getElementById('priority').value = employee.priority;
                 document.getElementById('description').value = employee.description || '';
                 document.getElementById('addEmployeeModal').style.display = 'block';
+                
+                // بارگذاری وام‌ها در فرم اصلی
+                if (employee.loans && employee.loans.length > 0) {
+                    window.mainFormLoans = [...employee.loans];
+                    updateMainLoanList();
+                } else {
+                    resetMainLoanForm();
+                }
                 
                 // غیرفعال کردن فیلد شماره پرسنلی در حالت ویرایش
                 document.getElementById('employee-number').readOnly = true;
@@ -2452,28 +3567,18 @@ if (contractTypeFilter) {
             }
         }
 
-        function showLoanDetails(employeeNumber) {
-            const employee = sampleData.find(item => item.employeeNumber === employeeNumber);
-            if (employee) {
-                alert(`جزئیات وام:\n\nنام: ${employee.fullname}\nشماره پرسنلی: ${employee.employeeNumber}\nوام بانکی: ${employee.bankLoan || 'ندارد'}\nوام شرکتی: ${employee.companyLoan || 'ندارد'}\nاولویت: ${employee.priority}`);
-            }
-        }
-
-        function exportToExcel() {
-            if (sampleData.length === 0) {
-                showNotification('داده‌ای برای خروجی وجود ندارد', 'warning');
-                return;
-            }
+        // تابع برای باز و بسته کردن لیست‌ها
+        function toggleCollapsible(header) {
+            const content = header.nextElementSibling;
+            const icon = header.querySelector('i');
             
-            try {
-                const ws = XLSX.utils.json_to_sheet(sampleData);
-                const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, "وام‌ها");
-                XLSX.writeFile(wb, "لیست_وام‌ها.xlsx");
-                showNotification('خروجی اکسل با موفقیت ایجاد شد', 'success');
-            } catch (error) {
-                console.error('خطا در ایجاد خروجی اکسل:', error);
-                showNotification('خطا در ایجاد خروجی اکسل', 'error');
+            header.classList.toggle('active');
+            content.classList.toggle('active');
+            
+            if (content.classList.contains('active')) {
+                content.style.maxHeight = content.scrollHeight + "px";
+            } else {
+                content.style.maxHeight = "0";
             }
         }
 
@@ -2484,6 +3589,255 @@ if (contractTypeFilter) {
         window.editEmployee = editEmployee;
         window.requestPassword = requestPassword;
         window.testSimpleSave = testSimpleSave;
+        window.toggleCollapsible = toggleCollapsible;
+        window.addNewLoan = addNewLoan;
+        window.deleteLoanFromDatabase = deleteLoanFromDatabase;
+        window.editLoan = editLoan;
+        window.updateLoan = updateLoan;
+        window.toggleLoanManagement = toggleLoanManagement;
+        window.toggleAddLoanForm = toggleAddLoanForm;
+        window.toggleMainLoanForm = toggleMainLoanForm;
+        window.addLoanToMainForm = addLoanToMainForm;
+        window.removeLoanFromMainForm = removeLoanFromMainForm;
+        window.resetMainLoanForm = resetMainLoanForm;
+
+        // تابع exportToExcel (اگر نیاز باشد)
+        function exportToExcel() {
+            try {
+                const dataForExport = sampleData.map(item => ({
+                    'نام کاربری': item.username,
+                    'شماره پرسنلی': item.employeeNumber,
+                    'نام و نام خانوادگی': item.fullname,
+                    'جنسیت': item.gender,
+                    'نوع قرارداد': item.contractType,
+                    'وام بانکی': item.bankLoan,
+                    'وام شرکتی': item.companyLoan,
+                    'تاریخ وام بانکی': item.bankLoanDate,
+                    'تاریخ وام شرکتی': item.companyLoanDate,
+                    'اولویت': item.priority,
+                    'توضیحات': item.description,
+                    'تعداد وام‌ها': (item.bankLoan ? item.bankLoan.split(',').length : 0) + (item.companyLoan ? item.companyLoan.split(',').length : 0),
+                    'درخواست وام مجدد': item.loanRequest ? 'بله' : 'خیر'
+                }));
+
+                const ws = XLSX.utils.json_to_sheet(dataForExport);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "وام‌ها");
+                XLSX.writeFile(wb, "لیست_وام‌ها.xlsx");
+                showNotification('خروجی اکسل با موفقیت ایجاد شد', 'success');
+            } catch (error) {
+                console.error('❌ خطا در ایجاد خروجی اکسل:', error);
+                showNotification('خطا در ایجاد خروجی اکسل', 'error');
+            }
+        }
+		
+// تابع ویرایش وام - نسخه کاملاً اصلاح شده
+function editLoan(employeeNumber, loanIndex) {
+    const employee = sampleData.find(item => item.employeeNumber === employeeNumber);
+    if (!employee || !employee.loans || !employee.loans[loanIndex]) return;
+    
+    const loan = employee.loans[loanIndex];
+    
+    console.log('🔧 ویرایش وام:', loan);
+    
+    // پر کردن فرم با اطلاعات وام موجود
+    document.getElementById('new-loan-type').value = loan.type;
+    document.getElementById('new-loan-amount').value = loan.amount;
+    document.getElementById('new-loan-date').value = loan.date || '';
+    document.getElementById('new-loan-desc').value = loan.description || '';
+    
+    // فقط برای وام بانکی فیلد نام بانک رو پر کن و نمایش بده
+    if (loan.type === 'bank') {
+        document.getElementById('new-loan-bank').value = loan.bankName || '';
+        document.getElementById('bank-name-field').style.display = 'grid';
+    } else {
+        document.getElementById('new-loan-bank').value = '';
+        document.getElementById('bank-name-field').style.display = 'none';
+    }
+    
+    // پیدا کردن دکمه و تغییر آن به "ویرایش وام"
+    const addButton = document.querySelector('#addLoanFormContent .btn-success.compact-btn');
+    if (!addButton) {
+        console.error('❌ دکمه پیدا نشد');
+        return;
+    }
+    
+    // ذخیره اطلاعات برای استفاده در updateLoan
+    window.currentEditData = {
+        employeeNumber: employeeNumber,
+        loanIndex: loanIndex,
+        isEditing: true
+    };
+    
+    console.log('🔄 تغییر دکمه به حالت ویرایش');
+    
+    // تغییر دکمه به حالت ویرایش
+    addButton.innerHTML = '<i class="fas fa-edit"></i> ویرایش وام';
+    addButton.setAttribute('onclick', 'updateLoan()');
+    
+    // باز کردن فرم افزودن
+    document.getElementById('addLoanFormContent').classList.add('active');
+    document.querySelector('.loan-management-header:last-child').classList.add('active');
+    
+    // اسکرول به فرم
+    setTimeout(() => {
+        document.getElementById('addLoanFormContent').scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start' 
+        });
+    }, 100);
+}
+
+// تابع آپدیت وام - نسخه کاملاً اصلاح شده
+async function updateLoan() {
+    console.log('🎯 شروع آپدیت وام');
+    
+    if (!window.currentEditData || !window.currentEditData.isEditing) {
+        console.log('❌ وضعیت ویرایش فعال نیست');
+        alert('خطا: وضعیت ویرایش فعال نیست');
+        return;
+    }
+    
+    const { employeeNumber, loanIndex } = window.currentEditData;
+    const employee = sampleData.find(item => item.employeeNumber === employeeNumber);
+    
+    if (!employee || !employee.loans) {
+        console.log('❌ کارمند یا لیست وام‌ها پیدا نشد');
+        return;
+    }
+    
+    const type = document.getElementById('new-loan-type').value;
+    const amount = parseFloat(document.getElementById('new-loan-amount').value);
+    const bankName = document.getElementById('new-loan-bank').value;
+    const description = document.getElementById('new-loan-desc').value;
+    const date = document.getElementById('new-loan-date').value;
+    
+    if (!amount || amount <= 0) {
+        alert('لطفاً مبلغ معتبر وارد کنید');
+        return;
+    }
+    
+    // فقط برای وام بانکی بررسی نام بانک
+    if (type === 'bank' && !bankName.trim()) {
+        alert('لطفاً نام بانک را وارد کنید');
+        return;
+    }
+    
+    console.log('🔧 آپدیت وام موجود:', { employeeNumber, loanIndex, type, amount });
+    
+    // آپدیت وام موجود - نه اضافه کردن جدید
+    employee.loans[loanIndex] = {
+        type: type,
+        amount: amount,
+        date: date,
+        description: description || `وام ${type === 'bank' ? 'بانکی' : 'شرکتی'}`
+    };
+    
+    // فقط برای وام بانکی نام بانک رو اضافه کن
+    if (type === 'bank') {
+        employee.loans[loanIndex].bankName = bankName;
+    } else {
+        // اگر وام شرکتی هست، مطمئن شو bankName نداره
+        delete employee.loans[loanIndex].bankName;
+    }
+    
+    try {
+        // تبدیل ساختار loans به فرمت جدا شده با کاما برای Supabase
+        const bankLoans = employee.loans.filter(loan => loan.type === 'bank');
+        const companyLoans = employee.loans.filter(loan => loan.type === 'company');
+        
+        // فرمت: "amount:bankName:date:description,amount:bankName:date:description,..."
+        const bankLoanString = bankLoans.map(loan => 
+            `${loan.amount}:${loan.bankName || ''}:${loan.date || ''}:${loan.description || ''}`
+        ).join(',');
+        
+        // برای وام شرکتی: "amount::date:description,amount::date:description,..."
+        const companyLoanString = companyLoans.map(loan => 
+            `${loan.amount}::${loan.date || ''}:${loan.description || ''}`
+        ).join(',');
+        
+        const dataForSupabase = {
+            username: employee.username || '',
+            employeenumber: employee.employeeNumber,
+            fullname: employee.fullname,
+            gender: employee.gender,
+            contracttype: employee.contractType || 'Staff',
+            bankloan: bankLoanString || '',
+            companyloan: companyLoanString || '',
+            bankloandate: bankLoans.length > 0 ? bankLoans[0].date : '',
+            companyloandate: companyLoans.length > 0 ? companyLoans[0].date : '',
+            priority: employee.priority,
+            description: employee.description || '',
+            loanrequest: employee.loanRequest || false
+        };
+        
+        console.log('💾 ذخیره در Supabase:', dataForSupabase);
+        
+        // آپدیت در Supabase
+        if (employee.id) {
+            dataForSupabase.id = employee.id;
+            await executeRequest('updateData', dataForSupabase);
+        } else {
+            await executeRequest('appendData', [dataForSupabase]);
+        }
+        
+        // ذخیره در localStorage
+        saveToLocalStorage();
+        
+        // ✅ **اصلاح مهم: بازگرداندن فرم به حالت عادی**
+        resetLoanForm();
+        
+        showNotification('وام با موفقیت ویرایش شد', 'success');
+        
+        // رفرش نمایش
+        showLoanDetails(employeeNumber);
+        
+    } catch (error) {
+        console.error('❌ خطا در ویرایش وام:', error);
+        showNotification('خطا در ویرایش وام', 'error');
+    }
+}
+
+// ✅ **تابع جدید برای ریست کردن فرم**
+function resetLoanForm() {
+    console.log('🔄 ریست کردن فرم');
+    
+    // پاک کردن داده‌های فرم
+    document.getElementById('new-loan-amount').value = '';
+    document.getElementById('new-loan-bank').value = '';
+    document.getElementById('new-loan-desc').value = '';
+    document.getElementById('new-loan-date').valueAsDate = new Date();
+    document.getElementById('new-loan-type').value = 'bank';
+    
+    // مخفی کردن فیلد بانک
+    document.getElementById('bank-name-field').style.display = 'none';
+    
+    // بازگرداندن دکمه به حالت "افزودن وام"
+    const addButton = document.querySelector('#addLoanFormContent .btn-success.compact-btn');
+    if (addButton) {
+        addButton.innerHTML = '<i class="fas fa-plus"></i> افزودن وام';
+        addButton.setAttribute('onclick', `addNewLoan('${getCurrentEmployeeNumber()}')`);
+    }
+    
+    // پاک کردن داده‌های edit
+    delete window.currentEditData;
+}
+
+// تابع کمکی برای گرفتن شماره پرسنلی جاری
+function getCurrentEmployeeNumber() {
+    const title = document.getElementById('details-modal-title').textContent;
+    const match = title.match(/\d+/);
+    return match ? match[0] : '';
+}
+
+// اضافه کردن توابع به scope جهانی
+window.toggleLoanManagement = toggleLoanManagement;
+window.toggleAddLoanForm = toggleAddLoanForm;
+window.editLoan = editLoan;
+window.updateLoan = updateLoan;
+window.formatDate = formatDate;
+window.addNewLoan = addNewLoan;
+window.deleteLoanFromDatabase = deleteLoanFromDatabase;
     </script>
 </body>
 </html>
