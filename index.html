@@ -186,10 +186,12 @@
             cursor: pointer;
             font-size: 10px;
             margin: 0 2px;
+            transition: all 0.3s ease;
         }
         
         .manage-loan-btn:hover {
             background: #7b1fa2;
+            transform: translateY(-1px);
         }
         
         /* اصلاح رنگ‌بندی اولویت‌ها */
@@ -1138,14 +1140,80 @@
                                 </select>
                             </div>
                         </div>
-                    </div>
-
-                    <!-- بخش توضیحات -->
-                    <div class="form-section">
-                        <div class="form-section-title">📝 سایر اطلاعات</div>
-                        <div class="form-field">
+						<div class="form-field">
                             <label for="description">توضیحات</label>
                             <textarea id="description" class="form-control" placeholder="توضیحات اضافی..."></textarea>
+                        </div>
+                    </div>
+
+                  
+
+                    <!-- بخش مدیریت وام‌ها -->
+                    <div class="form-section">
+                        <div class="form-section-title">💰 مدیریت وام‌ها</div>
+                        
+                        <!-- فرم افزودن/ویرایش وام -->
+                        <div class="loan-management-panel">
+                            <div class="loan-management-header" onclick="toggleMainLoanForm()">
+                                <h4><i class="fas fa-plus-circle"></i> افزودن وام جدید یا ویرایش وام‌ها</h4>
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                            <div class="loan-management-content active" id="mainLoanFormContent">
+                                <div class="add-loan-section">
+                                    <div class="form-row">
+                                        <div class="form-field" id="bank-name-field">
+                                            <label>نام بانک</label>
+                                            <input type="text" id="main-loan-bank" class="form-control" placeholder="مثلاً: ملت">
+                                        </div>
+                                        <div class="form-field">
+                                            <label>مبلغ وام (میلیون تومان)</label>
+                                            <input type="number" id="main-loan-amount" class="form-control" placeholder="مثلاً: 100">
+                                        </div>
+                                        <div class="form-field">
+                                            <label>نوع وام</label>
+                                            <select id="main-loan-type" class="form-control">
+                                                <option value="bank" selected>وام بانکی</option>
+                                                <option value="company">وام شرکتی</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-row-2">
+                                        <div class="form-field">
+                                            <label>تاریخ دریافت</label>
+                                            <input type="date" id="main-loan-date" class="form-control">
+                                        </div>
+                                        <div class="form-field">
+                                            <label>توضیحات</label>
+                                            <input type="text" id="main-loan-desc" class="form-control" placeholder="توضیحات اختیاری">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-row">
+                                        <div class="form-field" style="grid-column: 1 / -1; display: flex; align-items: end; gap: 10px;">
+                                            <button type="button" class="btn btn-success" onclick="addLoanToMainForm()" style="flex: 1;">
+                                                <i class="fas fa-plus"></i> افزودن وام
+                                            </button>
+                                            <button type="button" class="btn btn-secondary" onclick="resetMainLoanForm()" style="flex: 1;">
+                                                <i class="fas fa-redo"></i> ریست فرم
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- لیست وام‌های اضافه شده -->
+                                <div class="loan-list-compact" id="main-loan-list" style="margin-top: 10px; display: none;">
+                                    <div class="loan-category">
+                                        <div class="loan-category-header">
+                                            <i class="fas fa-university"></i>
+                                            وام‌های اضافه شده (<span id="loan-count">0</span> وام)
+                                        </div>
+                                        <div class="loan-items-container" id="main-loan-items-container">
+                                            <!-- وام‌های اضافه شده اینجا نمایش داده می‌شوند -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1244,11 +1312,202 @@
         let isAuthenticated = false;
         let isEditing = false;
         
-        // متغیرهای مدیریت وام‌ها
+        // داده‌های فرم اصلی
+        let mainFormLoans = [];
+
+        // متغیرهای global برای مدیریت وام‌ها
         let currentEmployeeNumber = '';
         let currentEmployeeLoans = [];
 
-        // ==================== توابع مدیریت وام‌ها ====================
+        // ==================== توابع مدیریت فرم اصلی ====================
+
+        function toggleMainLoanForm() {
+            const content = document.getElementById('mainLoanFormContent');
+            const header = document.querySelector('.loan-management-header');
+            content.classList.toggle('active');
+            
+            const icon = header.querySelector('i.fa-chevron-down, i.fa-chevron-up');
+            if (content.classList.contains('active')) {
+                icon.classList.remove('fa-chevron-down');
+                icon.classList.add('fa-chevron-up');
+            } else {
+                icon.classList.remove('fa-chevron-up');
+                icon.classList.add('fa-chevron-down');
+            }
+        }
+
+        document.getElementById('main-loan-type').addEventListener('change', function() {
+            const bankNameField = document.getElementById('bank-name-field');
+            if (this.value === 'bank') {
+                bankNameField.style.display = 'block';
+            } else {
+                bankNameField.style.display = 'none';
+            }
+        });
+
+        function addLoanToMainForm() {
+            const type = document.getElementById('main-loan-type').value;
+            const amount = parseFloat(document.getElementById('main-loan-amount').value);
+            const bankName = document.getElementById('main-loan-bank').value;
+            const description = document.getElementById('main-loan-desc').value;
+            const date = document.getElementById('main-loan-date').value;
+            
+            if (!amount || amount <= 0) {
+                alert('لطفاً مبلغ معتبر وارد کنید');
+                return;
+            }
+            
+            if (type === 'bank' && !bankName.trim()) {
+                alert('لطفاً نام بانک را وارد کنید');
+                return;
+            }
+            
+            const newLoan = {
+                type: type,
+                amount: amount,
+                date: date,
+                description: description || `وام ${type === 'bank' ? 'بانکی' : 'شرکتی'}`
+            };
+            
+            if (type === 'bank') {
+                newLoan.bankName = bankName;
+            }
+            
+            mainFormLoans.push(newLoan);
+            updateMainLoanList();
+            
+            // ریست کردن فرم
+            document.getElementById('main-loan-amount').value = '';
+            document.getElementById('main-loan-bank').value = '';
+            document.getElementById('main-loan-desc').value = '';
+            document.getElementById('main-loan-date').valueAsDate = new Date();
+            
+            showNotification('وام به لیست اضافه شد', 'success');
+        }
+
+        function updateMainLoanList() {
+            const loanListContainer = document.getElementById('main-loan-items-container');
+            const loanList = document.getElementById('main-loan-list');
+            const loanCount = document.getElementById('loan-count');
+            
+            loanCount.textContent = mainFormLoans.length;
+            
+            if (mainFormLoans.length === 0) {
+                loanList.style.display = 'none';
+                return;
+            }
+            
+            loanList.style.display = 'block';
+            
+            let loanItemsHTML = '';
+            
+            mainFormLoans.forEach((loan, index) => {
+                const loanName = loan.type === 'bank' ? 
+                    (loan.bankName || `بانک ${index + 1}`) : 
+                    (loan.description || `وام شرکتی ${index + 1}`);
+                
+                loanItemsHTML += `
+                    <div class="loan-item-compact">
+                        <div class="loan-info-compact">
+                            <div class="loan-name">${loanName}</div>
+                            <div class="loan-details">
+                                ${loan.amount.toLocaleString()} میلیون - ${loan.date || 'تاریخ نامشخص'}
+                                ${loan.description ? `<br>${loan.description}` : ''}
+                            </div>
+                        </div>
+                        <div class="loan-actions-compact">
+                            <button class="btn btn-warning btn-compact" onclick="editLoanItem(${index})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-danger btn-compact" onclick="removeLoanFromMainForm(${index})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            loanListContainer.innerHTML = loanItemsHTML;
+        }
+
+        function removeLoanFromMainForm(index) {
+            if (confirm('آیا از حذف این وام اطمینان دارید؟')) {
+                mainFormLoans.splice(index, 1);
+                updateMainLoanList();
+                showNotification('وام از لیست حذف شد', 'success');
+            }
+        }
+
+        function editLoanItem(index) {
+            const loan = mainFormLoans[index];
+            
+            document.getElementById('main-loan-type').value = loan.type;
+            document.getElementById('main-loan-amount').value = loan.amount;
+            document.getElementById('main-loan-date').value = loan.date;
+            document.getElementById('main-loan-desc').value = loan.description || '';
+            
+            if (loan.type === 'bank') {
+                document.getElementById('main-loan-bank').value = loan.bankName || '';
+            }
+            
+            const addButton = document.querySelector('.btn-success[onclick="addLoanToMainForm()"]');
+            if (addButton) {
+                addButton.innerHTML = '<i class="fas fa-edit"></i> ویرایش وام';
+                addButton.setAttribute('onclick', `updateLoanItem(${index})`);
+            }
+            
+            showNotification('حالت ویرایش فعال شد! اطلاعات وام در فرم بارگذاری شد.', 'info');
+        }
+
+        function updateLoanItem(index) {
+            const type = document.getElementById('main-loan-type').value;
+            const amount = parseFloat(document.getElementById('main-loan-amount').value);
+            const bankName = document.getElementById('main-loan-bank').value;
+            const description = document.getElementById('main-loan-desc').value;
+            const date = document.getElementById('main-loan-date').value;
+            
+            mainFormLoans[index] = {
+                type: type,
+                amount: amount,
+                date: date,
+                description: description
+            };
+            
+            if (type === 'bank') {
+                mainFormLoans[index].bankName = bankName;
+            }
+            
+            const addButton = document.querySelector('.btn-success[onclick*="updateLoanItem"]');
+            if (addButton) {
+                addButton.innerHTML = '<i class="fas fa-plus"></i> افزودن وام';
+                addButton.setAttribute('onclick', 'addLoanToMainForm()');
+            }
+            
+            updateMainLoanList();
+            resetMainLoanForm();
+            
+            showNotification('وام با موفقیت ویرایش شد!', 'success');
+        }
+
+        function resetMainLoanForm() {
+            mainFormLoans = [];
+            document.getElementById('main-loan-amount').value = '';
+            document.getElementById('main-loan-bank').value = '';
+            document.getElementById('main-loan-desc').value = '';
+            document.getElementById('main-loan-date').valueAsDate = new Date();
+            document.getElementById('main-loan-type').value = 'bank';
+            document.getElementById('bank-name-field').style.display = 'block';
+            
+            document.getElementById('main-loan-list').style.display = 'none';
+            
+            const addButton = document.querySelector('.btn-success[onclick*="updateLoanItem"]');
+            if (addButton) {
+                addButton.innerHTML = '<i class="fas fa-plus"></i> افزودن وام';
+                addButton.setAttribute('onclick', 'addLoanToMainForm()');
+            }
+        }
+
+        // ==================== توابع مدیریت وام‌ها برای هر کاربر ====================
 
         // تابع برای نمایش مودال مدیریت وام‌ها
         function manageLoans(employeeNumber, employeeName) {
@@ -1299,6 +1558,7 @@
             document.getElementById('manageLoansModal').style.display = 'block';
         }
 
+        // توابع مدیریت وام‌ها
         function toggleLoanForm() {
             const content = document.getElementById('loanFormContent');
             const header = document.querySelector('.loan-management-header');
@@ -1440,15 +1700,9 @@
             setupEventListeners();
             initializeSystem();
             
-            // event listener برای نوع وام
-            document.getElementById('loan-type').addEventListener('change', function() {
-                const bankNameField = document.getElementById('bank-name-field');
-                if (this.value === 'bank') {
-                    bankNameField.style.display = 'block';
-                } else {
-                    bankNameField.style.display = 'none';
-                }
-            });
+            updateMainLoanList();
+            document.getElementById('main-loan-date').valueAsDate = new Date();
+            document.getElementById('loan-date').valueAsDate = new Date();
         });
 
         async function initializeSystem() {
@@ -1939,6 +2193,8 @@
                     document.getElementById('loan-form').reset();
                     document.getElementById('employee-number').readOnly = false;
                     
+                    resetMainLoanForm();
+                    
                     document.getElementById('addEmployeeModal').style.display = 'block';
                 });
             }
@@ -1950,6 +2206,8 @@
                     document.getElementById('modal-title').textContent = 'افزودن وام جدید';
                     document.getElementById('loan-form').reset();
                     document.getElementById('employee-number').readOnly = false;
+                    
+                    resetMainLoanForm();
                     
                     document.getElementById('addEmployeeModal').style.display = 'block';
                 });
@@ -2037,10 +2295,19 @@
                 }
             });
 
+            // event listener برای نوع وام در مودال مدیریت وام‌ها
+            document.getElementById('loan-type').addEventListener('change', function() {
+                const bankNameField = document.getElementById('bank-name-field');
+                if (this.value === 'bank') {
+                    bankNameField.style.display = 'block';
+                } else {
+                    bankNameField.style.display = 'none';
+                }
+            });
+
             console.log('✅ تمام event listeners تنظیم شدند');
         }
 
-   
         // ==================== توابع عملیاتی ====================
 
         function filterTable() {
@@ -2284,6 +2551,11 @@
         window.editLoanItem = editLoanItem;
         window.updateLoanItem = updateLoanItem;
         window.resetMainLoanForm = resetMainLoanForm;
+        window.manageLoans = manageLoans;
+        window.toggleLoanForm = toggleLoanForm;
+        window.addLoan = addLoan;
+        window.removeUserLoan = removeUserLoan;
+        window.resetLoanForm = resetLoanForm;
     </script>
 </body>
 </html>
