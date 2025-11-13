@@ -1954,11 +1954,12 @@ const BACKEND_SECRET_TOKEN = "CR2025@Mashhad!Secure#Key$Version2";
         // ==================== توابع ارتباط با Supabase ====================
 
 async function supabaseRequest(action, data = null) {
-    console.log(`📡 ارسال درخواست ${action} به Backend...`);
+    console.log(`📡 ارسال درخواست ${action} به Supabase Backend...`);
     
     try {
         const params = new URLSearchParams({
-            action: action
+            action: action,
+            token: BACKEND_SECRET_TOKEN  // اضافه کردن توکن
         });
         
         if (data) {
@@ -1971,7 +1972,7 @@ async function supabaseRequest(action, data = null) {
         return new Promise((resolve, reject) => {
             window.jsonpCallback = function(response) {
                 delete window.jsonpCallback;
-                console.log('📥 پاسخ JSONP دریافت شد:', response);
+                console.log('📥 پاسخ از Supabase دریافت شد:', response);
                 
                 if (response.error) {
                     reject(new Error(response.error));
@@ -2080,47 +2081,29 @@ async function loadFromSupabase() {
     }
 }
 
-        async function saveSingleRecordToSupabase(loanData, isNew = false) {
-            console.log(`💾 ذخیره یک رکورد در Supabase (جدید: ${isNew})...`);
-            
-            try {
-                const dataForSupabase = {
-                    username: loanData.username || '',
-                    employeenumber: loanData.employeenumber,
-                    fullname: loanData.fullname,
-                    gender: loanData.gender,
-                    contracttype: loanData.contractType || 'Staff',
-                    bankloan: loanData.bankLoan || '',
-                    companyloan: loanData.companyLoan || '',
-                    bankloandate: loanData.bankLoanDate || '',
-                    companyloandate: loanData.companyLoanDate || '',
-                    priority: loanData.priority,
-                    description: loanData.description || '',
-                    loanrequest: loanData.loanRequest || false
-                };
-                
-                let result;
-                
-                if (isNew) {
-                    result = await supabaseRequest('appendData', dataForSupabase);
-                } else {
-                    result = await supabaseRequest('updateData', dataForSupabase);
-                }
-                
-                console.log('✅ نتیجه ذخیره رکورد:', result);
-                
-                if (result && result.success) {
-                    showNotification('رکورد با موفقیت در Supabase ذخیره شد', 'success');
-                    return true;
-                } else {
-                    throw new Error(result.error || 'خطا در ذخیره رکورد');
-                }
-            } catch (error) {
-                console.error('❌ خطا در ذخیره رکورد:', error);
-                showNotification('خطا در ذخیره رکورد در Supabase. داده در حافظه محلی ذخیره شد.', 'warning');
-                return false;
-            }
+async function saveSingleRecordToSupabase(loanData, isNew = false) {
+    console.log(`💾 ذخیره یک رکورد در Supabase (جدید: ${isNew})...`);
+    
+    try {
+        const result = await supabaseRequest('saveData', {
+            record: loanData,
+            isNew: isNew
+        });
+        
+        console.log('✅ نتیجه ذخیره رکورد:', result);
+        
+        if (result && result.success) {
+            showNotification('رکورد با موفقیت در Supabase ذخیره شد', 'success');
+            return true;
+        } else {
+            throw new Error(result.error || 'خطا در ذخیره رکورد');
         }
+    } catch (error) {
+        console.error('❌ خطا در ذخیره رکورد:', error);
+        showNotification('خطا در ذخیره رکورد در Supabase. داده در حافظه محلی ذخیره شد.', 'warning');
+        return false;
+    }
+}
 
         // ==================== توابع localStorage ====================
 
@@ -2444,31 +2427,26 @@ async function loadFromSupabase() {
             }
         }
 
-        async function deleteEmployee(employeeNumber) {
-            if (confirm('آیا از حذف این وام اطمینان دارید؟')) {
-                const employee = sampleData.find(item => item.employeeNumber === employeeNumber);
-                if (employee) {
-                    try {
-                        await supabaseRequest('deleteData', { employeenumber: employeeNumber });
-                        sampleData = sampleData.filter(item => item.employeeNumber !== employeeNumber);
-                        renderTable(sampleData);
-                        saveToLocalStorage();
-                        showNotification('وام با موفقیت حذف شد', 'success');
-                    } catch (error) {
-                        console.error('❌ خطا در حذف از Supabase:', error);
-                        sampleData = sampleData.filter(item => item.employeeNumber !== employeeNumber);
-                        renderTable(sampleData);
-                        saveToLocalStorage();
-                        showNotification('وام از حافظه محلی حذف شد', 'warning');
-                    }
-                } else {
-                    sampleData = sampleData.filter(item => item.employeeNumber !== employeeNumber);
-                    renderTable(sampleData);
-                    saveToLocalStorage();
-                    showNotification('وام از حافظه محلی حذف شد', 'warning');
-                }
+async function deleteEmployee(employeeNumber) {
+    if (confirm('آیا از حذف این وام اطمینان دارید؟')) {
+        const employee = sampleData.find(item => item.employeeNumber === employeeNumber);
+        if (employee) {
+            try {
+                await supabaseRequest('deleteData', { employeeNumber: employeeNumber });
+                sampleData = sampleData.filter(item => item.employeeNumber !== employeeNumber);
+                renderTable(sampleData);
+                saveToLocalStorage();
+                showNotification('وام با موفقیت حذف شد', 'success');
+            } catch (error) {
+                console.error('❌ خطا در حذف از Supabase:', error);
+                sampleData = sampleData.filter(item => item.employeeNumber !== employeeNumber);
+                renderTable(sampleData);
+                saveToLocalStorage();
+                showNotification('وام از حافظه محلی حذف شد', 'warning');
             }
         }
+    }
+}
 
         async function toggleLoanRequest(employeeNumber) {
             const employee = sampleData.find(item => item.employeeNumber === employeeNumber);
@@ -2532,6 +2510,7 @@ async function loadFromSupabase() {
     </script>
 </body>
 </html>
+
 
 
 
