@@ -2033,7 +2033,7 @@ async function loadFromSupabase() {
                     const processedItem = {
                         id: item.id,
                         username: String(item.username || ''),
-                        employeeNumber: employeeNumber.toString(),
+                        employeenumber: employeenumber.toString(),
                         fullname: String(item.fullname || ''),
                         gender: String(item.gender || 'مرد'),
                         contractType: String(item.contracttype || 'Staff'), // حروف کوچک
@@ -2086,7 +2086,7 @@ async function loadFromSupabase() {
             try {
                 const dataForSupabase = {
                     username: loanData.username || '',
-                    employeenumber: loanData.employeeNumber,
+                    employeenumber: loanData.employeenumber,
                     fullname: loanData.fullname,
                     gender: loanData.gender,
                     contracttype: loanData.contractType || 'Staff',
@@ -2532,6 +2532,7 @@ async function loadFromSupabase() {
     </script>
 </body>
 </html>
+
 
 
 
