@@ -2026,7 +2026,8 @@ async function loadFromSupabase() {
             result.data.forEach((item, index) => {
                 console.log(`📝 پردازش رکورد ${index + 1}:`, item);
                 
-                const employeeNumber = item.employeeNumber || '';
+                // استفاده از نام فیلدهای دقیقاً مطابق سوپابیس
+                const employeeNumber = item.employeenumber || ''; // حروف کوچک
                 
                 if (employeeNumber && employeeNumber.toString().trim() !== '') {
                     const processedItem = {
@@ -2035,14 +2036,14 @@ async function loadFromSupabase() {
                         employeeNumber: employeeNumber.toString(),
                         fullname: String(item.fullname || ''),
                         gender: String(item.gender || 'مرد'),
-                        contractType: String(item.contractType || 'Staff'),
-                        bankLoan: String(item.bankLoan || ''),
-                        companyLoan: String(item.companyLoan || ''),
-                        bankLoanDate: String(item.bankLoanDate || ''),
-                        companyLoanDate: String(item.companyLoanDate || ''),
+                        contractType: String(item.contracttype || 'Staff'), // حروف کوچک
+                        bankLoan: String(item.bankloan || ''), // حروف کوچک
+                        companyLoan: String(item.companyloan || ''), // حروف کوچک
+                        bankLoanDate: String(item.bankloandate || ''),
+                        companyLoanDate: String(item.companyloandate || ''),
                         priority: String(item.priority || 'متوسط'),
                         description: String(item.description || ''),
-                        loanRequest: Boolean(item.loanRequest)
+                        loanRequest: Boolean(item.loanrequest) // حروف کوچک
                     };
                     
                     sampleData.push(processedItem);
@@ -2531,6 +2532,7 @@ async function loadFromSupabase() {
     </script>
 </body>
 </html>
+
 
 
 
