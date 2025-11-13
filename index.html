@@ -1958,19 +1958,20 @@ async function supabaseRequest(action, data = null) {
     
     try {
         const params = new URLSearchParams({
-            action: action,
-            token: BACKEND_SECRET_TOKEN,
-            callback: 'jsonpCallback'
+            action: action
         });
         
         if (data) {
             params.append('data', JSON.stringify(data));
         }
         
-        // استفاده از JSONP برای دور زدن CORS
+        // اضافه کردن callback برای JSONP
+        params.append('callback', 'jsonpCallback');
+        
         return new Promise((resolve, reject) => {
             window.jsonpCallback = function(response) {
                 delete window.jsonpCallback;
+                console.log('📥 پاسخ JSONP دریافت شد:', response);
                 
                 if (response.error) {
                     reject(new Error(response.error));
@@ -1981,15 +1982,20 @@ async function supabaseRequest(action, data = null) {
             
             const script = document.createElement('script');
             script.src = `${GAS_BACKEND_URL}?${params}`;
+            
+            script.onerror = () => {
+                delete window.jsonpCallback;
+                reject(new Error('Failed to load script'));
+            };
+            
             document.head.appendChild(script);
             
-            // Timeout برای جلوگیری از hanging
             setTimeout(() => {
                 if (window.jsonpCallback) {
                     delete window.jsonpCallback;
                     reject(new Error('Request timeout'));
                 }
-            }, 10000);
+            }, 15000);
         });
         
     } catch (error) {
@@ -2525,6 +2531,7 @@ async function loadFromSupabase() {
     </script>
 </body>
 </html>
+
 
 
 
