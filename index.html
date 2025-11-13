@@ -2027,24 +2027,24 @@ async function loadFromSupabase() {
             result.data.forEach((item, index) => {
                 console.log(`📝 پردازش رکورد ${index + 1}:`, item);
                 
-                // استفاده از نام فیلدهای دقیقاً مطابق سوپابیس
-                const employeeNumber = item.employeenumber || ''; // حروف کوچک
+                // استفاده از نام فیلدهای با حروف بزرگ (مطابق backend)
+                const employeeNumber = item.Employeenumber || ''; // با E بزرگ
                 
                 if (employeeNumber && employeeNumber.toString().trim() !== '') {
                     const processedItem = {
                         id: item.id,
-                        username: String(item.username || ''),
-                        employeenumber: employeenumber.toString(),
-                        fullname: String(item.fullname || ''),
-                        gender: String(item.gender || 'مرد'),
-                        contractType: String(item.contracttype || 'Staff'), // حروف کوچک
-                        bankLoan: String(item.bankloan || ''), // حروف کوچک
-                        companyLoan: String(item.companyloan || ''), // حروف کوچک
-                        bankLoanDate: String(item.bankloandate || ''),
-                        companyLoanDate: String(item.companyloandate || ''),
-                        priority: String(item.priority || 'متوسط'),
-                        description: String(item.description || ''),
-                        loanRequest: Boolean(item.loanrequest) // حروف کوچک
+                        username: String(item.Username || ''), // با U بزرگ
+                        employeeNumber: employeeNumber.toString(),
+                        fullname: String(item.Fullname || ''), // با F بزرگ
+                        gender: String(item.Gender || 'مرد'), // با G بزرگ
+                        contractType: String(item.Contracttype || 'Staff'), // با C بزرگ
+                        bankLoan: String(item.Bankloan || ''), // با B بزرگ
+                        companyLoan: String(item.Companyloan || ''), // با C بزرگ
+                        bankLoanDate: String(item.Bankloandate || ''),
+                        companyLoanDate: String(item.Companyloandate || ''),
+                        priority: String(item.Priority || 'متوسط'), // با P بزرگ
+                        description: String(item.Description || ''), // با D بزرگ
+                        loanRequest: Boolean(item.Loanrequest) // با L بزرگ
                     };
                     
                     sampleData.push(processedItem);
@@ -2510,6 +2510,7 @@ async function deleteEmployee(employeeNumber) {
     </script>
 </body>
 </html>
+
 
 
 
