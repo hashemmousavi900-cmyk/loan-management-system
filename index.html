@@ -1957,41 +1957,46 @@ async function supabaseRequest(action, data = null) {
     console.log(`📡 ارسال درخواست ${action} به Backend...`);
     
     try {
-        const requestData = {
+        const params = new URLSearchParams({
             action: action,
-            data: data,
-            token: BACKEND_SECRET_TOKEN
-        };
-        
-        console.log('Request Data:', requestData);
-        
-        const response = await fetch(GAS_BACKEND_URL, {
-            method: 'POST',
-            body: JSON.stringify(requestData)
-            // ❌ این خط را حذف کنید: mode: 'no-cors'
+            token: BACKEND_SECRET_TOKEN,
+            callback: 'jsonpCallback'
         });
         
-        console.log('📨 وضعیت پاسخ:', response.status, response.statusText);
-        
-        if (!response.ok) {
-            throw new Error(`خطای HTTP: ${response.status} ${response.statusText}`);
+        if (data) {
+            params.append('data', JSON.stringify(data));
         }
         
-        const result = await response.json();
-        console.log('📥 پاسخ دریافت شد:', result);
-        
-        if (result.error) {
-            throw new Error(result.error);
-        }
-        
-        return result;
+        // استفاده از JSONP برای دور زدن CORS
+        return new Promise((resolve, reject) => {
+            window.jsonpCallback = function(response) {
+                delete window.jsonpCallback;
+                
+                if (response.error) {
+                    reject(new Error(response.error));
+                } else {
+                    resolve(response);
+                }
+            };
+            
+            const script = document.createElement('script');
+            script.src = `${GAS_BACKEND_URL}?${params}`;
+            document.head.appendChild(script);
+            
+            // Timeout برای جلوگیری از hanging
+            setTimeout(() => {
+                if (window.jsonpCallback) {
+                    delete window.jsonpCallback;
+                    reject(new Error('Request timeout'));
+                }
+            }, 10000);
+        });
         
     } catch (error) {
         console.error(`❌ خطا در درخواست ${action}:`, error);
         throw error;
     }
 }
-
         async function loadFromSupabase() {
             showLoading(true, 'در حال بارگذاری از Supabase...');
             
@@ -2520,4 +2525,5 @@ async function supabaseRequest(action, data = null) {
     </script>
 </body>
 </html>
+
 
