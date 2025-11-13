@@ -1953,7 +1953,6 @@ const BACKEND_SECRET_TOKEN = "CR2025@Mashhad!Secure#Key$Version2";
 
         // ==================== توابع ارتباط با Supabase ====================
 
-// در تابع supabaseRequest، این خط را اضافه کنید:
 async function supabaseRequest(action, data = null) {
     console.log(`📡 ارسال درخواست ${action} به Backend...`);
     
@@ -1968,28 +1967,21 @@ async function supabaseRequest(action, data = null) {
         
         const response = await fetch(GAS_BACKEND_URL, {
             method: 'POST',
-            body: JSON.stringify(requestData),
-            // اضافه کردن این خط برای CORS
-            mode: 'no-cors'  // ← این خط را اضافه کنید
+            body: JSON.stringify(requestData)
+            // ❌ این خط را حذف کنید: mode: 'no-cors'
         });
         
-        // بقیه کد بدون تغییر...
+        console.log('📨 وضعیت پاسخ:', response.status, response.statusText);
         
         if (!response.ok) {
             throw new Error(`خطای HTTP: ${response.status} ${response.statusText}`);
         }
         
         const result = await response.json();
+        console.log('📥 پاسخ دریافت شد:', result);
         
         if (result.error) {
             throw new Error(result.error);
-        }
-        
-        console.log(`📥 پاسخ دریافت شد:`, result);
-        
-        // تبدیل پاسخ به فرمت مورد انتظار
-        if (action === 'loadData' && result.success) {
-            return result.data; // بازگشت داده‌ها به جای کل آبجکت
         }
         
         return result;
