@@ -1303,9 +1303,8 @@
     </div>
 
     <script>
-        // تنظیمات Supabase
-        const SUPABASE_URL = "https://buowqguzsrychwoxyqby.supabase.co";
-        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ1b3dxZ3V6c3J5Y2h3b3h5cWJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3MTQ1MzIsImV4cCI6MjA3ODI5MDUzMn0._2j0iRUY4L8x_59tDMEBh8qjSTHZdUOPd0nFqPZkXAk";
+      const GAS_BACKEND_URL = "https://script.google.com/macros/s/AKfycbzsNmOWZPXWRtuks_BlpkUSKVg3dhHy5TavXjt_BLmzN2AisjYYPuj67fwPYsrTs26V/exec";
+const BACKEND_SECRET_TOKEN = "CR2025@Mashhad!Secure#Key$Version2";
 
         // داده‌ها
         let sampleData = [];
@@ -1954,82 +1953,52 @@
 
         // ==================== توابع ارتباط با Supabase ====================
 
-        async function supabaseRequest(action, data = null) {
-            console.log(`📡 ارسال درخواست ${action} به Supabase...`);
-            
-            try {
-                let response;
-                
-                switch(action) {
-                    case 'loadData':
-                        response = await fetch(`${SUPABASE_URL}/rest/v1/loans?select=*&order=id.desc`, {
-                            headers: { 
-                                'apikey': SUPABASE_KEY, 
-                                'Authorization': `Bearer ${SUPABASE_KEY}` 
-                            }
-                        });
-                        break;
-                        
-                    case 'appendData':
-                        response = await fetch(`${SUPABASE_URL}/rest/v1/loans`, {
-                            method: 'POST',
-                            headers: {
-                                'apikey': SUPABASE_KEY,
-                                'Authorization': `Bearer ${SUPABASE_KEY}`,
-                                'Content-Type': 'application/json',
-                                'Prefer': 'return=minimal'
-                            },
-                            body: JSON.stringify(data)
-                        });
-                        break;
-                        
-                    case 'updateData':
-                        response = await fetch(`${SUPABASE_URL}/rest/v1/loans?employeenumber=eq.${data.employeenumber}`, {
-                            method: 'PATCH',
-                            headers: {
-                                'apikey': SUPABASE_KEY,
-                                'Authorization': `Bearer ${SUPABASE_KEY}`,
-                                'Content-Type': 'application/json',
-                                'Prefer': 'return=minimal'
-                            },
-                            body: JSON.stringify(data)
-                        });
-                        break;
-                        
-                    case 'deleteData':
-                        response = await fetch(`${SUPABASE_URL}/rest/v1/loans?employeenumber=eq.${data.employeenumber}`, {
-                            method: 'DELETE',
-                            headers: {
-                                'apikey': SUPABASE_KEY,
-                                'Authorization': `Bearer ${SUPABASE_KEY}`,
-                                'Prefer': 'return=minimal'
-                            }
-                        });
-                        break;
-                        
-                    default:
-                        throw new Error(`عملیات ${action} پشتیبانی نمی‌شود`);
-                }
-                
-                if (!response.ok) {
-                    throw new Error(`خطای HTTP: ${response.status} ${response.statusText}`);
-                }
-                
-                let result;
-                if (action === 'loadData') {
-                    result = await response.json();
-                } else {
-                    result = { success: true, message: 'عملیات با موفقیت انجام شد' };
-                }
-                
-                console.log(`📥 پاسخ دریافت شد:`, result);
-                
-                return result;
-            } catch (error) {
-                console.error(`❌ خطا در درخواست ${action}:`, error);
-                throw error;
-            }
+// در تابع supabaseRequest، این خط را اضافه کنید:
+async function supabaseRequest(action, data = null) {
+    console.log(`📡 ارسال درخواست ${action} به Backend...`);
+    
+    try {
+        const requestData = {
+            action: action,
+            data: data,
+            token: BACKEND_SECRET_TOKEN
+        };
+        
+        console.log('Request Data:', requestData);
+        
+        const response = await fetch(GAS_BACKEND_URL, {
+            method: 'POST',
+            body: JSON.stringify(requestData),
+            // اضافه کردن این خط برای CORS
+            mode: 'no-cors'  // ← این خط را اضافه کنید
+        });
+        
+        // بقیه کد بدون تغییر...
+        
+        if (!response.ok) {
+            throw new Error(`خطای HTTP: ${response.status} ${response.statusText}`);
         }
+        
+        const result = await response.json();
+        
+        if (result.error) {
+            throw new Error(result.error);
+        }
+        
+        console.log(`📥 پاسخ دریافت شد:`, result);
+        
+        // تبدیل پاسخ به فرمت مورد انتظار
+        if (action === 'loadData' && result.success) {
+            return result.data; // بازگشت داده‌ها به جای کل آبجکت
+        }
+        
+        return result;
+        
+    } catch (error) {
+        console.error(`❌ خطا در درخواست ${action}:`, error);
+        throw error;
+    }
+}
 
         async function loadFromSupabase() {
             showLoading(true, 'در حال بارگذاری از Supabase...');
