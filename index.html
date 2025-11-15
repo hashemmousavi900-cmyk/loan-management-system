@@ -1304,8 +1304,9 @@
 
     <script>
     // تنظیمات Backend - از آدرس کارکرده استفاده کنید
-const GAS_BACKEND_URL = "https://script.google.com/macros/s/AKfycby23xKMGZ1u04pPSW0KUI-G9MatrL8aRrEOTgAG5CoxqnD9b8gjky4tGj07kWQRyP4l/exec";
-const BACKEND_SECRET_TOKEN = "CR2025@Mashhad!Secure#Key$Version2";
+const GAS_BACKEND_URL = "https://script.google.com/macros/s/AKfycbzzS43ZcbB3-5GHFyVdIyBbhR-TWmPkZzbaSHm1zWHwlCgzP3M_dl_cYaxwqsouB52Y/exec";
+		const SECRET_TOKEN = "CR2025@Mashhad!Secure-Key$Version2";
+const BACKEND_SECRET_TOKEN = "CR2025@Mashhad!Secure-Key$Version2";
         // داده‌ها
         let sampleData = [];
         let isAuthenticated = false;
@@ -1959,7 +1960,7 @@ async function supabaseRequest(action, data = null) {
     try {
         const params = new URLSearchParams({
             action: action,
-            token: BACKEND_SECRET_TOKEN  // اضافه کردن توکن
+             token: encodeURIComponent(BACKEND_SECRET_TOKEN)   // اضافه کردن توکن
         });
         
         if (data) {
@@ -2510,6 +2511,7 @@ async function deleteEmployee(employeeNumber) {
     </script>
 </body>
 </html>
+
 
 
 
