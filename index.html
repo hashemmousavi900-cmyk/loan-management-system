@@ -1303,10 +1303,10 @@
     </div>
 
     <script>
-    // تنظیمات Backend - از آدرس کارکرده استفاده کنید
-const GAS_BACKEND_URL = "https://script.google.com/macros/s/AKfycbzzS43ZcbB3-5GHFyVdIyBbhR-TWmPkZzbaSHm1zWHwlCgzP3M_dl_cYaxwqsouB52Y/exec";
-		const SECRET_TOKEN = "CR2025@Mashhad!Secure-Key$Version2";
-const BACKEND_SECRET_TOKEN = "CR2025@Mashhad!Secure-Key$Version2";
+        // تنظیمات Supabase
+        const SUPABASE_URL = "https://buowqguzsrychwoxyqby.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ1b3dxZ3V6c3J5Y2h3b3h5cWJ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjI3MTQ1MzIsImV4cCI6MjA3ODI5MDUzMn0._2j0iRUY4L8x_59tDMEBh8qjSTHZdUOPd0nFqPZkXAk";
+
         // داده‌ها
         let sampleData = [];
         let isAuthenticated = false;
@@ -1954,157 +1954,200 @@ const BACKEND_SECRET_TOKEN = "CR2025@Mashhad!Secure-Key$Version2";
 
         // ==================== توابع ارتباط با Supabase ====================
 
-async function supabaseRequest(action, data = null) {
-    console.log(`📡 ارسال درخواست ${action} به Supabase Backend...`);
-    
-    try {
-        const params = new URLSearchParams({
-            action: action,
-             token: encodeURIComponent(BACKEND_SECRET_TOKEN)   // اضافه کردن توکن
-        });
-        
-        if (data) {
-            params.append('data', JSON.stringify(data));
-        }
-        
-        // اضافه کردن callback برای JSONP
-        params.append('callback', 'jsonpCallback');
-        
-        return new Promise((resolve, reject) => {
-            window.jsonpCallback = function(response) {
-                delete window.jsonpCallback;
-                console.log('📥 پاسخ از Supabase دریافت شد:', response);
+        async function supabaseRequest(action, data = null) {
+            console.log(`📡 ارسال درخواست ${action} به Supabase...`);
+            
+            try {
+                let response;
                 
-                if (response.error) {
-                    reject(new Error(response.error));
+                switch(action) {
+                    case 'loadData':
+                        response = await fetch(`${SUPABASE_URL}/rest/v1/loans?select=*&order=id.desc`, {
+                            headers: { 
+                                'apikey': SUPABASE_KEY, 
+                                'Authorization': `Bearer ${SUPABASE_KEY}` 
+                            }
+                        });
+                        break;
+                        
+                    case 'appendData':
+                        response = await fetch(`${SUPABASE_URL}/rest/v1/loans`, {
+                            method: 'POST',
+                            headers: {
+                                'apikey': SUPABASE_KEY,
+                                'Authorization': `Bearer ${SUPABASE_KEY}`,
+                                'Content-Type': 'application/json',
+                                'Prefer': 'return=minimal'
+                            },
+                            body: JSON.stringify(data)
+                        });
+                        break;
+                        
+                    case 'updateData':
+                        response = await fetch(`${SUPABASE_URL}/rest/v1/loans?employeenumber=eq.${data.employeenumber}`, {
+                            method: 'PATCH',
+                            headers: {
+                                'apikey': SUPABASE_KEY,
+                                'Authorization': `Bearer ${SUPABASE_KEY}`,
+                                'Content-Type': 'application/json',
+                                'Prefer': 'return=minimal'
+                            },
+                            body: JSON.stringify(data)
+                        });
+                        break;
+                        
+                    case 'deleteData':
+                        response = await fetch(`${SUPABASE_URL}/rest/v1/loans?employeenumber=eq.${data.employeenumber}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'apikey': SUPABASE_KEY,
+                                'Authorization': `Bearer ${SUPABASE_KEY}`,
+                                'Prefer': 'return=minimal'
+                            }
+                        });
+                        break;
+                        
+                    default:
+                        throw new Error(`عملیات ${action} پشتیبانی نمی‌شود`);
+                }
+                
+                if (!response.ok) {
+                    throw new Error(`خطای HTTP: ${response.status} ${response.statusText}`);
+                }
+                
+                let result;
+                if (action === 'loadData') {
+                    result = await response.json();
                 } else {
-                    resolve(response);
+                    result = { success: true, message: 'عملیات با موفقیت انجام شد' };
                 }
-            };
-            
-            const script = document.createElement('script');
-            script.src = `${GAS_BACKEND_URL}?${params}`;
-            
-            script.onerror = () => {
-                delete window.jsonpCallback;
-                reject(new Error('Failed to load script'));
-            };
-            
-            document.head.appendChild(script);
-            
-            setTimeout(() => {
-                if (window.jsonpCallback) {
-                    delete window.jsonpCallback;
-                    reject(new Error('Request timeout'));
-                }
-            }, 15000);
-        });
-        
-    } catch (error) {
-        console.error(`❌ خطا در درخواست ${action}:`, error);
-        throw error;
-    }
-}
-async function loadFromSupabase() {
-    showLoading(true, 'در حال بارگذاری از Supabase...');
-    
-    try {
-        console.log('🔄 شروع بارگذاری از Supabase...');
-        
-        const result = await supabaseRequest('loadData');
-        console.log('📊 پاسخ کامل loadData:', result);
-        
-        if (result && result.success) {
-            console.log(`📥 دریافت ${result.data.length} رکورد از سرور`);
-            
-            if (result.data.length === 0) {
-                console.log('📭 هیچ داده‌ای در Supabase وجود ندارد');
-                showNotification('هیچ داده‌ای در Supabase وجود ندارد', 'info');
-                showEmptyState();
-                return;
-            }
-            
-            sampleData = [];
-            result.data.forEach((item, index) => {
-                console.log(`📝 پردازش رکورد ${index + 1}:`, item);
                 
-                // استفاده از نام فیلدهای با حروف بزرگ (مطابق backend)
-                const employeeNumber = item.Employeenumber || ''; // با E بزرگ
+                console.log(`📥 پاسخ دریافت شد:`, result);
                 
-                if (employeeNumber && employeeNumber.toString().trim() !== '') {
-                    const processedItem = {
-                        id: item.id,
-                        username: String(item.Username || ''), // با U بزرگ
-                        employeeNumber: employeeNumber.toString(),
-                        fullname: String(item.Fullname || ''), // با F بزرگ
-                        gender: String(item.Gender || 'مرد'), // با G بزرگ
-                        contractType: String(item.Contracttype || 'Staff'), // با C بزرگ
-                        bankLoan: String(item.Bankloan || ''), // با B بزرگ
-                        companyLoan: String(item.Companyloan || ''), // با C بزرگ
-                        bankLoanDate: String(item.Bankloandate || ''),
-                        companyLoanDate: String(item.Companyloandate || ''),
-                        priority: String(item.Priority || 'متوسط'), // با P بزرگ
-                        description: String(item.Description || ''), // با D بزرگ
-                        loanRequest: Boolean(item.Loanrequest) // با L بزرگ
-                    };
-                    
-                    sampleData.push(processedItem);
-                }
-            });
-            
-            console.log(`✅ پردازش کامل شد: ${sampleData.length} رکورد معتبر`);
-            
-            if (sampleData.length > 0) {
-                renderTable(sampleData);
-                saveToLocalStorage();
-                showNotification(`داده‌ها با موفقیت بارگذاری شدند (${sampleData.length} رکورد)`, 'success');
-            } else {
-                console.log('❌ هیچ داده معتبری پس از پردازش باقی نماند');
-                showNotification('هیچ داده معتبری در Supabase وجود ندارد', 'info');
-                showEmptyState();
+                return result;
+            } catch (error) {
+                console.error(`❌ خطا در درخواست ${action}:`, error);
+                throw error;
             }
-        } else {
-            console.log('❌ پاسخ ناموفق:', result);
-            throw new Error(result.error || 'خطا در بارگذاری داده‌ها از سرور');
         }
-    } catch (error) {
-        console.error('❌ خطا در بارگذاری از Supabase:', error);
-        
-        const loaded = loadFromLocalStorage();
-        if (loaded) {
-            showNotification('داده‌ها از حافظه محلی بارگذاری شدند', 'warning');
-        } else {
-            showNotification('خطا در بارگذاری داده‌ها. لطفا اتصال اینترنت را بررسی کنید.', 'error');
-            showEmptyState();
-        }
-    } finally {
-        showLoading(false);
-    }
-}
 
-async function saveSingleRecordToSupabase(loanData, isNew = false) {
-    console.log(`💾 ذخیره یک رکورد در Supabase (جدید: ${isNew})...`);
-    
-    try {
-        const result = await supabaseRequest('saveData', {
-            record: loanData,
-            isNew: isNew
-        });
-        
-        console.log('✅ نتیجه ذخیره رکورد:', result);
-        
-        if (result && result.success) {
-            showNotification('رکورد با موفقیت در Supabase ذخیره شد', 'success');
-            return true;
-        } else {
-            throw new Error(result.error || 'خطا در ذخیره رکورد');
+        async function loadFromSupabase() {
+            showLoading(true, 'در حال بارگذاری از Supabase...');
+            
+            try {
+                console.log('🔄 شروع بارگذاری از Supabase...');
+                
+                const result = await supabaseRequest('loadData');
+                console.log('📊 پاسخ کامل loadData:', result);
+                
+                if (Array.isArray(result)) {
+                    console.log(`📥 دریافت ${result.length} رکورد از سرور`);
+                    
+                    if (result.length === 0) {
+                        console.log('📭 هیچ داده‌ای در Supabase وجود ندارد');
+                        showNotification('هیچ داده‌ای در Supabase وجود ندارد', 'info');
+                        showEmptyState();
+                        return;
+                    }
+                    
+                    sampleData = [];
+                    result.forEach((item, index) => {
+                        console.log(`📝 پردازش رکورد ${index + 1}:`, item);
+                        
+                        const employeeNumber = item.employeenumber || '';
+                        
+                        if (employeeNumber && employeeNumber.toString().trim() !== '') {
+                            const processedItem = {
+                                id: item.id,
+                                username: String(item.username || ''),
+                                employeeNumber: employeeNumber.toString(),
+                                fullname: String(item.fullname || ''),
+                                gender: String(item.gender || 'مرد'),
+                                contractType: String(item.contracttype || 'Staff'),
+                                bankLoan: String(item.bankloan || ''),
+                                companyLoan: String(item.companyloan || ''),
+                                bankLoanDate: String(item.bankloandate || ''),
+                                companyLoanDate: String(item.companyloandate || ''),
+                                priority: String(item.priority || 'متوسط'),
+                                description: String(item.description || ''),
+                                loanRequest: Boolean(item.loanrequest)
+                            };
+                            
+                            sampleData.push(processedItem);
+                        }
+                    });
+                    
+                    console.log(`✅ پردازش کامل شد: ${sampleData.length} رکورد معتبر`);
+                    
+                    if (sampleData.length > 0) {
+                        renderTable(sampleData);
+                        saveToLocalStorage();
+                        showNotification(`داده‌ها با موفقیت بارگذاری شدند (${sampleData.length} رکورد)`, 'success');
+                    } else {
+                        console.log('❌ هیچ داده معتبری پس از پردازش باقی نماند');
+                        showNotification('هیچ داده معتبری در Supabase وجود ندارد', 'info');
+                        showEmptyState();
+                    }
+                } else {
+                    console.log('❌ ساختار پاسخ نامعتبر:', result);
+                    throw new Error('خطا در بارگذاری داده‌ها از سرور');
+                }
+            } catch (error) {
+                console.error('❌ خطا در بارگذاری از Supabase:', error);
+                
+                const loaded = loadFromLocalStorage();
+                if (loaded) {
+                    showNotification('داده‌ها از حافظه محلی بارگذاری شدند', 'warning');
+                } else {
+                    showNotification('خطا در بارگذاری داده‌ها. لطفا اتصال اینترنت را بررسی کنید.', 'error');
+                    showEmptyState();
+                }
+            } finally {
+                showLoading(false);
+            }
         }
-    } catch (error) {
-        console.error('❌ خطا در ذخیره رکورد:', error);
-        showNotification('خطا در ذخیره رکورد در Supabase. داده در حافظه محلی ذخیره شد.', 'warning');
-        return false;
-    }
-}
+
+        async function saveSingleRecordToSupabase(loanData, isNew = false) {
+            console.log(`💾 ذخیره یک رکورد در Supabase (جدید: ${isNew})...`);
+            
+            try {
+                const dataForSupabase = {
+                    username: loanData.username || '',
+                    employeenumber: loanData.employeeNumber,
+                    fullname: loanData.fullname,
+                    gender: loanData.gender,
+                    contracttype: loanData.contractType || 'Staff',
+                    bankloan: loanData.bankLoan || '',
+                    companyloan: loanData.companyLoan || '',
+                    bankloandate: loanData.bankLoanDate || '',
+                    companyloandate: loanData.companyLoanDate || '',
+                    priority: loanData.priority,
+                    description: loanData.description || '',
+                    loanrequest: loanData.loanRequest || false
+                };
+                
+                let result;
+                
+                if (isNew) {
+                    result = await supabaseRequest('appendData', dataForSupabase);
+                } else {
+                    result = await supabaseRequest('updateData', dataForSupabase);
+                }
+                
+                console.log('✅ نتیجه ذخیره رکورد:', result);
+                
+                if (result && result.success) {
+                    showNotification('رکورد با موفقیت در Supabase ذخیره شد', 'success');
+                    return true;
+                } else {
+                    throw new Error(result.error || 'خطا در ذخیره رکورد');
+                }
+            } catch (error) {
+                console.error('❌ خطا در ذخیره رکورد:', error);
+                showNotification('خطا در ذخیره رکورد در Supabase. داده در حافظه محلی ذخیره شد.', 'warning');
+                return false;
+            }
+        }
 
         // ==================== توابع localStorage ====================
 
@@ -2428,26 +2471,31 @@ async function saveSingleRecordToSupabase(loanData, isNew = false) {
             }
         }
 
-async function deleteEmployee(employeeNumber) {
-    if (confirm('آیا از حذف این وام اطمینان دارید؟')) {
-        const employee = sampleData.find(item => item.employeeNumber === employeeNumber);
-        if (employee) {
-            try {
-                await supabaseRequest('deleteData', { employeeNumber: employeeNumber });
-                sampleData = sampleData.filter(item => item.employeeNumber !== employeeNumber);
-                renderTable(sampleData);
-                saveToLocalStorage();
-                showNotification('وام با موفقیت حذف شد', 'success');
-            } catch (error) {
-                console.error('❌ خطا در حذف از Supabase:', error);
-                sampleData = sampleData.filter(item => item.employeeNumber !== employeeNumber);
-                renderTable(sampleData);
-                saveToLocalStorage();
-                showNotification('وام از حافظه محلی حذف شد', 'warning');
+        async function deleteEmployee(employeeNumber) {
+            if (confirm('آیا از حذف این وام اطمینان دارید؟')) {
+                const employee = sampleData.find(item => item.employeeNumber === employeeNumber);
+                if (employee) {
+                    try {
+                        await supabaseRequest('deleteData', { employeenumber: employeeNumber });
+                        sampleData = sampleData.filter(item => item.employeeNumber !== employeeNumber);
+                        renderTable(sampleData);
+                        saveToLocalStorage();
+                        showNotification('وام با موفقیت حذف شد', 'success');
+                    } catch (error) {
+                        console.error('❌ خطا در حذف از Supabase:', error);
+                        sampleData = sampleData.filter(item => item.employeeNumber !== employeeNumber);
+                        renderTable(sampleData);
+                        saveToLocalStorage();
+                        showNotification('وام از حافظه محلی حذف شد', 'warning');
+                    }
+                } else {
+                    sampleData = sampleData.filter(item => item.employeeNumber !== employeeNumber);
+                    renderTable(sampleData);
+                    saveToLocalStorage();
+                    showNotification('وام از حافظه محلی حذف شد', 'warning');
+                }
             }
         }
-    }
-}
 
         async function toggleLoanRequest(employeeNumber) {
             const employee = sampleData.find(item => item.employeeNumber === employeeNumber);
@@ -2511,14 +2559,3 @@ async function deleteEmployee(employeeNumber) {
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
