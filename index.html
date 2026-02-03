@@ -2349,7 +2349,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 const bankLoanCount = employee.loans ? employee.loans.filter(loan => loan.type === 'bank').length : 0;
                 const companyLoanCount = employee.loans ? employee.loans.filter(loan => loan.type === 'company').length : 0;
                 const loanCount = bankLoanCount + companyLoanCount;
-                
+                // محاسبه مجموع مبلغ کل وام‌ها
+				const totalLoanAmount = employee.loans ? employee.loans.reduce((sum, loan) => sum + (parseFloat(loan.amount) || 0), 0) : 0;
                 let loanSummaryHTML = '';
 
                 if (bankLoanCount > 0 || companyLoanCount > 0) {
@@ -2398,7 +2399,10 @@ row.innerHTML = `
         </span>
     </td>
     <td>${employee.description || '-'}</td>
-    <td>${loanCount}</td>
+    <td>
+    ${loanCount} وام 
+    <span style="font-size: 0.9em; color: #555;">(مجموع ${totalLoanAmount.toLocaleString('fa-IR')} میلیون)</span>
+	</td>
     <td>
         <label class="switch-fa">
             <input type="checkbox" class="input" id="switch-${employee.employeeNumber}" ${employee.loanRequest ? 'checked' : ''} onchange="toggleLoanRequest('${employee.employeeNumber}')">
@@ -3568,6 +3572,7 @@ window.addLoanSummaryToFooter = addLoanSummaryToFooter; // اضافه کردن �
 	
 </body>
 </html>
+
 
 
 
