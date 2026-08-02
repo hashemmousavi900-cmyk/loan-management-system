@@ -1310,6 +1310,18 @@ table.table td:nth-child(12) {
                                 <option value="inactive">درخواست مجدد وام</option>
                             </select>
                         </div>
+                        <!-- اضافه شدن فیلتر آخرین وام دریافتی -->
+                        <div class="filter-group">
+                            <label>فیلتر بر اساس آخرین وام دریافتی</label>
+                            <select id="last-loan-filter" class="filter-control">
+                                <option value="all">همه کاربران</option>
+                                <option value="less6">کمتر از 6 ماه از آخرین وام گذشته</option>
+                                <option value="more1year">بیشتر از 1 سال از آخرین وام گذشته</option>
+                                <option value="more2year">بیشتر از 2 سال از آخرین وام گذشته</option>
+                                <option value="more6">بیشتر از 6 ماه از آخرین وام گذشته</option>
+                                <option value="none">بدون وام</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
                 
@@ -2829,7 +2841,6 @@ async function checkPassword(password) {
 		
 
 
-
 		
         function setupEventListeners() {
             console.log('🔧 در حال تنظیم event listeners...');
@@ -2897,6 +2908,14 @@ async function checkPassword(password) {
             const contractTypeFilter = document.getElementById('contract-type-filter');
             if (contractTypeFilter) {
                 contractTypeFilter.addEventListener('change', function() {
+                    filterTable();
+                });
+            }
+
+            // اضافه شدن event listener برای فیلتر آخرین وام دریافتی
+            const lastLoanFilter = document.getElementById('last-loan-filter');
+            if (lastLoanFilter) {
+                lastLoanFilter.addEventListener('change', function() {
                     filterTable();
                 });
             }
@@ -3254,13 +3273,14 @@ function resetLoanForm() {
     document.getElementById('cancel-edit-btn').style.display = 'none';
 }
 		
-		
+
 
 function filterTable() {
     const searchTerm = document.getElementById('search-input').value.toLowerCase();
     const loanCountFilter = document.getElementById('loan-count-filter').value;
     const loanRequestFilter = document.getElementById('loan-request-filter').value;
     const contractTypeFilter = document.getElementById('contract-type-filter').value;
+    const lastLoanFilter = document.getElementById('last-loan-filter').value;
     
     const filteredData = employeesData.filter(item => {
         const matchesSearch = 
@@ -3305,11 +3325,75 @@ function filterTable() {
         if (contractTypeFilter !== 'all') {
             matchesContractType = item.contractType === contractTypeFilter;
         }
+
+        // منطق فیلتر آخرین وام دریافتی
+        let matchesLastLoan = true;
+        if (lastLoanFilter !== 'all') {
+            const lastLoanDate = getLastLoanDate(item.loans);
+            
+            if (lastLoanFilter === 'none') {
+                matchesLastLoan = lastLoanDate === null;
+            } else {
+                const monthsSince = getMonthsSinceLastLoan(lastLoanDate);
+                
+                switch(lastLoanFilter) {
+                    case 'less6':
+                        matchesLastLoan = monthsSince < 6 && monthsSince >= 0;
+                        break;
+                    case 'more6':
+                        matchesLastLoan = monthsSince >= 6;
+                        break;
+                    case 'more1year':
+                        matchesLastLoan = monthsSince >= 12;
+                        break;
+                    case 'more2year':
+                        matchesLastLoan = monthsSince >= 24;
+                        break;
+                }
+                
+                // اگر کاربر وامی نداشته باشد (monthsSince = Infinity) باید در دسته‌بندی "بیشتر از" قرار بگیرد
+                if (monthsSince === Infinity) {
+                    matchesLastLoan = ['more6', 'more1year', 'more2year'].includes(lastLoanFilter);
+                }
+            }
+        }
         
-        return matchesSearch && matchesLoanCount && matchesLoanRequest && matchesContractType;
+        return matchesSearch && matchesLoanCount && matchesLoanRequest && matchesContractType && matchesLastLoan;
     });
     
     renderTable(filteredData);
+}
+
+// تابع محاسبه آخرین وام دریافتی
+function getLastLoanDate(loans) {
+    if (!loans || loans.length === 0) return null;
+    
+    // تبدیل تاریخ‌های وام به آبجکت Date و پیدا کردن جدیدترین
+    const validDates = loans
+        .map(loan => {
+            try {
+                return loan.date ? new Date(loan.date) : null;
+            } catch {
+                return null;
+            }
+        })
+        .filter(date => date && !isNaN(date.getTime()));
+    
+    if (validDates.length === 0) return null;
+    
+    // برگرداندن جدیدترین تاریخ
+    return new Date(Math.max(...validDates.map(d => d.getTime())));
+}
+
+// تابع محاسبه مدت زمان از آخرین وام
+function getMonthsSinceLastLoan(lastLoanDate) {
+    if (!lastLoanDate) return Infinity; // اگر وامی نداشته باشد
+    
+    const now = new Date();
+    const diffInMonths = (now.getFullYear() - lastLoanDate.getFullYear()) * 12 + 
+                        (now.getMonth() - lastLoanDate.getMonth());
+    
+    return Math.max(0, diffInMonths);
 }
 
 async function saveLoan() {
@@ -3572,7 +3656,3 @@ window.addLoanSummaryToFooter = addLoanSummaryToFooter; // اضافه کردن �
 	
 </body>
 </html>
-
-
-
-
