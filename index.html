@@ -2290,42 +2290,42 @@ document.addEventListener('DOMContentLoaded', function() {
             return '';
         }
 
-        function createLoanDisplay(employee) {
-            const bankLoans = employee.loans ? employee.loans.filter(loan => loan.type === 'bank') : [];
-            const companyLoans = employee.loans ? employee.loans.filter(loan => loan.type === 'company') : [];
-            
-            let tooltipHTML = `
-                <div class="tooltip-title">جزئیات وام‌ها</div>
+function createLoanDisplay(employee) {
+    const bankLoans = employee.loans ? employee.loans.filter(loan => loan.type === 'bank') : [];
+    const companyLoans = employee.loans ? employee.loans.filter(loan => loan.type === 'company') : [];
+    
+    let tooltipHTML = `
+        <div class="tooltip-title">جزئیات وام‌ها</div>
+    `;
+    
+    if (companyLoans.length > 0) {
+        tooltipHTML += '<div style="margin-bottom: 6px;">';
+        companyLoans.forEach((loan, index) => {
+            tooltipHTML += `
+                <div class="loan-type company-loan" style="margin-bottom: 3px; padding: 5px 6px; border-radius: 5px;">
+                    <strong>وام شرکتی:</strong> ${formatLoanAmount(loan.amount)} میلیون${loan.date ? ` - ${loan.date}` : ''}${loan.description ? `، ${loan.description}` : ''}
+                </div>
             `;
-            
-            if (companyLoans.length > 0) {
-                tooltipHTML += '<div style="margin-bottom: 6px;">';
-                companyLoans.forEach((loan, index) => {
-                    tooltipHTML += `
-                        <div class="loan-type company-loan" style="margin-bottom: 3px; padding: 5px 6px; border-radius: 5px;">
-                            <strong>وام شرکتی:</strong> ${formatLoanAmount(loan.amount)} میلیون${loan.description ? `، ${loan.description}` : ''}
-                        </div>
-                    `;
-                });
-                tooltipHTML += '</div>';
-            }
-            
-            if (bankLoans.length > 0) {
-                tooltipHTML += '<div>';
-                bankLoans.forEach((loan, index) => {
-                    tooltipHTML += `
-                        <div class="loan-type bank-loan" style="margin-bottom: 3px; padding: 5px 6px; border-radius: 5px;">
-                            <strong>وام بانکی:</strong> ${formatLoanAmount(loan.amount)} میلیون، ${loan.bankName || 'بانک'}${loan.description ? `<small>${loan.description}</small>` : ''}
-                        </div>
-                    `;
-                });
-                tooltipHTML += '</div>';
-            }
-            
-            return {
-                tooltip: tooltipHTML
-            };
-        }
+        });
+        tooltipHTML += '</div>';
+    }
+    
+    if (bankLoans.length > 0) {
+        tooltipHTML += '<div>';
+        bankLoans.forEach((loan, index) => {
+            tooltipHTML += `
+                <div class="loan-type bank-loan" style="margin-bottom: 3px; padding: 5px 6px; border-radius: 5px;">
+                    <strong>وام بانکی:</strong> ${formatLoanAmount(loan.amount)} میلیون${loan.date ? ` - ${loan.date}` : ''}، ${loan.bankName || 'بانک'}${loan.description ? `<small>${loan.description}</small>` : ''}
+                </div>
+            `;
+        });
+        tooltipHTML += '</div>';
+    }
+    
+    return {
+        tooltip: tooltipHTML
+    };
+}
 
         function formatLoanAmount(amount) {
             const numAmount = parseFloat(amount) || 0;
