@@ -1244,6 +1244,10 @@ table.table td:nth-child(12) {
     </style>
 </head>
 <body>
+    <!-- فایل‌های ورودی مخفی برای ایمپورت JSON و Excel -->
+    <input type="file" id="import-json" accept=".json" style="display: none;">
+    <input type="file" id="import-excel" accept=".xlsx, .xls" style="display: none;">
+
     <!-- مودال رمز عبور -->
     <div id="loginModal" class="login-modal">
         <div class="login-content">
@@ -1261,12 +1265,25 @@ table.table td:nth-child(12) {
                     <h2>سیستم مدیریت وام‌ها - CR(Mashhad)</h2>
                     <div class="btn-group">
                         <button class="btn btn-success" id="add-loan-btn">
-    <i class="fas fa-plus"></i> 
-    <span>افزودن کاربر جدید</span>  <!-- فقط این خط رو عوض کن -->
-</button>
+                            <i class="fas fa-plus"></i> 
+                            <span>افزودن کاربر جدید</span>
+                        </button>
                         <button class="btn btn-warning" id="export-excel">
                             <i class="fas fa-file-excel"></i>
                             <span>خروجی اکسل</span>
+                        </button>
+                        <!-- دکمه‌های جدید JSON -->
+                        <button class="btn btn-primary" id="export-json">
+                            <i class="fas fa-file-code"></i>
+                            <span>خروجی JSON</span>
+                        </button>
+                        <button class="btn btn-secondary" id="btn-import-json">
+                            <i class="fas fa-upload"></i>
+                            <span>ورودی JSON</span>
+                        </button>
+                        <button class="btn btn-secondary" id="btn-import-excel">
+                            <i class="fas fa-file-import"></i>
+                            <span>ورودی اکسل</span>
                         </button>
                     </div>
                 </div>
@@ -1351,8 +1368,8 @@ table.table td:nth-child(12) {
                 
 				<div id="empty-state" class="empty-state" style="display: none;">
 					<i class="fas fa-inbox"></i>
-					<h3>کاربری وجود ندارد</h3>  <!-- فقط این خط رو عوض کن -->
-					<p>هنوز هیچ کاربری ثبت نشده است. برای شروع روی دکمه "افزودن کاربر جدید" کلیک کنید.</p>  <!-- فقط این خط رو عوض کن -->
+					<h3>کاربری وجود ندارد</h3>
+					<p>هنوز هیچ کاربری ثبت نشده است. برای شروع روی دکمه "افزودن کاربر جدید" کلیک کنید.</p>
 					<button class="btn btn-success" id="add-first-loan">
 						<i class="fas fa-plus"></i> افزودن اولین کاربر
 					</button>
@@ -1429,7 +1446,6 @@ table.table td:nth-child(12) {
     </div>
 
     <!-- مودال مدیریت وام‌ها برای هر کاربر -->
-<!-- مودال مدیریت وام‌ها برای هر کاربر -->
 <div id="manageLoansModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
@@ -2884,6 +2900,42 @@ async function checkPassword(password) {
                 });
             }
 
+            // دکمه‌های جدید JSON
+            const exportJson = document.getElementById('export-json');
+            if (exportJson) {
+                exportJson.addEventListener('click', function() {
+                    exportToJSON();
+                });
+            }
+
+            const btnImportJson = document.getElementById('btn-import-json');
+            if (btnImportJson) {
+                btnImportJson.addEventListener('click', function() {
+                    document.getElementById('import-json').click();
+                });
+            }
+
+            const importJsonInput = document.getElementById('import-json');
+            if (importJsonInput) {
+                importJsonInput.addEventListener('change', function(e) {
+                    handleJSONImport(e);
+                });
+            }
+
+            const btnImportExcel = document.getElementById('btn-import-excel');
+            if (btnImportExcel) {
+                btnImportExcel.addEventListener('click', function() {
+                    document.getElementById('import-excel').click();
+                });
+            }
+
+            const importExcelInput = document.getElementById('import-excel');
+            if (importExcelInput) {
+                importExcelInput.addEventListener('change', function(e) {
+                    handleExcelImport(e);
+                });
+            }
+
             const searchInput = document.getElementById('search-input');
             if (searchInput) {
                 searchInput.addEventListener('input', function() {
@@ -3631,6 +3683,295 @@ function editEmployee(employeeNumber) {
         showNotification('خطا در ایجاد خروجی اکسل', 'error');
     }
 }
+
+// ==================== توابع JSON (جدید) ====================
+
+// تابع خروجی JSON
+function exportToJSON() {
+    try {
+        // آماده‌سازی داده‌ها برای خروجی JSON
+        const dataForExport = employeesData.map(employee => {
+            return {
+                username: employee.username || '',
+                employeeNumber: employee.employeeNumber,
+                fullname: employee.fullname,
+                gender: employee.gender,
+                contractType: employee.contractType || 'Staff',
+                priority: employee.priority || 'متوسط',
+                description: employee.description || '',
+                loanRequest: employee.loanRequest || false,
+                loans: (employee.loans || []).map(loan => ({
+                    id: loan.id || Date.now().toString(36) + Math.random().toString(36).substr(2),
+                    type: loan.type || 'bank',
+                    amount: loan.amount || 0,
+                    bankName: loan.bankName || '',
+                    date: loan.date || '',
+                    description: loan.description || ''
+                }))
+            };
+        });
+
+        const jsonStr = JSON.stringify(dataForExport, null, 2);
+        const blob = new Blob([jsonStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `کاربران_وام_${new Date().toISOString().slice(0,10)}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        showNotification('خروجی JSON با موفقیت ایجاد شد', 'success');
+    } catch (error) {
+        console.error('❌ خطا در ایجاد خروجی JSON:', error);
+        showNotification('خطا در ایجاد خروجی JSON', 'error');
+    }
+}
+
+// تابع ورودی JSON
+function handleJSONImport(e) {
+    const file = e.target.files[0];
+    if (!file) {
+        showNotification('فایلی انتخاب نشده است', 'error');
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(event) {
+        try {
+            const importedData = JSON.parse(event.target.result);
+            
+            if (!Array.isArray(importedData)) {
+                showNotification('فرمت فایل JSON معتبر نیست (آرایه مورد انتظار است)', 'error');
+                return;
+            }
+
+            if (importedData.length === 0) {
+                showNotification('فایل JSON خالی است', 'warning');
+                return;
+            }
+
+            // بررسی فیلدهای ضروری
+            const firstItem = importedData[0];
+            const requiredFields = ['employeeNumber', 'fullname', 'gender', 'contractType', 'priority'];
+            const missingFields = requiredFields.filter(field => !firstItem.hasOwnProperty(field));
+            
+            if (missingFields.length > 0) {
+                showNotification(`فیلدهای زیر در JSON یافت نشدند: ${missingFields.join(', ')}`, 'error');
+                return;
+            }
+
+            if (confirm(`${importedData.length} کاربر در فایل JSON یافت شد. آیا می‌خواهید داده‌های فعلی را جایگزین کنید؟`)) {
+                // پاک کردن داده‌های فعلی
+                employeesData = [];
+                
+                // تبدیل داده‌های وارد شده
+                importedData.forEach(item => {
+                    const newEmployee = {
+                        id: Date.now().toString(36) + Math.random().toString(36).substr(2),
+                        username: item.username || '',
+                        employeeNumber: item.employeeNumber.toString(),
+                        fullname: item.fullname || '',
+                        gender: item.gender || 'مرد',
+                        contractType: item.contractType || 'Staff',
+                        priority: item.priority || 'متوسط',
+                        description: item.description || '',
+                        loanRequest: item.loanRequest || false,
+                        loans: (item.loans || []).map(loan => ({
+                            id: loan.id || Date.now().toString(36) + Math.random().toString(36).substr(2),
+                            type: loan.type || 'bank',
+                            amount: parseFloat(loan.amount) || 0,
+                            bankName: loan.bankName || '',
+                            date: loan.date || '',
+                            description: loan.description || ''
+                        }))
+                    };
+                    employeesData.push(newEmployee);
+                });
+
+                saveToLocalStorage();
+                renderTable(employeesData);
+                showNotification(`${importedData.length} کاربر با موفقیت از JSON وارد شدند`, 'success');
+            }
+        } catch (error) {
+            console.error('❌ خطا در خواندن فایل JSON:', error);
+            showNotification('خطا در خواندن فایل JSON: ' + error.message, 'error');
+        }
+        e.target.value = ''; // reset input
+    };
+
+    reader.onerror = function() {
+        showNotification('خطا در خواندن فایل', 'error');
+        e.target.value = '';
+    };
+
+    reader.readAsText(file);
+}
+
+// تابع ورودی اکسل (با خطاگیری بهتر)
+function handleExcelImport(e) {
+    const file = e.target.files[0];
+    if (!file) {
+        showNotification('فایلی انتخاب نشده است', 'error');
+        return;
+    }
+
+    // بررسی وجود کتابخانه XLSX
+    if (typeof XLSX === 'undefined') {
+        showNotification('کتابخانه اکسل بارگذاری نشد. لطفاً اتصال اینترنت را بررسی کنید.', 'error');
+        e.target.value = '';
+        return;
+    }
+
+    showLoading(true, 'در حال پردازش فایل اکسل...');
+
+    const reader = new FileReader();
+    reader.onload = function(event) {
+        try {
+            const data = new Uint8Array(event.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            
+            if (!workbook.SheetNames.length) {
+                throw new Error('فایل اکسل خالی است');
+            }
+
+            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+            let jsonData = XLSX.utils.sheet_to_json(firstSheet);
+
+            // بررسی هدرها
+            if (jsonData.length > 0) {
+                const keys = Object.keys(jsonData[0]);
+                const hasPersianHeaders = keys.some(k => 
+                    k.includes('نام') || k.includes('شماره') || k.includes('کاربری')
+                );
+                
+                if (!hasPersianHeaders && jsonData.length > 0) {
+                    // تلاش برای خواندن از سطر دوم
+                    jsonData = XLSX.utils.sheet_to_json(firstSheet, { range: 1 });
+                }
+            }
+
+            if (jsonData.length === 0) {
+                throw new Error('هیچ داده‌ای در فایل یافت نشد');
+            }
+
+            if (confirm(`${jsonData.length} کاربر در فایل اکسل یافت شد. آیا می‌خواهید اضافه شوند؟`)) {
+                let addedCount = 0;
+                let errorCount = 0;
+
+                jsonData.forEach((row, index) => {
+                    try {
+                        const empNumber = row['شماره پرسنلی'] ? row['شماره پرسنلی'].toString().trim() : '';
+                        if (!empNumber) {
+                            errorCount++;
+                            return;
+                        }
+
+                        // بررسی تکراری نبودن
+                        if (employeesData.find(ex => ex.employeeNumber === empNumber)) {
+                            errorCount++;
+                            return;
+                        }
+
+                        const newEmployee = {
+                            id: Date.now().toString(36) + Math.random().toString(36).substr(2) + index,
+                            username: row['نام کاربری'] || '',
+                            employeeNumber: empNumber,
+                            fullname: row['نام و نام خانوادگی'] || '',
+                            gender: row['جنسیت'] || 'مرد',
+                            contractType: row['نوع قرارداد'] || 'Staff',
+                            priority: row['اولویت'] || 'متوسط',
+                            description: row['توضیحات'] || '',
+                            loanRequest: (row['درخواست وام مجدد'] === 'بله' || row['درخواست وام مجدد'] === true),
+                            loans: []
+                        };
+
+                        // تجزیه وام‌های بانکی
+                        if (row['لیست وام‌های بانکی']) {
+                            const bankLoans = parseLoanString(row['لیست وام‌های بانکی'], 'bank');
+                            newEmployee.loans = [...newEmployee.loans, ...bankLoans];
+                        }
+
+                        // تجزیه وام‌های شرکتی
+                        if (row['لیست وام‌های شرکتی']) {
+                            const companyLoans = parseLoanString(row['لیست وام‌های شرکتی'], 'company');
+                            newEmployee.loans = [...newEmployee.loans, ...companyLoans];
+                        }
+
+                        employeesData.push(newEmployee);
+                        addedCount++;
+
+                    } catch (innerErr) {
+                        console.error(`❌ خطا در سطر ${index + 1}:`, innerErr);
+                        errorCount++;
+                    }
+                });
+
+                saveToLocalStorage();
+                renderTable(employeesData);
+                
+                let msg = `${addedCount} کاربر با موفقیت اضافه شدند`;
+                if (errorCount > 0) msg += ` (${errorCount} خطا)`;
+                showNotification(msg, addedCount > 0 ? 'success' : 'error');
+            }
+
+            e.target.value = '';
+
+        } catch (error) {
+            console.error('❌ خطا در ایمپورت اکسل:', error);
+            showNotification('خطا در ایمپورت اکسل: ' + error.message, 'error');
+            e.target.value = '';
+        } finally {
+            showLoading(false);
+        }
+    };
+
+    reader.onerror = function() {
+        showNotification('خطا در خواندن فایل', 'error');
+        showLoading(false);
+        e.target.value = '';
+    };
+
+    reader.readAsArrayBuffer(file);
+}
+
+// تابع کمکی برای تجزیه رشته وام‌ها
+function parseLoanString(inputString, type) {
+    if (!inputString || typeof inputString !== 'string') return [];
+    
+    const loans = [];
+    const items = inputString.split(' | ');
+    
+    items.forEach(item => {
+        item = item.trim();
+        if (!item) return;
+        
+        const parts = item.split(' - ').map(p => p.trim());
+        
+        if (parts.length >= 3) {
+            const date = parts[parts.length - 1];
+            const amountStr = parts[parts.length - 2];
+            const amount = parseFloat(amountStr.replace(/[^0-9.]/g, '')) || 0;
+            const nameOrDesc = parts.slice(0, parts.length - 2).join(' - ');
+
+            if (amount > 0) {
+                loans.push({
+                    id: Date.now().toString(36) + Math.random().toString(36).substr(2),
+                    type: type,
+                    amount: amount,
+                    date: date,
+                    bankName: type === 'bank' ? nameOrDesc : '',
+                    description: type === 'company' ? nameOrDesc : ''
+                });
+            }
+        }
+    });
+    
+    return loans;
+}
+
 // توابع global
 window.deleteEmployee = deleteEmployee;
 window.toggleLoanRequest = toggleLoanRequest;
@@ -3647,7 +3988,11 @@ window.editUserLoan = editUserLoan;
 window.cancelEditLoan = cancelEditLoan;
 window.refreshMainTable = refreshMainTable;
 window.showLoanDetailsOnly = showLoanDetailsOnly;
-window.addLoanSummaryToFooter = addLoanSummaryToFooter; // اضافه کردن این خط
+window.addLoanSummaryToFooter = addLoanSummaryToFooter;
+window.exportToJSON = exportToJSON;
+window.handleJSONImport = handleJSONImport;
+window.handleExcelImport = handleExcelImport;
+window.parseLoanString = parseLoanString;
 
 
     </script>
