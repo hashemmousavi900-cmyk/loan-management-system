@@ -2279,12 +2279,8 @@ document.addEventListener('DOMContentLoaded', function() {
             setTimeout(() => notification.remove(), 4000);
         }
 		        // تابع ارسال پیام به ربات بله
+                // تابع ارسال پیام به ربات بله
         async function sendBaleNotification(fullname, priority, description) {
-            if (BALE_BOT_TOKEN === "1378448946:uTkND5LQkPGbOogBwYOx9GNhnb980kusvHo" || BALE_CHAT_ID === "1156775177") {
-                console.warn("تنظیمات ربات بله انجام نشده است.");
-                return;
-            }
-
             // گرفتن تاریخ شمسی روز جاری
             const today = new Date().toLocaleDateString('fa-IR');
 
