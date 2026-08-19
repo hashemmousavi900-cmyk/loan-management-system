@@ -2278,10 +2278,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.body.appendChild(notification);
             setTimeout(() => notification.remove(), 4000);
         }
-		        // تابع ارسال پیام به ربات بله
-                // تابع ارسال پیام به ربات بله
-               // تابع ارسال پیام به ربات بله (با دور زدن محدودیت CORS)
-                // تابع ارسال پیام به ربات بله (با استفاده از ترفند Image برای دور زدن CORS در تمام مرورگرها)
+		            // تابع ارسال پیام به ربات بله (با استفاده از ترفند Hidden Form - قابل استفاده در تمام مرورگرها)
         async function sendBaleNotification(fullname, priority, description) {
             // گرفتن تاریخ شمسی روز جاری
             const today = new Date().toLocaleDateString('fa-IR');
@@ -2294,13 +2291,42 @@ document.addEventListener('DOMContentLoaded', function() {
                             `📝 *توضیحات:* ${description || 'بدون توضیحات'}\n\n` +
                             `سیستم مدیریت وام‌ها - CR(Mashhad)`;
 
-            // ساخت لینک GET برای ارسال به بله
-            const baleUrl = `https://tapi.bale.ai/bot${BALE_BOT_TOKEN}/sendMessage?chat_id=${BALE_CHAT_ID}&text=${encodeURIComponent(message)}&parse_mode=Markdown`;
-
-            // استفاده از ترفند Image برای ارسال درخواست بدون блок شدن توسط CORS
             try {
-                const img = new Image();
-                img.src = baleUrl;
+                // ۱. ساخت یک پنجره مخفی (iframe) برای جلوگیری از تغییر صفحه
+                let iframe = document.getElementById('bale-hidden-frame');
+                if (!iframe) {
+                    iframe = document.createElement('iframe');
+                    iframe.id = 'bale-hidden-frame';
+                    iframe.name = 'bale-hidden-frame';
+                    iframe.style.display = 'none';
+                    document.body.appendChild(iframe);
+                }
+
+                // ۲. ساخت یک فرم مخفی
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `https://tapi.bale.ai/bot${BALE_BOT_TOKEN}/sendMessage`;
+                form.target = 'bale-hidden-frame'; // ارسال پاسخ به iframe مخفی
+                form.style.display = 'none';
+
+                // ۳. اضافه کردن اطلاعات به فرم
+                const addField = (name, value) => {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = name;
+                    input.value = value;
+                    form.appendChild(input);
+                };
+
+                addField('chat_id', BALE_CHAT_ID);
+                addField('text', message);
+                addField('parse_mode', 'Markdown');
+
+                // ۴. ارسال فرم
+                document.body.appendChild(form);
+                form.submit();
+                document.body.removeChild(form);
+
                 console.log('✅ پیام بله با موفقیت ارسال شد');
             } catch (error) {
                 console.error('❌ خطا در ارتباط با بله:', error);
