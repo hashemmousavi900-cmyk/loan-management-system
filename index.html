@@ -2278,12 +2278,9 @@ document.addEventListener('DOMContentLoaded', function() {
             document.body.appendChild(notification);
             setTimeout(() => notification.remove(), 4000);
         }
-		           // تابع ارسال پیام به ربات بله (روش استاندارد و سازگار با تمام مرورگرها)
-                // تابع ارسال پیام به ربات بله (با استفاده از پروکسی برای دور زدن CORS در تمام مرورگرها)
-                // تابع ارسال پیام به ربات بله با استفاده از پروکسی شخصی Cloudflare
-        async function sendBaleNotification(fullname, priority, description) {
-            // آدرس پروکسی شما در کلودفلر (حتما این را تغییر دهید)
-            const PROXY_URL = "workflows-starter-loan.nova-1d059c.workers.dev/"; // مثال: https://my-worker.your-name.workers.dev
+		            async function sendBaleNotification(fullname, priority, description) {
+            // آدرس پروکسی شما در کلودفلر (با https:// اصلاح شد)
+            const PROXY_URL = "https://workflows-starter-loan.nova-1d059c.workers.dev"; 
 
             // گرفتن تاریخ شمسی روز جاری
             const today = new Date().toLocaleDateString('fa-IR');
