@@ -2281,6 +2281,7 @@ document.addEventListener('DOMContentLoaded', function() {
 		        // تابع ارسال پیام به ربات بله
                 // تابع ارسال پیام به ربات بله
                // تابع ارسال پیام به ربات بله (با دور زدن محدودیت CORS)
+                // تابع ارسال پیام به ربات بله (با استفاده از ترفند Image برای دور زدن CORS در تمام مرورگرها)
         async function sendBaleNotification(fullname, priority, description) {
             // گرفتن تاریخ شمسی روز جاری
             const today = new Date().toLocaleDateString('fa-IR');
@@ -2293,12 +2294,13 @@ document.addEventListener('DOMContentLoaded', function() {
                             `📝 *توضیحات:* ${description || 'بدون توضیحات'}\n\n` +
                             `سیستم مدیریت وام‌ها - CR(Mashhad)`;
 
-            // ساخت لینک GET برای ارسال به بله (دور زدن CORS)
+            // ساخت لینک GET برای ارسال به بله
             const baleUrl = `https://tapi.bale.ai/bot${BALE_BOT_TOKEN}/sendMessage?chat_id=${BALE_CHAT_ID}&text=${encodeURIComponent(message)}&parse_mode=Markdown`;
 
+            // استفاده از ترفند Image برای ارسال درخواست بدون блок شدن توسط CORS
             try {
-                // استفاده از no-cors برای ارسال درخواست بدون انتظار خواندن جواب
-                await fetch(baleUrl, { mode: 'no-cors' });
+                const img = new Image();
+                img.src = baleUrl;
                 console.log('✅ پیام بله با موفقیت ارسال شد');
             } catch (error) {
                 console.error('❌ خطا در ارتباط با بله:', error);
