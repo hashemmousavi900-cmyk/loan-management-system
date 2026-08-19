@@ -1535,7 +1535,9 @@ table.table td:nth-child(12) {
         // تنظیمات Supabase
         const SUPABASE_URL = "https://buowqguzsrychwoxyqby.supabase.co";
         const SUPABASE_KEY = "sb_publishable_Miw4tQ0ppv9S8_bWkrFLIQ_JaCda5jc";
-
+		        // تنظیمات ربات بله
+        const BALE_BOT_TOKEN = "1378448946:uTkND5LQkPGbOogBwYOx9GNhnb980kusvHo";
+        const BALE_CHAT_ID = "1156775177";
         // نام جدول‌های جدید
         const USER_INFO_TABLE = 'user_info';
         const LOAN_INFO_TABLE = 'loan_info';
@@ -2275,6 +2277,44 @@ document.addEventListener('DOMContentLoaded', function() {
             notification.textContent = message;
             document.body.appendChild(notification);
             setTimeout(() => notification.remove(), 4000);
+        }
+		        // تابع ارسال پیام به ربات بله
+        async function sendBaleNotification(fullname, priority, description) {
+            if (BALE_BOT_TOKEN === "1378448946:uTkND5LQkPGbOogBwYOx9GNhnb980kusvHo" || BALE_CHAT_ID === "1156775177") {
+                console.warn("تنظیمات ربات بله انجام نشده است.");
+                return;
+            }
+
+            // گرفتن تاریخ شمسی روز جاری
+            const today = new Date().toLocaleDateString('fa-IR');
+
+            // ساخت متن پیام
+            const message = `🔔 *درخواست وام مجدد جدید*\n\n` +
+                            `👤 *نام و نام خانوادگی:* ${fullname}\n` +
+                            `📅 *تاریخ درخواست:* ${today}\n` +
+                            `⚠️ *اولویت:* ${priority}\n` +
+                            `📝 *توضیحات:* ${description || 'بدون توضیحات'}\n\n` +
+                            `سیستم مدیریت وام‌ها - CR(Mashhad)`;
+
+            try {
+                const response = await fetch(`https://tapi.bale.ai/bot${BALE_BOT_TOKEN}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: BALE_CHAT_ID,
+                        text: message,
+                        parse_mode: "Markdown"
+                    })
+                });
+
+                if (response.ok) {
+                    console.log('✅ پیام بله با موفقیت ارسال شد');
+                } else {
+                    console.error('❌ خطا در ارسال پیام بله');
+                }
+            } catch (error) {
+                console.error('❌ خطا در ارتباط با بله:', error);
+            }
         }
 
         function showEmptyState() {
@@ -3508,7 +3548,14 @@ async function saveLoan() {
                 switchElement.checked = willEnableLoan;
             }
         }
-        
+                // ارسال پیام به بله اگر درخواست وام فعال شود
+        if (isFromLoanRequest && willEnableLoan) {
+            sendBaleNotification(
+                employeeData.fullname, 
+                employeeData.priority, 
+                employeeData.description
+            );
+        }
         // مرتب‌سازی employeesData - کاربران با درخواست وام و اولویت بالا اول
         employeesData.sort((a, b) => {
             // اول: کاربران با درخواست وام فعال اول
