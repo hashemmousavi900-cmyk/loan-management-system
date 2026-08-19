@@ -2278,9 +2278,9 @@ document.addEventListener('DOMContentLoaded', function() {
             document.body.appendChild(notification);
             setTimeout(() => notification.remove(), 4000);
         }
-		            async function sendBaleNotification(fullname, priority, description) {
-            // آدرس پروکسی شما در کلودفلر (با https:// اصلاح شد)
-            const PROXY_URL = "https://workflows-starter-loan.nova-1d059c.workers.dev"; 
+		    async function sendBaleNotification(fullname, priority, description) {
+            // آدرس پروکسی شما در کلودفلر
+            const PROXY_URL = "https://loanmanagment.nova-1d059c.workers.dev/"; 
 
             // گرفتن تاریخ شمسی روز جاری
             const today = new Date().toLocaleDateString('fa-IR');
