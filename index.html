@@ -2280,11 +2280,15 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 		           // تابع ارسال پیام به ربات بله (روش استاندارد و سازگار با تمام مرورگرها)
                 // تابع ارسال پیام به ربات بله (با استفاده از پروکسی برای دور زدن CORS در تمام مرورگرها)
+                // تابع ارسال پیام به ربات بله با استفاده از پروکسی شخصی Cloudflare
         async function sendBaleNotification(fullname, priority, description) {
+            // آدرس پروکسی شما در کلودفلر (حتما این را تغییر دهید)
+            const PROXY_URL = "workflows-starter-loan.nova-1d059c.workers.dev/"; // مثال: https://my-worker.your-name.workers.dev
+
             // گرفتن تاریخ شمسی روز جاری
             const today = new Date().toLocaleDateString('fa-IR');
 
-            // ساخت متن پیام (بدون استفاده از * برای جلوگیری از خطاهای احتمالی بله)
+            // ساخت متن پیام
             const message = `🔔 درخواست وام مجدد جدید\n\n` +
                             `👤 نام و نام خانوادگی: ${fullname}\n` +
                             `📅 تاریخ درخواست: ${today}\n` +
@@ -2295,14 +2299,13 @@ document.addEventListener('DOMContentLoaded', function() {
             // ساخت لینک API بله
             const baleApiUrl = `https://tapi.bale.ai/bot${BALE_BOT_TOKEN}/sendMessage?chat_id=${BALE_CHAT_ID}&text=${encodeURIComponent(message)}`;
             
-            // استفاده از پروکسی allorigins برای دور زدن CORS و دریافت جواب دقیق
-            const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(baleApiUrl)}`;
+            // ترکیب پروکسی و آدرس بله
+            const finalUrl = `${PROXY_URL}?url=${encodeURIComponent(baleApiUrl)}`;
 
             try {
-                const response = await fetch(proxyUrl);
+                const response = await fetch(finalUrl);
                 const data = await response.json();
                 
-                // بررسی جوابی که بله به ما داده است
                 if (data.ok) {
                     console.log('✅ پیام بله با موفقیت ارسال شد', data);
                 } else {
